@@ -1,0 +1,28 @@
+storyline: red_card_shift
+home_team: Nairobi North
+away_team: Kisii Falcons
+home_players:
+  - Brian Ouma
+  - Eric Muita
+  - Samson Kariuki
+  - Teddy Mwangi
+  - Peter Kioko
+away_players:
+  - Harun Kiptanui
+  - David Karanja
+  - Joseph Miti
+  - Franklin Ndegwa
+  - Lukman Ochieng
+goals:
+  - team: home
+    minute: 18
+    scorer: Brian Ouma
+  - team: away
+    minute: 33
+    scorer: Harun Kiptanui
+  - team: home
+    minute: 52
+    scorer: Samson Kariuki
+  - team: home
+    minute: 81
+    scorer: Eric Muita

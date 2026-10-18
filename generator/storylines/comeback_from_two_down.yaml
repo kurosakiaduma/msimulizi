@@ -1,0 +1,31 @@
+storyline: comeback_from_two_down
+home_team: Kisumu City
+away_team: Mombasa United
+home_players:
+  - Amani Otieno
+  - Khalid Njoroge
+  - Juma Kamau
+  - Davis Wekesa
+  - Eliud Mwangangi
+away_players:
+  - Nuru Mchana
+  - Salim Kivuva
+  - Juma Mwakazi
+  - Asha Njeri
+  - Mbaraka Chacha
+goals:
+  - team: away
+    minute: 12
+    scorer: Juma Mwakazi
+  - team: away
+    minute: 31
+    scorer: Asha Njeri
+  - team: home
+    minute: 58
+    scorer: Amani Otieno
+  - team: home
+    minute: 77
+    scorer: Khalid Njoroge
+  - team: home
+    minute: 88
+    scorer: Juma Kamau

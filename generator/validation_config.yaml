@@ -1,0 +1,67 @@
+comeback_from_two_down:
+  total_shots:
+    min: 8
+    max: 30
+  goals_home:
+    min: 2
+    max: 5
+  goals_away:
+    min: 1
+    max: 4
+  xg_home:
+    min: 0.5
+    max: 3.0
+  xg_away:
+    min: 0.3
+    max: 2.5
+
+red_card_shift:
+  total_shots:
+    min: 8
+    max: 28
+  goals_home:
+    min: 1
+    max: 4
+  goals_away:
+    min: 0
+    max: 2
+  xg_home:
+    min: 0.4
+    max: 2.8
+  xg_away:
+    min: 0.2
+    max: 2.0
+
+late_equaliser:
+  total_shots:
+    min: 8
+    max: 26
+  goals_home:
+    min: 1
+    max: 3
+  goals_away:
+    min: 1
+    max: 3
+  xg_home:
+    min: 0.4
+    max: 2.5
+  xg_away:
+    min: 0.3
+    max: 2.1
+
+dominant_side_loses:
+  total_shots:
+    min: 9
+    max: 30
+  goals_home:
+    min: 1
+    max: 4
+  goals_away:
+    min: 1
+    max: 4
+  xg_home:
+    min: 0.3
+    max: 2.4
+  xg_away:
+    min: 0.3
+    max: 2.4

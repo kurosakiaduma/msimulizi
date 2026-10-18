@@ -1,0 +1,31 @@
+storyline: dominant_side_loses
+home_team: Lakeview FC
+away_team: Highlands United
+home_players:
+  - Willy Kibet
+  - Ibrahim Juma
+  - Moses Omondi
+  - Abdi Yusuf
+  - Paul Kasa
+away_players:
+  - Yusuf Msuya
+  - Alfred Mpepo
+  - Benson Tiba
+  - Daniel Sanga
+  - Emmanuel Kaso
+goals:
+  - team: home
+    minute: 11
+    scorer: Willy Kibet
+  - team: home
+    minute: 41
+    scorer: Ibrahim Juma
+  - team: away
+    minute: 60
+    scorer: Yusuf Msuya
+  - team: away
+    minute: 75
+    scorer: Daniel Sanga
+  - team: away
+    minute: 90
+    scorer: Emmanuel Kaso

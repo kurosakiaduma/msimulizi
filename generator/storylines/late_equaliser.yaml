@@ -1,0 +1,28 @@
+storyline: late_equaliser
+home_team: Arusha Rangers
+away_team: Dodoma City
+home_players:
+  - Isaac Adera
+  - Moses Ndege
+  - Kevin Mburu
+  - Daniel Mwakio
+  - Tariq Zuberi
+away_players:
+  - Levi Makori
+  - Abdullah Sami
+  - Zuberi Ali
+  - Pius Mnyamala
+  - Noel Kamau
+goals:
+  - team: away
+    minute: 21
+    scorer: Levi Makori
+  - team: home
+    minute: 48
+    scorer: Kevin Mburu
+  - team: away
+    minute: 72
+    scorer: Zuberi Ali
+  - team: home
+    minute: 86
+    scorer: Moses Ndege
