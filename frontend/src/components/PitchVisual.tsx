@@ -262,7 +262,7 @@ export function PitchVisual({
       )}
 
       {/* Event-type legend */}
-      <div className="absolute bottom-2 left-2 z-20 flex flex-wrap gap-2 px-2">
+      <div className="absolute top-2 left-2 z-20 flex flex-wrap gap-2 px-2">
         {Object.entries(EVENT_LABEL).map(([type, label]) => (
           <button
             key={type}
