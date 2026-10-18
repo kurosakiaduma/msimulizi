@@ -1,0 +1,1244 @@
+[
+  {
+    "card_id": "card-goal-cc375e33190c3a15",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 1,
+      "minute": 12,
+      "second": 0
+    },
+    "match_seconds": 720.0,
+    "display_duration_ms": 8000,
+    "card_type": "goal",
+    "priority": 1,
+    "player_ref": "Juma Mwakazi",
+    "team_ref": "Mombasa United",
+    "text": {
+      "en": {
+        "headline": "Goli! Juma Mwakazi anafunga dakika ya 12.",
+        "body": "Dakika ya 12, Juma Mwakazi anaiweka mbele kwa 0-1."
+      },
+      "fr": {
+        "headline": "Goli! Juma Mwakazi anafunga dakika ya 12.",
+        "body": "Dakika ya 12, Juma Mwakazi anaiweka mbele kwa 0-1."
+      },
+      "sw": {
+        "headline": "Goli! Juma Mwakazi anafunga dakika ya 12.",
+        "body": "Dakika ya 12, Juma Mwakazi anaiweka mbele kwa 0-1."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Juma Mwakazi scores at minute 12.",
+      "body": "Minute 12, Juma Mwakazi puts the team ahead 0-1."
+    },
+    "structured_explanation": {
+      "theme": "control_vs_chaos",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 1.0,
+          "display_value": "100%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 1.0,
+          "display_value": "100%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 49.622146346196914,
+          "display_value": "50",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000003"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000003"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-56be4b672905dcff",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 1,
+      "minute": 12,
+      "second": 1
+    },
+    "match_seconds": 721.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 4,
+    "player_ref": "Juma Mwakazi",
+    "team_ref": "Mombasa United",
+    "text": {
+      "en": {
+        "headline": "Goli! Juma Mwakazi anafunga dakika ya 12.",
+        "body": "Dakika ya 12, Juma Mwakazi anaiweka mbele kwa 0-1."
+      },
+      "fr": {
+        "headline": "Goli! Juma Mwakazi anafunga dakika ya 12.",
+        "body": "Dakika ya 12, Juma Mwakazi anaiweka mbele kwa 0-1."
+      },
+      "sw": {
+        "headline": "Goli! Juma Mwakazi anafunga dakika ya 12.",
+        "body": "Dakika ya 12, Juma Mwakazi anaiweka mbele kwa 0-1."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Juma Mwakazi scores at minute 12.",
+      "body": "Minute 12, Juma Mwakazi puts the team ahead 0-1."
+    },
+    "structured_explanation": {
+      "theme": "rhythm_shift",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 1.0,
+          "display_value": "100%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 1.0,
+          "display_value": "100%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 45.22613143899234,
+          "display_value": "45",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000006"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000006"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-goal-081be83a96f89f93",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 1,
+      "minute": 31,
+      "second": 0
+    },
+    "match_seconds": 1860.0,
+    "display_duration_ms": 8000,
+    "card_type": "goal",
+    "priority": 1,
+    "player_ref": "Asha Njeri",
+    "team_ref": "Mombasa United",
+    "text": {
+      "en": {
+        "headline": "Goli! Asha Njeri anafunga dakika ya 31.",
+        "body": "Dakika ya 31, Asha Njeri anaiweka mbele kwa 0-2."
+      },
+      "fr": {
+        "headline": "Goli! Asha Njeri anafunga dakika ya 31.",
+        "body": "Dakika ya 31, Asha Njeri anaiweka mbele kwa 0-2."
+      },
+      "sw": {
+        "headline": "Goli! Asha Njeri anafunga dakika ya 31.",
+        "body": "Dakika ya 31, Asha Njeri anaiweka mbele kwa 0-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Asha Njeri scores at minute 31.",
+      "body": "Minute 31, Asha Njeri puts the team ahead 0-2."
+    },
+    "structured_explanation": {
+      "theme": "control_vs_chaos",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 1.0,
+          "display_value": "100%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 1.0,
+          "display_value": "100%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 48.99685313736245,
+          "display_value": "49",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000007"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000007"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-06fbfbcaaeaca517",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 1,
+      "minute": 31,
+      "second": 1
+    },
+    "match_seconds": 1861.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 4,
+    "player_ref": "Asha Njeri",
+    "team_ref": "Mombasa United",
+    "text": {
+      "en": {
+        "headline": "Goli! Asha Njeri anafunga dakika ya 31.",
+        "body": "Dakika ya 31, Asha Njeri anaiweka mbele kwa 0-2."
+      },
+      "fr": {
+        "headline": "Goli! Asha Njeri anafunga dakika ya 31.",
+        "body": "Dakika ya 31, Asha Njeri anaiweka mbele kwa 0-2."
+      },
+      "sw": {
+        "headline": "Goli! Asha Njeri anafunga dakika ya 31.",
+        "body": "Dakika ya 31, Asha Njeri anaiweka mbele kwa 0-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Asha Njeri scores at minute 31.",
+      "body": "Minute 31, Asha Njeri puts the team ahead 0-2."
+    },
+    "structured_explanation": {
+      "theme": "rhythm_shift",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 1.0,
+          "display_value": "100%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 1.0,
+          "display_value": "100%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 44.4983682198448,
+          "display_value": "44",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000010"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000010"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-goal-05d1100312bac451",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 58,
+      "second": 0
+    },
+    "match_seconds": 3480.0,
+    "display_duration_ms": 8000,
+    "card_type": "goal",
+    "priority": 1,
+    "player_ref": "Amani Otieno",
+    "team_ref": "Kisumu City",
+    "text": {
+      "en": {
+        "headline": "Goli! Amani Otieno anafunga dakika ya 58.",
+        "body": "Dakika ya 58, Amani Otieno anaiweka mbele kwa 1-2."
+      },
+      "fr": {
+        "headline": "Goli! Amani Otieno anafunga dakika ya 58.",
+        "body": "Dakika ya 58, Amani Otieno anaiweka mbele kwa 1-2."
+      },
+      "sw": {
+        "headline": "Goli! Amani Otieno anafunga dakika ya 58.",
+        "body": "Dakika ya 58, Amani Otieno anaiweka mbele kwa 1-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Amani Otieno scores at minute 58.",
+      "body": "Minute 58, Amani Otieno puts the team ahead 1-2."
+    },
+    "structured_explanation": {
+      "theme": "control_vs_chaos",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 52.618309060682044,
+          "display_value": "53",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000011"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000011"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-1d502caa1142ff47",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 58,
+      "second": 1
+    },
+    "match_seconds": 3481.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 4,
+    "player_ref": "Amani Otieno",
+    "team_ref": "Kisumu City",
+    "text": {
+      "en": {
+        "headline": "Goli! Amani Otieno anafunga dakika ya 58.",
+        "body": "Dakika ya 58, Amani Otieno anaiweka mbele kwa 1-2."
+      },
+      "fr": {
+        "headline": "Goli! Amani Otieno anafunga dakika ya 58.",
+        "body": "Dakika ya 58, Amani Otieno anaiweka mbele kwa 1-2."
+      },
+      "sw": {
+        "headline": "Goli! Amani Otieno anafunga dakika ya 58.",
+        "body": "Dakika ya 58, Amani Otieno anaiweka mbele kwa 1-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Amani Otieno scores at minute 58.",
+      "body": "Minute 58, Amani Otieno puts the team ahead 1-2."
+    },
+    "structured_explanation": {
+      "theme": "rhythm_shift",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 57.691661367225464,
+          "display_value": "58",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000014"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000014"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-ae56a6a4c4ad18eb",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 64,
+      "second": 3
+    },
+    "match_seconds": 3843.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 4,
+    "player_ref": "Juma Mwakazi",
+    "team_ref": "Mombasa United",
+    "text": {
+      "en": {
+        "headline": "Goli! Juma Mwakazi anafunga dakika ya 64.",
+        "body": "Dakika ya 64, Juma Mwakazi anaiweka mbele kwa 1-2."
+      },
+      "fr": {
+        "headline": "Goli! Juma Mwakazi anafunga dakika ya 64.",
+        "body": "Dakika ya 64, Juma Mwakazi anaiweka mbele kwa 1-2."
+      },
+      "sw": {
+        "headline": "Goli! Juma Mwakazi anafunga dakika ya 64.",
+        "body": "Dakika ya 64, Juma Mwakazi anaiweka mbele kwa 1-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Juma Mwakazi scores at minute 64.",
+      "body": "Minute 64, Juma Mwakazi puts the team ahead 1-2."
+    },
+    "structured_explanation": {
+      "theme": "rhythm_shift",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.0,
+          "display_value": "0%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.0,
+          "display_value": "0%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 56.191661367225464,
+          "display_value": "56",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000032"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000032"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-efb57a307d236b71",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 75,
+      "second": 30
+    },
+    "match_seconds": 4530.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 1,
+    "player_ref": "Nuru Mchana",
+    "team_ref": "Mombasa United",
+    "text": {
+      "en": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 75.",
+        "body": "Dakika ya 75, Nuru Mchana anaiweka mbele kwa 1-2."
+      },
+      "fr": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 75.",
+        "body": "Dakika ya 75, Nuru Mchana anaiweka mbele kwa 1-2."
+      },
+      "sw": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 75.",
+        "body": "Dakika ya 75, Nuru Mchana anaiweka mbele kwa 1-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Nuru Mchana scores at minute 75.",
+      "body": "Minute 75, Nuru Mchana puts the team ahead 1-2."
+    },
+    "structured_explanation": {
+      "theme": "rhythm_shift",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.0,
+          "display_value": "0%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.0,
+          "display_value": "0%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 48.5,
+          "display_value": "48",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000017"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000017"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-28d63d6b9bc919ba",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 76,
+      "second": 15
+    },
+    "match_seconds": 4575.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 1,
+    "player_ref": "Nuru Mchana",
+    "team_ref": "Mombasa United",
+    "text": {
+      "en": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 76.",
+        "body": "Dakika ya 76, Nuru Mchana anaiweka mbele kwa 1-2."
+      },
+      "fr": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 76.",
+        "body": "Dakika ya 76, Nuru Mchana anaiweka mbele kwa 1-2."
+      },
+      "sw": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 76.",
+        "body": "Dakika ya 76, Nuru Mchana anaiweka mbele kwa 1-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Nuru Mchana scores at minute 76.",
+      "body": "Minute 76, Nuru Mchana puts the team ahead 1-2."
+    },
+    "structured_explanation": {
+      "theme": "control_vs_chaos",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.0,
+          "display_value": "0%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.0,
+          "display_value": "0%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 48.0,
+          "display_value": "48",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000016"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000016"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-goal-811d8c5ec5fb62fe",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 77,
+      "second": 0
+    },
+    "match_seconds": 4620.0,
+    "display_duration_ms": 8000,
+    "card_type": "goal",
+    "priority": 1,
+    "player_ref": "Khalid Njoroge",
+    "team_ref": "Kisumu City",
+    "text": {
+      "en": {
+        "headline": "Goli! Khalid Njoroge anafunga dakika ya 77.",
+        "body": "Dakika ya 77, Khalid Njoroge anaiweka mbele kwa 2-2."
+      },
+      "fr": {
+        "headline": "Goli! Khalid Njoroge anafunga dakika ya 77.",
+        "body": "Dakika ya 77, Khalid Njoroge anaiweka mbele kwa 2-2."
+      },
+      "sw": {
+        "headline": "Goli! Khalid Njoroge anafunga dakika ya 77.",
+        "body": "Dakika ya 77, Khalid Njoroge anaiweka mbele kwa 2-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Khalid Njoroge scores at minute 77.",
+      "body": "Minute 77, Khalid Njoroge puts the team ahead 2-2."
+    },
+    "structured_explanation": {
+      "theme": "control_vs_chaos",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.0,
+          "display_value": "0%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.0,
+          "display_value": "0%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 51.22676833942589,
+          "display_value": "51",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000015"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000015"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-84b2348269b0e360",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 77,
+      "second": 1
+    },
+    "match_seconds": 4621.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 1,
+    "player_ref": "Khalid Njoroge",
+    "team_ref": "Kisumu City",
+    "text": {
+      "en": {
+        "headline": "Goli! Khalid Njoroge anafunga dakika ya 77.",
+        "body": "Dakika ya 77, Khalid Njoroge anaiweka mbele kwa 2-2."
+      },
+      "fr": {
+        "headline": "Goli! Khalid Njoroge anafunga dakika ya 77.",
+        "body": "Dakika ya 77, Khalid Njoroge anaiweka mbele kwa 2-2."
+      },
+      "sw": {
+        "headline": "Goli! Khalid Njoroge anafunga dakika ya 77.",
+        "body": "Dakika ya 77, Khalid Njoroge anaiweka mbele kwa 2-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Khalid Njoroge scores at minute 77.",
+      "body": "Minute 77, Khalid Njoroge puts the team ahead 2-2."
+    },
+    "structured_explanation": {
+      "theme": "rhythm_shift",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.0,
+          "display_value": "0%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.0,
+          "display_value": "0%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 54.88392916416727,
+          "display_value": "55",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000018"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000018"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-6b740ba987a142dc",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 80,
+      "second": 8
+    },
+    "match_seconds": 4808.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 1,
+    "player_ref": "Eliud Mwangangi",
+    "team_ref": "Kisumu City",
+    "text": {
+      "en": {
+        "headline": "Goli! Eliud Mwangangi anafunga dakika ya 80.",
+        "body": "Dakika ya 80, Eliud Mwangangi anaiweka mbele kwa 2-2."
+      },
+      "fr": {
+        "headline": "Goli! Eliud Mwangangi anafunga dakika ya 80.",
+        "body": "Dakika ya 80, Eliud Mwangangi anaiweka mbele kwa 2-2."
+      },
+      "sw": {
+        "headline": "Goli! Eliud Mwangangi anafunga dakika ya 80.",
+        "body": "Dakika ya 80, Eliud Mwangangi anaiweka mbele kwa 2-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Eliud Mwangangi scores at minute 80.",
+      "body": "Minute 80, Eliud Mwangangi puts the team ahead 2-2."
+    },
+    "structured_explanation": {
+      "theme": "control_vs_chaos",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.3333333333333333,
+          "display_value": "33%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.3333333333333333,
+          "display_value": "33%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 56.38392916416727,
+          "display_value": "56",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000033"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000033"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-7fc44fef01117a1e",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 80,
+      "second": 13
+    },
+    "match_seconds": 4813.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 1,
+    "player_ref": "Salim Kivuva",
+    "team_ref": "Mombasa United",
+    "text": {
+      "en": {
+        "headline": "Goli! Salim Kivuva anafunga dakika ya 80.",
+        "body": "Dakika ya 80, Salim Kivuva anaiweka mbele kwa 2-2."
+      },
+      "fr": {
+        "headline": "Goli! Salim Kivuva anafunga dakika ya 80.",
+        "body": "Dakika ya 80, Salim Kivuva anaiweka mbele kwa 2-2."
+      },
+      "sw": {
+        "headline": "Goli! Salim Kivuva anafunga dakika ya 80.",
+        "body": "Dakika ya 80, Salim Kivuva anaiweka mbele kwa 2-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Salim Kivuva scores at minute 80.",
+      "body": "Minute 80, Salim Kivuva puts the team ahead 2-2."
+    },
+    "structured_explanation": {
+      "theme": "control_vs_chaos",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 54.88392916416727,
+          "display_value": "55",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000034"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000034"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-b26d0cd40ff0a6a6",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 86,
+      "second": 30
+    },
+    "match_seconds": 5190.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 1,
+    "player_ref": "Nuru Mchana",
+    "team_ref": "Mombasa United",
+    "text": {
+      "en": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 86.",
+        "body": "Dakika ya 86, Nuru Mchana anaiweka mbele kwa 2-2."
+      },
+      "fr": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 86.",
+        "body": "Dakika ya 86, Nuru Mchana anaiweka mbele kwa 2-2."
+      },
+      "sw": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 86.",
+        "body": "Dakika ya 86, Nuru Mchana anaiweka mbele kwa 2-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Nuru Mchana scores at minute 86.",
+      "body": "Minute 86, Nuru Mchana puts the team ahead 2-2."
+    },
+    "structured_explanation": {
+      "theme": "control_vs_chaos",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 55.88392916416727,
+          "display_value": "56",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000021"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000021"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-b4344d4eabe98b29",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 87,
+      "second": 15
+    },
+    "match_seconds": 5235.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 1,
+    "player_ref": "Nuru Mchana",
+    "team_ref": "Mombasa United",
+    "text": {
+      "en": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 87.",
+        "body": "Dakika ya 87, Nuru Mchana anaiweka mbele kwa 2-2."
+      },
+      "fr": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 87.",
+        "body": "Dakika ya 87, Nuru Mchana anaiweka mbele kwa 2-2."
+      },
+      "sw": {
+        "headline": "Goli! Nuru Mchana anafunga dakika ya 87.",
+        "body": "Dakika ya 87, Nuru Mchana anaiweka mbele kwa 2-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Nuru Mchana scores at minute 87.",
+      "body": "Minute 87, Nuru Mchana puts the team ahead 2-2."
+    },
+    "structured_explanation": {
+      "theme": "control_vs_chaos",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 54.88392916416727,
+          "display_value": "55",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000020"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000020"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-goal-8e056632815dcc64",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 88,
+      "second": 0
+    },
+    "match_seconds": 5280.0,
+    "display_duration_ms": 8000,
+    "card_type": "goal",
+    "priority": 1,
+    "player_ref": "Juma Kamau",
+    "team_ref": "Kisumu City",
+    "text": {
+      "en": {
+        "headline": "Goli! Juma Kamau anafunga dakika ya 88.",
+        "body": "Dakika ya 88, Juma Kamau anaiweka mbele kwa 3-2."
+      },
+      "fr": {
+        "headline": "Goli! Juma Kamau anafunga dakika ya 88.",
+        "body": "Dakika ya 88, Juma Kamau anaiweka mbele kwa 3-2."
+      },
+      "sw": {
+        "headline": "Goli! Juma Kamau anafunga dakika ya 88.",
+        "body": "Dakika ya 88, Juma Kamau anaiweka mbele kwa 3-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Juma Kamau scores at minute 88.",
+      "body": "Minute 88, Juma Kamau puts the team ahead 3-2."
+    },
+    "structured_explanation": {
+      "theme": "control_vs_chaos",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 50.39004773377814,
+          "display_value": "50",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000019"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000019"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-e79226d63b049ee9",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 88,
+      "second": 1
+    },
+    "match_seconds": 5281.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 1,
+    "player_ref": "Juma Kamau",
+    "team_ref": "Kisumu City",
+    "text": {
+      "en": {
+        "headline": "Goli! Juma Kamau anafunga dakika ya 88.",
+        "body": "Dakika ya 88, Juma Kamau anaiweka mbele kwa 3-2."
+      },
+      "fr": {
+        "headline": "Goli! Juma Kamau anafunga dakika ya 88.",
+        "body": "Dakika ya 88, Juma Kamau anaiweka mbele kwa 3-2."
+      },
+      "sw": {
+        "headline": "Goli! Juma Kamau anafunga dakika ya 88.",
+        "body": "Dakika ya 88, Juma Kamau anaiweka mbele kwa 3-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! Juma Kamau scores at minute 88.",
+      "body": "Minute 88, Juma Kamau puts the team ahead 3-2."
+    },
+    "structured_explanation": {
+      "theme": "rhythm_shift",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 55.692548206147514,
+          "display_value": "56",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000022"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000022"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  },
+  {
+    "card_id": "card-key_moment-394b493f2bc24982",
+    "match_id": "comeback_from_two_down-42",
+    "profile_key": "comeback_from_two_down-42.sw.casual.away",
+    "match_clock": {
+      "period": 2,
+      "minute": 90,
+      "second": 0
+    },
+    "match_seconds": 5400.0,
+    "display_duration_ms": 6000,
+    "card_type": "key_moment",
+    "priority": 1,
+    "player_ref": "referee",
+    "team_ref": "match",
+    "text": {
+      "en": {
+        "headline": "Goli! referee anafunga dakika ya 90.",
+        "body": "Dakika ya 90, referee anaiweka mbele kwa 3-2."
+      },
+      "fr": {
+        "headline": "Goli! referee anafunga dakika ya 90.",
+        "body": "Dakika ya 90, referee anaiweka mbele kwa 3-2."
+      },
+      "sw": {
+        "headline": "Goli! referee anafunga dakika ya 90.",
+        "body": "Dakika ya 90, referee anaiweka mbele kwa 3-2."
+      }
+    },
+    "gloss_en": {
+      "headline": "Goal! referee scores at minute 90.",
+      "body": "Minute 90, referee puts the team ahead 3-2."
+    },
+    "structured_explanation": {
+      "theme": "control_vs_chaos",
+      "reason": "The team capitalised on their dominant possession to change the game.",
+      "numeric_evidence": [
+        {
+          "metric": "possession_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "field_tilt_home",
+          "raw_value": 0.25,
+          "display_value": "25%",
+          "unit": "percent"
+        },
+        {
+          "metric": "momentum_home",
+          "raw_value": 55.692548206147514,
+          "display_value": "56",
+          "unit": "integer"
+        }
+      ],
+      "evidence_event_ids": [
+        "comeback-from-two-down-42-000035"
+      ],
+      "partially_grounded": false
+    },
+    "evidence_event_ids": [
+      "comeback-from-two-down-42-000035"
+    ],
+    "stat_payload": {},
+    "audio_url": null,
+    "synthetic_ai_generated": true,
+    "from_bundle": true
+  }
+]

@@ -1,0 +1,2944 @@
+{
+  "storyline": "comeback_from_two_down",
+  "seed": 42,
+  "generated_at": "2026-10-04T18:11:10.388148",
+  "profile_keys": [
+    "comeback_from_two_down-42.en.casual.home",
+    "comeback_from_two_down-42.en.casual.away",
+    "comeback_from_two_down-42.en.casual.neutral",
+    "comeback_from_two_down-42.en.analyst.home",
+    "comeback_from_two_down-42.en.analyst.away",
+    "comeback_from_two_down-42.en.analyst.neutral",
+    "comeback_from_two_down-42.fr.casual.home",
+    "comeback_from_two_down-42.fr.casual.away",
+    "comeback_from_two_down-42.fr.casual.neutral",
+    "comeback_from_two_down-42.fr.analyst.home",
+    "comeback_from_two_down-42.fr.analyst.away",
+    "comeback_from_two_down-42.fr.analyst.neutral",
+    "comeback_from_two_down-42.sw.casual.home",
+    "comeback_from_two_down-42.sw.casual.away",
+    "comeback_from_two_down-42.sw.casual.neutral",
+    "comeback_from_two_down-42.sw.analyst.home",
+    "comeback_from_two_down-42.sw.analyst.away",
+    "comeback_from_two_down-42.sw.analyst.neutral"
+  ],
+  "total_cards": 324,
+  "entries": [
+    {
+      "card_id": "card-goal-21e532ef0abbdc30",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "58f0f3ed282fe3487728a4936bf51cc7bd7f2c2f6e824556ebbb708baac4c6c8"
+    },
+    {
+      "card_id": "card-key_moment-405d976f785fd89c",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "e5ec914b75789527ce778e5200ffe3c89dd292526a35bff627a2963e4c190f3e"
+    },
+    {
+      "card_id": "card-goal-e5df673bbb81e4f0",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "252212cc0c988ac39688c6282dfe359b93edceda3315ca9af87738c30dc82f46"
+    },
+    {
+      "card_id": "card-key_moment-16d707cc3ac43e27",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "e3382a399c426af9b380a0bf2da2039d5630cc141b03ce09d2a3050f83ed8f89"
+    },
+    {
+      "card_id": "card-goal-a45de1ae66d3f75a",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "42758f251ff1a9b8f283a9bae8ea6dfc482e17046f0245dd8efac798df70ca4a"
+    },
+    {
+      "card_id": "card-key_moment-b85b78260a1f5817",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "4176305720c1dc209276a9f15fd75c6580b0d52aed13fa725136419bef54c7e4"
+    },
+    {
+      "card_id": "card-key_moment-5ba849bfcd2ae26c",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "35afbcb2c167950e6084390793d3c407bb54254659bf47fb71b08a815df7f240"
+    },
+    {
+      "card_id": "card-key_moment-dcb0cd2a15daa6f4",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "1b5757456232f2e1c56836e0075d5cec6a0d19f084970c2fd0f0a4dfbba4faf3"
+    },
+    {
+      "card_id": "card-key_moment-b88d2874d0078e20",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "322c04882306e646933f4f3722bbd9e61a94fd6bf924b808852d86116ad9f493"
+    },
+    {
+      "card_id": "card-goal-7b8e8473085d2371",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b688eb7f336ebafca47dcc38f424e1a45a59f7d9b2bc1c92ce6e6ee24b7f6b2b"
+    },
+    {
+      "card_id": "card-key_moment-984cafc475b55f07",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9605a31e20698b50ff3166e3eea44ad3b20470af3b3b8dbbea27aa24967f3a7a"
+    },
+    {
+      "card_id": "card-key_moment-05df8512f760aee0",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "8eb4df7a227c06f963b75d86364213eb5a4edb6952697d1d8308c4b5df43d610"
+    },
+    {
+      "card_id": "card-key_moment-8cb0b1d933275837",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "2e73083c90cb3c4ff0e2cca249eb3fc331b2c219df5f7c168761d5641055aad7"
+    },
+    {
+      "card_id": "card-key_moment-3923a8c5418ed9d5",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "dd3d4b8c1627a6237a709e8bb9101c191d6605c144836cf0bcac0493cd221ef8"
+    },
+    {
+      "card_id": "card-key_moment-cde4695e33fa0122",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "d117cbe4175912442bc874ec855f2043ee655e0dcb9c2c9ec63dcb81e488e53b"
+    },
+    {
+      "card_id": "card-goal-32b600f236493afb",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "57bedf05e55fef0d7889120e4b7fa98a88c92dc3c904318bf31f8fd0a312fb0d"
+    },
+    {
+      "card_id": "card-key_moment-dc60a6b336bfba96",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6b8073b2d398ab79e373ca5ea937dbe57460c6ca5be64f21838fc76916b34abd"
+    },
+    {
+      "card_id": "card-key_moment-7fc437fda6c0bbf2",
+      "profile_key": "comeback_from_two_down-42.en.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "242f19e61882db2ee26f6a495b73f847742e7117607110a6a82412cc5adcad60"
+    },
+    {
+      "card_id": "card-goal-d13c25b1dbaae006",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "3caa60e89d689f074f12eafb2546d53c365a1ab9e4f31f3f1c9144d5985bdc98"
+    },
+    {
+      "card_id": "card-key_moment-eb7d44a1302cde31",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "19f29cb25d11ea94ab346648e48dc3ddb6e0eea657a6e4e915c5d5cfa93e9615"
+    },
+    {
+      "card_id": "card-goal-ced80a7cb8583189",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "860524cc014e53f863f1a56a000ed393909509523bc9c3caf2119fe9e885679c"
+    },
+    {
+      "card_id": "card-key_moment-96f478045a572227",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "5cce9f91bc2a13cdc8be0d88b98bfb10c11dff8c6d6cd8767c56093f7c5b4663"
+    },
+    {
+      "card_id": "card-goal-1ad6571b42352426",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "c2e12c72d2a5821cbdfcb1ca42b43f3645b801bae16f4e78027fc556c83d19e1"
+    },
+    {
+      "card_id": "card-key_moment-6d4de2696117ec5e",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "753f29688605709b8e5be8cf110f7b16edd6e122c1c4dac446ad97b0bed25061"
+    },
+    {
+      "card_id": "card-key_moment-aa1ed2b7be36d2c5",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "d2b0c1a094d105e3888435c943790d92a4071d04d00ad5a4e709491c2a170a69"
+    },
+    {
+      "card_id": "card-key_moment-00d6f0e1cc1f7752",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "1bb02de987e639ab14777b3cf0dedf433f67196382b1ab38378a2517dbca35bb"
+    },
+    {
+      "card_id": "card-key_moment-feddfe845f89ea3f",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "c1a62c70f8692cd3bf5aa532bd49cd7ce25ce7e0ddb25840afdbd5fa3f10510e"
+    },
+    {
+      "card_id": "card-goal-d091bfadff1c3f2a",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "f689e7774477f996267810c3112097a8930c26d4b69ed6c3bb307370257fc695"
+    },
+    {
+      "card_id": "card-key_moment-c315491035a5f7a3",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "ee6c9b584f6ea230db85bca5bd39d69e76910eed0ad1e070350dd8136a4ba626"
+    },
+    {
+      "card_id": "card-key_moment-bc489985d0952c8b",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9029aa9776e9561f2c00fcd09c03e7d0d503e0b73fd8812201b75f18b678dc82"
+    },
+    {
+      "card_id": "card-key_moment-1e38bd982193e786",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "524df39571f86579b80c5ee5b7b8d3792fa38adf80e8b3713b61b64e8affebdb"
+    },
+    {
+      "card_id": "card-key_moment-09dc8535ccc9a35b",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b2c30c37d81b01c73737d8112d70fc5e7167bdb28636bb69ff672daf72df641a"
+    },
+    {
+      "card_id": "card-key_moment-452ea0ab8b22443c",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "24a8a18171029942422853981d35654152665ee71fd5191eee8de96883694ee8"
+    },
+    {
+      "card_id": "card-goal-7b9edd9195a43cff",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "dc13dccf08072d7d5c94f6899ad4a7b9f8f4ac974ad7d99436738d5c8daafbdc"
+    },
+    {
+      "card_id": "card-key_moment-a39d3e7b9008e2e3",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6da8993e59c3bb307bf22e1dab5689b49da20ed4ff4986d233c4193a3a344641"
+    },
+    {
+      "card_id": "card-key_moment-9e53dce05a4a4625",
+      "profile_key": "comeback_from_two_down-42.en.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "d9b70ad2bccf78a07dde727e5bbd76b9206c12a6c7b88ee2de5fd929350dc448"
+    },
+    {
+      "card_id": "card-goal-0c4ff9173199581a",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "185030a5f75dd155aad5054b5dd4c33000c45a9f62988965a2553f1addb05c48"
+    },
+    {
+      "card_id": "card-key_moment-f459aa9ceebd43d4",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "ca011b10f92f68f80cade70ed6f5c9aa0ff5433ab7c13a0eb1c00a5f8fdf5d3a"
+    },
+    {
+      "card_id": "card-goal-d723e967e203872b",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "8d0746576f4a788bcc5a1a9fde9c6f57b4a9cb8eca620875e02c835f591388cf"
+    },
+    {
+      "card_id": "card-key_moment-510c91871980986d",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "7d291204fde448bba26da8f30adcecb3d1a4238f29421faf88181786c8b973d2"
+    },
+    {
+      "card_id": "card-goal-a42f8cc3f37bc424",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9095f010d590044cc703e8b4826b3480cede381ad1ffc47d83c4554e213b1280"
+    },
+    {
+      "card_id": "card-key_moment-d23ec2ba8e2f7413",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "8acd39c37b0955b0c84b7bc9cf92ea60f613ec872b2ac8e2c457919bae91c5d2"
+    },
+    {
+      "card_id": "card-key_moment-6233e1aba8caff99",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "dc33677ffc467609d415cc7a1dfeb122a73fb3320d60c1bfb7fc5ae98a5f4210"
+    },
+    {
+      "card_id": "card-key_moment-82fb5835336c892f",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "d021a8eb688a990321319743edd7d24cf6a2b196bb0191400b8f58f5420ebdfb"
+    },
+    {
+      "card_id": "card-key_moment-12e2b24966acb50c",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9f75846ec1adb6749aef501434d52f570737fa790ca87e22fe5ea1842a795f96"
+    },
+    {
+      "card_id": "card-goal-fffe2a658df3b694",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "291271d904b07521c498f61a1217d252e25f0f758fd9b89767185dd03556bde3"
+    },
+    {
+      "card_id": "card-key_moment-6cbed4fb47a2a284",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e68e87340df8ab5d01c9d7b77e9c69a5fca291141a6fdacd76c0309601267436"
+    },
+    {
+      "card_id": "card-key_moment-e2f38fc379a82bc5",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "58a34b4e5859195e3a81992992ead929baff9d5d40d034eecb83433ffb902696"
+    },
+    {
+      "card_id": "card-key_moment-8e12313f6ed1d47f",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "f188832072f4882c04ada9fc825011b25d317c0b58618ddb7da305ff584528fc"
+    },
+    {
+      "card_id": "card-key_moment-f15de3fcd416ebd3",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "4635fbf673c09765ac3840466a1d1b732701593fa74ef10563e13bef7f8b3f0e"
+    },
+    {
+      "card_id": "card-key_moment-cc6a8c4a7bc60216",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "4dedc6c0ff990a18d8168957ba44fe7dec0fd672603d6033549ee79110190a13"
+    },
+    {
+      "card_id": "card-goal-fa061dcb5022be36",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "c22a049c154af32697cdc6d2d886b68f6a9472aabb80787bbbddae39f9e849ff"
+    },
+    {
+      "card_id": "card-key_moment-9bad3c219e6c83a0",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "1f658e9d64ebe60a8718f19cd1abac9c1e0458a4ddd0e903499f71c8b9070c6b"
+    },
+    {
+      "card_id": "card-key_moment-b255cd8f1eca32bb",
+      "profile_key": "comeback_from_two_down-42.en.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e50b492bd36832822fcb22258a5b1c67f4358f13a2d8ee1978eb0ce6ab0dfc3a"
+    },
+    {
+      "card_id": "card-goal-54cdd2af7ab31c9c",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "f7a807860d8feed9be11d3627479437792156f617db3afddd737a9aac665b901"
+    },
+    {
+      "card_id": "card-key_moment-d227d978867b819c",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "d61dbf2e6db72a222dab1d0f2d3e09dcfb1cc2f49bc06dac43226368e78fe272"
+    },
+    {
+      "card_id": "card-goal-d9adc09e078a28ea",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "2fa1477e7f17a198bfc37ae0119d6ad7dd09a73333b3c7496f4595a25ec92e32"
+    },
+    {
+      "card_id": "card-key_moment-610351e479211327",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "0e3478a6b6e593c349a94fcb878489a5377596f4c38762ab9a12d77706b3f3f2"
+    },
+    {
+      "card_id": "card-goal-b980679d1f48f4cd",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "af24c9f21c3b6bbe33bb24eddbafe21709cf689641f357e41598abd366bf7c1f"
+    },
+    {
+      "card_id": "card-key_moment-f4ded2fc519c4877",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "b460b843f425e36e840f0135be05a89dfc8bddeb273174ff9131f84884e7b02b"
+    },
+    {
+      "card_id": "card-key_moment-d9fe0e7fa1e08c15",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "824c35c6331585ffef1e06ea2901113a4034b822b7f582a6a36b363acd61b745"
+    },
+    {
+      "card_id": "card-key_moment-3c5a9e3a69d6250c",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "40380db0daef56076b5bfb22451a57ac09ae8dc63b281529ff51c5f5fa017163"
+    },
+    {
+      "card_id": "card-key_moment-a54dfd6d22a4b71d",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "7a4c4c5ea6e955b5c21ee88c80617cf254e313eadc4ed19eb81c0599a5882af0"
+    },
+    {
+      "card_id": "card-goal-7ae28b8058dbcd84",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "bb67d6bbaf316941a879c52c607387be813553ba6b73a1a9831ff995451942a2"
+    },
+    {
+      "card_id": "card-key_moment-4dda50fc234101d6",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "4ff47adc266e29b82c58da3f797865eb2788b909598d58fb37ca7f4b5272d18e"
+    },
+    {
+      "card_id": "card-key_moment-deb0fd8d6b547256",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "469ed12f26441d335708586a337ab7b750aa8c6c7bb8ec790e1bf97ca4695c4d"
+    },
+    {
+      "card_id": "card-key_moment-e6e6f2804b6e11e1",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "c4dd0310c36ca84413614e1c2c0b75168146411a2e5c06ec9442f836cb0a3108"
+    },
+    {
+      "card_id": "card-key_moment-ecfce88ae02233b8",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "5db78dbff5088c32009aaeb6a85373c2dadc38f44f7783ea853ab757f9115055"
+    },
+    {
+      "card_id": "card-key_moment-a73830e2de562c48",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "f4c1a7639141256169adf48640c384681fb359f9a2cd0f4bba61988e15847aca"
+    },
+    {
+      "card_id": "card-goal-baea76a7983e6c72",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "dd2a7337d663735e0cbe949e3d26bc78bae3e3883ec65468cad86a766e1deeaf"
+    },
+    {
+      "card_id": "card-key_moment-4980e245c38e9eab",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "de71d252b0eb12261bab39eae58571aa0e5062be994b15f0e2fed23342c320b1"
+    },
+    {
+      "card_id": "card-key_moment-c46246896c379c75",
+      "profile_key": "comeback_from_two_down-42.en.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "a23752fe4a0100bc9c9780d3644542dc1f9d33d1645d7a18fe3e79f914839b8a"
+    },
+    {
+      "card_id": "card-goal-80a18dcc6db7a075",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "471687afa4a57372d149c61d9af2d95e1c927d25d14c57b0f8992db314478706"
+    },
+    {
+      "card_id": "card-key_moment-f8381ed17e98b1c3",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "f2da9a2cee4f7aeaed087bda258ce09dadf19a5b14b15ff2077272ca5c1ec460"
+    },
+    {
+      "card_id": "card-goal-c98b140b4e03e48a",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9b8da105587be5b1fb9c94e13cb19316fd3a44c2897ed0dec54c6a037738f4db"
+    },
+    {
+      "card_id": "card-key_moment-883c808f2cb77e0c",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "618ff26142a49c684754abd51bc68ddd3ce58ea3321fdd23aa3c045a75c80af1"
+    },
+    {
+      "card_id": "card-goal-fe170f72617bce4f",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "ed16ae81ce6491c8b56f43b05384fb6f220db6ff036594acd562f47e78acdca7"
+    },
+    {
+      "card_id": "card-key_moment-0956f2738596a4e2",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "c21198c9c2ed103b966eabd54766edaf528dff79a57f91abca38f51002fbfcea"
+    },
+    {
+      "card_id": "card-key_moment-f8d5075bd6878c95",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "4564a0a84e7d20d3756af2843ff8858e9219b3b49f6bb40aed066c769b539977"
+    },
+    {
+      "card_id": "card-key_moment-06d883eec491f4be",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "fdacf0b5b2829de3b81e36e24dd54310aa0e3810c339527cff8b3a72816d2f63"
+    },
+    {
+      "card_id": "card-key_moment-84efed9a6a14d651",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "aff53b46735886b2ffcb07e04e91e45295397d0f128814c0493799b39327c16c"
+    },
+    {
+      "card_id": "card-goal-44fbb37f4d6e7750",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "c9f5ea3b2b8f40abdc10717332356eb736951652ec4ebda88f6d82eb8818bc3a"
+    },
+    {
+      "card_id": "card-key_moment-631bdc644940867e",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "3cccb8185edaad170bf8c3fe5b8cea933910d107774b60e17feee2b062b83fc9"
+    },
+    {
+      "card_id": "card-key_moment-0baa6de2f6fb8136",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "a184cfa57adecce97a4900977909b81d44f77ff92e774aecb7a914684345e3f6"
+    },
+    {
+      "card_id": "card-key_moment-12e9af76d1795f3a",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6c234ab4fd4e98c01d823c1798d818beb19023f364c243f6f64a154b8b303a18"
+    },
+    {
+      "card_id": "card-key_moment-aae9a605576581e8",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "97450c15967cf0f6ee3caa4ea7fa6cad5a6eedde829b51517558c91f87b415f6"
+    },
+    {
+      "card_id": "card-key_moment-f93e90ab264116af",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "dccb2000497567d06b8256cb9e57aedc683143828df857a84ff1c7d907ef4671"
+    },
+    {
+      "card_id": "card-goal-059261502c15a52d",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6d4a8decdb4c77311747e2ff7920b161aa0366b74ff813c916b8f37eed4db0c8"
+    },
+    {
+      "card_id": "card-key_moment-cabce120f641dad8",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "c1fffadaaac8802621f28273a3b992bdbd475e405f6e445c1a7fe5cd3c72b39d"
+    },
+    {
+      "card_id": "card-key_moment-412b553b48a00bbd",
+      "profile_key": "comeback_from_two_down-42.en.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "479703ff8d0ff1adb94e2ab3bad934cb9389a22c12adcb5b8777b2a568eb0925"
+    },
+    {
+      "card_id": "card-goal-3f611823a4ad1fe2",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "a14023d96a9cfe95efc45d37ba28535ea1698a0e40f72149b8cec4a30a34d5ce"
+    },
+    {
+      "card_id": "card-key_moment-567242155ffe7b09",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "b81ea866318caf26b85e7ddafa6b289ddd7499e9a52d8d68df3df9fb042696b2"
+    },
+    {
+      "card_id": "card-goal-5a454e7a9ee1e389",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "3620d65bfcfcf33ea88f7cec9cf1ac6d9ff45bdc25f3091c0e7d2de7cccf0680"
+    },
+    {
+      "card_id": "card-key_moment-cdd2bf16420d0f9a",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "9ff4f62fb109d7e06285021497c792eff63f9a08e794a6bd507f08c7b89c3413"
+    },
+    {
+      "card_id": "card-goal-1ae7e22a8a60de5f",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "600d8fb7b23e27c848bf2a4100e1155204a17d10182e4e2d1ce05373cf07f4c7"
+    },
+    {
+      "card_id": "card-key_moment-cee67ae6d2d356a8",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "b79493e1345dd3ce41d6a7828a8fb58229c374cf49c6f6991f3b864850f0cbb2"
+    },
+    {
+      "card_id": "card-key_moment-3e06ffb0fec6451b",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "baf4478d57da20faa9a355aaf7378007fe56c751c0e89f273f8005d3d3be65ab"
+    },
+    {
+      "card_id": "card-key_moment-d5aa1b1bb225ae1d",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b0d9cd210b500c68c1e0224b9f09c177883a8bde5534a8ffc5ecbcd3795589dc"
+    },
+    {
+      "card_id": "card-key_moment-7480814f425300f0",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "c2b785c3052a1284347d930a06e90685f857df9e183b08c2faf7516e9cd72b98"
+    },
+    {
+      "card_id": "card-goal-e3b2ca9dea7ec184",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6e9677963ef91a4a00524df267744f8f62d47e92190b6837f18471f95d7d391e"
+    },
+    {
+      "card_id": "card-key_moment-d37df586e270cb5a",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "fc025d615e3850b1e187a601274d43f1d5e9c487421abf6434f2fa77996826e1"
+    },
+    {
+      "card_id": "card-key_moment-e1ad47ba80614a98",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "89fc4509ea9569fed62c5620cb144e5a42f3baccfe51a449a10cb6937db6cbb8"
+    },
+    {
+      "card_id": "card-key_moment-70499d104ab38c17",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "af2da7aab4115c45ae2e803dad95351e8dc9cb6d746971558ace51221b64b8ad"
+    },
+    {
+      "card_id": "card-key_moment-927e3cca1cac7399",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "065fbc7f81740370e77be0ce96d3aa29f13f2e9d983c70f2d85d4eefc8e7ca2b"
+    },
+    {
+      "card_id": "card-key_moment-bc087d4b3427891c",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "31f55329d3c116154faf72a7f02480b905801c903c15dca87fdaf6c0eaeca7d9"
+    },
+    {
+      "card_id": "card-goal-5639b97bc1c49e1d",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "f511c2902c7d0504d8344a034159e9890ec89bd68de8977e0c9b0558adf70af7"
+    },
+    {
+      "card_id": "card-key_moment-893581c78f93af1e",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "31e10e58295141d4f4fe4161d033c723bd9bad2d89ae18d949f4eb3b6e7d442b"
+    },
+    {
+      "card_id": "card-key_moment-c1f0270bab4c0987",
+      "profile_key": "comeback_from_two_down-42.en.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "080d7d33c8692c65dbbdf50cf2d241f3570c448b065fc6d1e0eb363bc19a22b8"
+    },
+    {
+      "card_id": "card-goal-d398bba33fc535a4",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e42ba071bf30851dc78e89c827cbb3ce9562eb002b6a2aa0420e321286b88a08"
+    },
+    {
+      "card_id": "card-key_moment-d9e19b0163d4cab7",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "e003964d15a013b2b85225d27303630e2c1ea9e67b4c01d7f013dc1b1ecd4f10"
+    },
+    {
+      "card_id": "card-goal-b2152286ee4be6c0",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "eac66b060817c863b97dca890319e56992fca390cd1c9029a7f60de87295f720"
+    },
+    {
+      "card_id": "card-key_moment-ae5d17537284d00a",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "7937e1c29eeee8e1ee8b65105568257f4df6bcf9e415e19948b34092834f8e86"
+    },
+    {
+      "card_id": "card-goal-448c54a2ce2701c5",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "5c517c786e80fc8fe234b0ff38eb8a231b1e659f9f942048508c26242d168fbd"
+    },
+    {
+      "card_id": "card-key_moment-8fdb09cc96d3e298",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "61c4d6929dd17437b5808d226f8615a8a24dfb550aae33ef3d6798a629e04957"
+    },
+    {
+      "card_id": "card-key_moment-8ce946f9d5ec3562",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "6bca93bb2b2835d9725663bd456a9e51925f24202c6e83b2ac58903a9923efa1"
+    },
+    {
+      "card_id": "card-key_moment-2ae7f1e79ee74d1b",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "dd036311d31a4c06f0af52ebc3a13cdd303e9aee3add0ff51247ec0d1e14cd31"
+    },
+    {
+      "card_id": "card-key_moment-2ac4121d5e599b46",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b0941251ae095d41e7574903dd39652d46c0e0243947d663c51ebc5de0bd056a"
+    },
+    {
+      "card_id": "card-goal-a6ed9c45e542971c",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "1ad44f6832e7d91544f9d5a4085968cbc7046ece92201c9a154dd3981190ebc7"
+    },
+    {
+      "card_id": "card-key_moment-07d794ade5ed8d32",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "831051c676baf7b9d62892a221addaac1b7986836b79a815b0dced846141e31a"
+    },
+    {
+      "card_id": "card-key_moment-99ee4aec00188233",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "26ae7ef5478da470d373720a3ce4294948ecd644cc77160545913190dd502bf7"
+    },
+    {
+      "card_id": "card-key_moment-0d3260f8775658f5",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6012b014e5dfcd51112af78b7ca517948ef07fad3926a068a4c4370964a0b0e0"
+    },
+    {
+      "card_id": "card-key_moment-0b9e702c8712a733",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "787e364c8f1b44dbfe69186a441f1e783680e43466d5f14f00ca5ff9b1bbabe9"
+    },
+    {
+      "card_id": "card-key_moment-bebd12c97d8d0602",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "91d9b939e8e65cc027036832df5165cfc3970c48627d049e6ee57b8fb251b397"
+    },
+    {
+      "card_id": "card-goal-56d0b93bc67e7a6d",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "60f281ae14cd8be207350047ee9da8059bc14d7699774482c0793ce0083a4b46"
+    },
+    {
+      "card_id": "card-key_moment-a2d1ab3877491fce",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "88c9103f54c8d7cc76044de3e91d8becc5d750616d274a84b5cde3667f1765ed"
+    },
+    {
+      "card_id": "card-key_moment-fb2239fa99f83689",
+      "profile_key": "comeback_from_two_down-42.fr.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "fcaed15535f79d46f998d6e7df524494e894add3da7d2c4b54bdea4c7fc263b8"
+    },
+    {
+      "card_id": "card-goal-688e1f78ddb9c7f0",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "10d863b07c77572b8ae811e487c5f39bb4647706784b244e75a1e2656617ed8c"
+    },
+    {
+      "card_id": "card-key_moment-16555146e8cd664b",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "8fb5782c69a2ff597cc413d80391c1d915a61ca973779c65f85f5809c8152bec"
+    },
+    {
+      "card_id": "card-goal-425eaefdd6e5fa93",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "d8386f9d76a61e5d4d96f7dbb6e0569739c8169bc25eb6d02886f30b0f794da9"
+    },
+    {
+      "card_id": "card-key_moment-8d8a13938f7919a6",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "efe2c90b330db641439fc297dea09467bb52c4c6ced6c096fc7556a5fba1cb8c"
+    },
+    {
+      "card_id": "card-goal-c0ca973471d5d1b6",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "1d7b20eda3a68698f31eb8a3ceb3fcb953ec438f20498aaf4faa1202a66bdea4"
+    },
+    {
+      "card_id": "card-key_moment-41e7efb88e2a1311",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "fce4b052a9a5564e94eb67bbe5050fa4d27daa16d9cef0a266ba02d3117d1dd6"
+    },
+    {
+      "card_id": "card-key_moment-2f2249182e2846d9",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "a19b9a42ff064ef5668a7e5e4772c369d41ada5f825c4f05afe5c0186b64b73d"
+    },
+    {
+      "card_id": "card-key_moment-aac9ff4660f866a4",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "ca23b099bf8621316f9506edc227150b12db4bfd688c5253dfd3f3bdb35792cb"
+    },
+    {
+      "card_id": "card-key_moment-596d3c773304649d",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "076419d6a0900b11b6074c806108daab9d5fe9f4fae841163e31db9b15152c2d"
+    },
+    {
+      "card_id": "card-goal-3c4e3d9251558520",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "05fd456d8bab6492460d4d3130e39bf12a7fc3a0ade7a366f02bfdde205d6488"
+    },
+    {
+      "card_id": "card-key_moment-645d00b3839019e9",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "1bfcfd9aeb9ba8e2ad152fc32d2adb8efe06d0ac3bd1add1d9ea72ef92f87960"
+    },
+    {
+      "card_id": "card-key_moment-378546333028edac",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6bf436fd875c970ed67199570ec13ffa372465a3634b29f9c49a27268ac1f9db"
+    },
+    {
+      "card_id": "card-key_moment-e8076d1679b67f44",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "44f3e5bb283759a5bdf3c68a652d34f341a54d8fac4df59e1184e59d937d1b21"
+    },
+    {
+      "card_id": "card-key_moment-f4bb13ba26af3fe5",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "69a8e174c677c4c9550d3565067e2236e3fa9f0389387dac92fdbc65882dfcab"
+    },
+    {
+      "card_id": "card-key_moment-ba6f131a8062dccc",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "bc4b88cd2f5145e852c69505af85f034fbf4c0692eb47dfa7a9559c60df17bc2"
+    },
+    {
+      "card_id": "card-goal-6ef4d42ed39661ed",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "7616d222864d4d5a15bb40bb89ed10c3d1bca3268cce1b04989ce32155d4aeca"
+    },
+    {
+      "card_id": "card-key_moment-94007414975c26ed",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "62307e35e406ffe0c0cc22109759a57d6dddc245b52a72343761c0ca3d1ca2eb"
+    },
+    {
+      "card_id": "card-key_moment-257807e340c4484a",
+      "profile_key": "comeback_from_two_down-42.fr.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "8e31d521cd1aa6f1a7ce7b4337cb11f8dcccba01d245ab2e3e0de83abdd1afc7"
+    },
+    {
+      "card_id": "card-goal-0ce1c7d1ffd539b6",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "df8688f5634b11184238ba014de5f8a7b82b42090536d73a6332c38430b518e1"
+    },
+    {
+      "card_id": "card-key_moment-1b20a568bbddf58d",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "6171a8a3a3805f5eaa0bc983e773cf2ca4f6885a8587ef892181c99d7efad9bd"
+    },
+    {
+      "card_id": "card-goal-7959cda320a63ece",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "5bea64b9380bf01e9babf5d530cfc641fe3ed6f1cc5bd4fa0fdaa2d18b92c1e9"
+    },
+    {
+      "card_id": "card-key_moment-9a106730b0253189",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "416769d5167cb62184846d2014a20435c4e833612f77b078349e2c79ff657401"
+    },
+    {
+      "card_id": "card-goal-37184c89bc0d981c",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "f95f01d90860861e14443ff086fd64775611bba3235de4975a0cde8b4ad0dd09"
+    },
+    {
+      "card_id": "card-key_moment-81f38ae55b069f82",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "61b8f54a79ca896b7970ef099fd5438b952dcd9ab56980faeb78e07996c36b57"
+    },
+    {
+      "card_id": "card-key_moment-0f6acf260aafa764",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "fa13d256e6da12bce8f9631d778eedeb7a42a01121b7dcba8993c9d10e252cf3"
+    },
+    {
+      "card_id": "card-key_moment-9bb24e16473a1f2c",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6fbbc9b3137705d429d041ff0d9bebcba21acaad8bbf1aadb88e2424de8e40ad"
+    },
+    {
+      "card_id": "card-key_moment-fe873a17af976f4b",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "811c5e6b56301935573656343c1ee4296c7b43d835030a07fe712f90d89043e7"
+    },
+    {
+      "card_id": "card-goal-9e9bb6057749a0af",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "583e9d848686605a88c9b18ae687f5b8e1e51649fc4bae6c31a744b2aae2c89c"
+    },
+    {
+      "card_id": "card-key_moment-efe034a78b102e79",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "247c7c4a4bc70027a1ebbb6b3d4ea52900d2f216e0a5b449f73cb7b205ff031f"
+    },
+    {
+      "card_id": "card-key_moment-33fbd346271388b1",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "641e2f8d2d8f3853ed513b5eda6671d01f8d55c94d8e5742d2b56fb79943b4c5"
+    },
+    {
+      "card_id": "card-key_moment-f8084249bb9fa5cd",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b3e1dbe6b201793d8992f576a76791fcdcc01ecfee729bc0b5edddcfd3593d01"
+    },
+    {
+      "card_id": "card-key_moment-fb8e264ecddb1411",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "7b12b58590d1901e2a8ca552ce32436ab6685f3e85dff855a75f1e6cd2c4e159"
+    },
+    {
+      "card_id": "card-key_moment-263e7c8188d4484a",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9ca1eb0ae364cf22ad69dc3f56b4bcc36e923fff9f06700c21ac7f4f4d447b12"
+    },
+    {
+      "card_id": "card-goal-862ebf8716fbd32b",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "23c99b8c73a025c7659c5db1a2137265eec9d2d872f3802dadadcdcad39f7df9"
+    },
+    {
+      "card_id": "card-key_moment-2961aa15f6d678c7",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "0a495a978a245fa7b28a96f253091159a5a469f29e6e0394b3e4aa96536d5fba"
+    },
+    {
+      "card_id": "card-key_moment-dedc70d81e83e9f8",
+      "profile_key": "comeback_from_two_down-42.fr.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "439faa675d17b14639eeedae6c18c01539c58a13522f0cf760e5a323c2bc710c"
+    },
+    {
+      "card_id": "card-goal-5381cc392325906f",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9c4786d896a91659cc6771d50b5efd3a2eb240332978f17e56f2a2e576c9577d"
+    },
+    {
+      "card_id": "card-key_moment-8e62b2ee7950e4a7",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "02f935a24af0a7b829ce8c29b22cce3b2007e07a2fda28e2fd971398b211e81b"
+    },
+    {
+      "card_id": "card-goal-94728ed2711135f5",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "ff65ee8e65bb41e948230c2cf075c420962193e1e5b41802154b2504bbd4b293"
+    },
+    {
+      "card_id": "card-key_moment-e1323057db86dc4f",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "0abf6e2f0d49e7d5a64eb31b25d9054011c2ace1918e3e2f0ef68242b39b3926"
+    },
+    {
+      "card_id": "card-goal-e47cde026e51c49d",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "5ddb4d0f0364949e266d245925999f8d5b2c0c82b817ade2d70cf88acabcdfe3"
+    },
+    {
+      "card_id": "card-key_moment-195312737ec1822a",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "52529cad27a830bc535852284a9c63c552d41e6627b5cd0d355148e112df28f9"
+    },
+    {
+      "card_id": "card-key_moment-5fbc332200395f80",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "0c2be0265f3ac88e6e6fb9ed537d21c72596efbe08e5a88daad8b6aa5f01cd4f"
+    },
+    {
+      "card_id": "card-key_moment-951e376454f046ad",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "fb2bef7b9eb149b561f77da204f92fc3de7dd7552973a4244743cbcb0418a49f"
+    },
+    {
+      "card_id": "card-key_moment-8a74e258c38b40e2",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "648f0325d21058a3aee6d2eef815f1d8081a0c3e427799e435c0bcca746dca50"
+    },
+    {
+      "card_id": "card-goal-8861c99b435e4cbe",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "8c6999d5835615f49d035c5a46866e02d09a38406a654fc4506fd0d768367374"
+    },
+    {
+      "card_id": "card-key_moment-279d3035882cc843",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "57d0383c90d751836c62b8eaa191c208011653283615987e298e916bc53cb78b"
+    },
+    {
+      "card_id": "card-key_moment-12b542ce2e577ca6",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e847ff0a8b06aa83111e14e1a3c5231918096502a27de9aacdc43aa8cbf743c5"
+    },
+    {
+      "card_id": "card-key_moment-4a45f8bebaae2843",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "609d119f5c73b4a4d1bb82e973f4aabb84f04f99e01bdca02e23c2ad50186d8e"
+    },
+    {
+      "card_id": "card-key_moment-0a669eed4f5737d8",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "dc6d14c3433396094099e6b684a572c7980fba041b98f7bac35a9102ce3d79af"
+    },
+    {
+      "card_id": "card-key_moment-f27f8485773bd163",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "ad20ba2bade5dbfc0503cb585b29285efcaadca0fe57e1ed48c3768d20988112"
+    },
+    {
+      "card_id": "card-goal-e69799e71e4f3ab1",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "bcbc46bd8fe0f7436f53a889864620a4b44b88e3d4658dd73c2c926dad07bb11"
+    },
+    {
+      "card_id": "card-key_moment-1ce2c4ff252391b4",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "58776b01c9e5fec92dac47dba10154dbaa19bb4de483df6dcb05f1b6300e1bef"
+    },
+    {
+      "card_id": "card-key_moment-ca3f0687141339cc",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6c8ab99db2f4b8d9b31982db7345a92cacfcf178859a29d18361ffb09cffb0e7"
+    },
+    {
+      "card_id": "card-goal-e8febfee2508a408",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e14a4fbed99fdf2cde67d315f50a4e64db44402236dc256d65c92108aab9f76a"
+    },
+    {
+      "card_id": "card-key_moment-e13fdf582408f170",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "4d5c100444b89588a58a865dabbc46a7888b8dac1e137ac50396ee7d6d64f177"
+    },
+    {
+      "card_id": "card-goal-21d508f2d1706503",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "4acbac4fd3730e9941bb8178e5eb70719d0ba176cc36453e42d6d826899a779f"
+    },
+    {
+      "card_id": "card-key_moment-1b7b453e27840707",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "d1539b9af583b9dc67fcce5ba582709b5d3413ff13f0afe983350e29f498402f"
+    },
+    {
+      "card_id": "card-goal-5aa67e65fb0cc15c",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "67548435c29d9aa7b3337eb251d53ea64f809fd3f444a8d73bbf42f78682e09e"
+    },
+    {
+      "card_id": "card-key_moment-dd993188d303726a",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "a5b621891c0cd8c32e95e4dd1da17f65b69a00c835d2b73cb3e0e0b43436283c"
+    },
+    {
+      "card_id": "card-key_moment-86301fb6e09c8089",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "21c1ce4b146e3e2f998bcf14211ba76735d0172d38d20df07fdef57067c00e80"
+    },
+    {
+      "card_id": "card-key_moment-c2f694cd38b79aaa",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9498eb420965ce34a9c0598a65bc393f734e9f0d7c790d00346a9f839c32cdca"
+    },
+    {
+      "card_id": "card-key_moment-1182c99369e2dee5",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "3b3b15ab5aeb080f91445facc90400bff2a48fde17a59776bfc0f3a490c22a71"
+    },
+    {
+      "card_id": "card-goal-c2242c0c51fe98bb",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "39165c24de62703d95605b6f95a067daf2937a54abb03246d95dc12023862608"
+    },
+    {
+      "card_id": "card-key_moment-b56d4383e8d000cc",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "4bafdb955a332c256a83437ca56add6a66e8cafd73e02be2f3d5e2a44b26faf5"
+    },
+    {
+      "card_id": "card-key_moment-5386b2ee3f55a44d",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "7bc20f0b5cf1bd3f124431c030cf054c373839f4414580e053480eb120e130ef"
+    },
+    {
+      "card_id": "card-key_moment-608b567741c5b78b",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "a65f3399f1dee4e42cdd6142129557a93402e576d70cc296aa6de4b07104e2ce"
+    },
+    {
+      "card_id": "card-key_moment-733b4b899e07093a",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b659ac6fbfadf9b4e713b4f4a36b64c8bb253674cf7a3b9d1d5a93b25c98937f"
+    },
+    {
+      "card_id": "card-key_moment-4c39cd61b20dc377",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "4c002f686225033f1dd00417949ffb1eafaed3236b0653c0d0e91c6a72844056"
+    },
+    {
+      "card_id": "card-goal-8a3418eaa7bc62f0",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b340286fc5ffaf3afa84223787e6120363052a8c9094b586843a2c757484a8df"
+    },
+    {
+      "card_id": "card-key_moment-1eb3403f1e4d1f4c",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "1ce8f68a474effdd005033583507f3ca2ec2bdd0b8456d26cb078247c7c4e200"
+    },
+    {
+      "card_id": "card-key_moment-5e4a1282694f9317",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e33b361e73d2d72e3a9d4d0c6d1b3fa3b142d423b240c888396853e207287e24"
+    },
+    {
+      "card_id": "card-goal-d7aed7a898cee1ec",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "51cc8f11070825bb16bc2bec71ea014d5ac400307155cfbea74ca152d554dcef"
+    },
+    {
+      "card_id": "card-key_moment-c4c45ab5736863bc",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "283532a99871bdf29c5d0a6540a8edb1092254817425102cd92242e1600447d8"
+    },
+    {
+      "card_id": "card-goal-7ce308b81353263f",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "5c87da4352e98aad3739a6e069a2b1677978131e2fbd2453835076e9a0c10d1e"
+    },
+    {
+      "card_id": "card-key_moment-393bb02fd5a5aab9",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "eee3a51fd6778e69b2a1a7893d091a44a055b9182e64ff3aa7ccc9c7d28f3b1f"
+    },
+    {
+      "card_id": "card-goal-b2b055a948746b54",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b0ca3863b49cf6f06e712aff5885c82b99ac2a5e1ea0a146f96641dc28e977bd"
+    },
+    {
+      "card_id": "card-key_moment-65227855cb3ae399",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "e89ed1f155b4d1f382a471f7cc70cf23f99ccc26d7b974273333beee79d0e8f7"
+    },
+    {
+      "card_id": "card-key_moment-606dbd4f93dfbd8a",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "a223359ce3d48975cbc69bc7c5763f8ce4395189acf9bb1f7633c4e6f0ef455b"
+    },
+    {
+      "card_id": "card-key_moment-f07505f28745353d",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "d7148629eeebc3895182b444868e677f3c0a75c4eb330f35dc709d114f6f426c"
+    },
+    {
+      "card_id": "card-key_moment-1f324b7c4286ec2f",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b413355ac2502c23d17b5ce6a6b9cffdf5897e6b75324ef7486763c1112b4b42"
+    },
+    {
+      "card_id": "card-goal-08ca38361169e297",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "96e1b6df313aee0d9e6a6db2fab105dce45cea7cf95889995e481eabb59f7fef"
+    },
+    {
+      "card_id": "card-key_moment-cbfc6f9be8bf4c46",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "841ab4dc55a765b2da88fc99cc377ca586b9076f04fd0b7fd5f7e2168fc28d54"
+    },
+    {
+      "card_id": "card-key_moment-49b5001457e190a0",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "fc055b190c251d42bc52e9080fb49ad0bdf5e41495aea45f831b34d548d2a783"
+    },
+    {
+      "card_id": "card-key_moment-19e612472cd23a8b",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "12c8a08c07081ecb24c4393f4b6a1ff7467da76c981257bfa420021f7835d911"
+    },
+    {
+      "card_id": "card-key_moment-0e0103661dae3e31",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "5e3d11ae567005e0a6479a54cf7c0b78046fdd556e8c43f2224ef2b259666bd9"
+    },
+    {
+      "card_id": "card-key_moment-0d371606b65792e5",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "fd3c74d83b91f6e7d646ed5fc550c6eb8e793281cac451b1d08642038c1f6974"
+    },
+    {
+      "card_id": "card-goal-80f1f0af359628ba",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "eec24b5fce55127a4ecb27d83d0d4a64f0f6445b1d0453f10c118bf621d924b3"
+    },
+    {
+      "card_id": "card-key_moment-6a7150d046afaca3",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "730db947b85a49b827e27b9839c59ed896cb600bc891c8771c08edceefec9b33"
+    },
+    {
+      "card_id": "card-key_moment-e5fe1a98263223c3",
+      "profile_key": "comeback_from_two_down-42.fr.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6dab48b37443e43d8c97963e47a7e01bb2a4bb5652263998edace5119fc40f39"
+    },
+    {
+      "card_id": "card-goal-d962a5554d99640e",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b24b1b21bdf4c49e7903f3a1e500497c8772bf0ad4a22083828339e08d73cb3c"
+    },
+    {
+      "card_id": "card-key_moment-299068d72b7ec229",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "1ce08ef7976162d5cd5f551fb3749d03cc73df66f2a0d3d4d2a6e7725544be30"
+    },
+    {
+      "card_id": "card-goal-a58357ef7ce30043",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9571381ebe0673d91afefbae8446b4bf11b99767d3ad2bad7dfe44c4494e5ebf"
+    },
+    {
+      "card_id": "card-key_moment-127ec79ab4e408b4",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "17eed697a82d605ef6105c04ad783700d6ef4ea48b317bc8c5a2401ffe78b83b"
+    },
+    {
+      "card_id": "card-goal-58df932032c585af",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "f17b8ab6f3525e303228159443be378fb4de58909bdb2b22f28ff6d4f76c2668"
+    },
+    {
+      "card_id": "card-key_moment-a5323ff1f3110858",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "fe6ff9208123eb6ad0f713eec6b15d361073e02284c4999255cc640be5c82f71"
+    },
+    {
+      "card_id": "card-key_moment-25086e9075de272b",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "5e53cde0cbf164353b0dba613b2e70c4763c5836514e5672dbeeed4363101f34"
+    },
+    {
+      "card_id": "card-key_moment-9c7325c780e0545a",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6ffe375179fbdbb6aebb5835fb215bbaaa7855e162b729bef89cf6175a6342d3"
+    },
+    {
+      "card_id": "card-key_moment-04e6d93b721f0681",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "4b6810f6207efe6b761233d50b16d34d88f768a9ed31e3fe6c72ebeac0465694"
+    },
+    {
+      "card_id": "card-goal-71149ab7e8a6ccb5",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "94df1d16d655f04e5764c00f4bc832f0658a2963bfeda82c73e61d3f9cef8ec7"
+    },
+    {
+      "card_id": "card-key_moment-7b14bd86da1fd7db",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "1c93230fdad700309e9e2110c3f7deb3c42c5493d77b5468547169c0bd090ecf"
+    },
+    {
+      "card_id": "card-key_moment-625efd68bf5dec74",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "65b0bfbe8726ebed6b101d9e83c5b7be07364c71104eed495376ddf0716473ea"
+    },
+    {
+      "card_id": "card-key_moment-8d0bc745bd223c2b",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "dd6a80e49b45403ad83ef7a9a3749233892717b20d6c2b86a2e1f84df6a25aed"
+    },
+    {
+      "card_id": "card-key_moment-886abc30cfaaec88",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "240f9414430272842c542d8e4337c85b0490d8b45919c90c3c1e9e08baaeae96"
+    },
+    {
+      "card_id": "card-key_moment-e22eeebd1b6ab1de",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "0d6106b911ace28050248db217ff27aacaddb9d054c54f68ec54b46968781b86"
+    },
+    {
+      "card_id": "card-goal-793f95cc8145ff90",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b771c5e3e42db2d4b1d9401b3fbe10aa73d1b219b7b391b32d7cda84b569ef9f"
+    },
+    {
+      "card_id": "card-key_moment-5d1ce18954ab3bec",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "23f47292f5b368f2a4a401f01580ab41773577ccbc0d51f03d9092a68a45341e"
+    },
+    {
+      "card_id": "card-key_moment-b89237f8fddebeba",
+      "profile_key": "comeback_from_two_down-42.sw.casual.home",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "47febc44410463cfa4e32e1b75f35e263d2169d69f159423b1340432234e7653"
+    },
+    {
+      "card_id": "card-goal-cc375e33190c3a15",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "4d83b4258412b8065630ac37b0501a7a5a1ebb8313a3e30492815f64681a48e3"
+    },
+    {
+      "card_id": "card-key_moment-56be4b672905dcff",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "ff9556994086458a00a971fa27bfb0eea33937049ffe20dad69afff2138b91fb"
+    },
+    {
+      "card_id": "card-goal-081be83a96f89f93",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b1d6cfcc63f0339cf6eaf5ebecd24ed9d033ca04b44cde4565a10ef9a3327985"
+    },
+    {
+      "card_id": "card-key_moment-06fbfbcaaeaca517",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "0a2448a8854c5f94ceccbc444fb376ae79d87580950cfeddec79aebe13838c1c"
+    },
+    {
+      "card_id": "card-goal-05d1100312bac451",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "16d09eda7bd915d70bce8e84c6387ddeb26d85eedbc49311b8f043fe8c790b0a"
+    },
+    {
+      "card_id": "card-key_moment-1d502caa1142ff47",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "4e9e28d543f954e4baf6201848716f94503ed8da79438162e99061cdd1875b79"
+    },
+    {
+      "card_id": "card-key_moment-ae56a6a4c4ad18eb",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "6bbc81addd39030db7c1c1a0f801b9b2def285c327a7adc31fd0e80c429f5651"
+    },
+    {
+      "card_id": "card-key_moment-efb57a307d236b71",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "30f48380c67c1dee56a9fa59b9e06311a8c435f4b5c6be9c7eeaadc3f4f6c0b0"
+    },
+    {
+      "card_id": "card-key_moment-28d63d6b9bc919ba",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "223d9f72ebe43fbd52e66f6ed4d47309d8386e6f0230808eec16ec1cae19ce1f"
+    },
+    {
+      "card_id": "card-goal-811d8c5ec5fb62fe",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "38bfac869faa02c330d73a81e1e77df28c7d5f2f4d6f8de5cc3c449746185ea2"
+    },
+    {
+      "card_id": "card-key_moment-84b2348269b0e360",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "108babac8c254649efd071462f653d866ebceaae54fb6f437152190f754dcff1"
+    },
+    {
+      "card_id": "card-key_moment-6b740ba987a142dc",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "0755f6ec46986513dda526fc1cbd61022b91ac33b842ce4d7add044c9bb9cf54"
+    },
+    {
+      "card_id": "card-key_moment-7fc44fef01117a1e",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "7dcb608c6b8784b4e736c8106bd31868d66d9820bb45508166dd7ef9bc812194"
+    },
+    {
+      "card_id": "card-key_moment-b26d0cd40ff0a6a6",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "0375a3301945105caa12b71f6d055569d3b3ccfdf828cbc2d25f17fb36c633d5"
+    },
+    {
+      "card_id": "card-key_moment-b4344d4eabe98b29",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "5286d3cf4ffd913d693b4888e8903d5be3fa9f7a2ea43814cf48010e77438c67"
+    },
+    {
+      "card_id": "card-goal-8e056632815dcc64",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e0c9f429123c0a2910ea0ff502228dcda9f434771dc7633e021a668dbe5f87f5"
+    },
+    {
+      "card_id": "card-key_moment-e79226d63b049ee9",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "102ce49ea8a18ab7e24d5388f36e74fdfcc4312c58a10b6c75ac8673ace3f9dd"
+    },
+    {
+      "card_id": "card-key_moment-394b493f2bc24982",
+      "profile_key": "comeback_from_two_down-42.sw.casual.away",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "8be7bf8cdfd31be5b4d018287a95c0380b4dd2077d76e4dd5f50b463e7169186"
+    },
+    {
+      "card_id": "card-goal-4a47a324c1bb0379",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "8134f31d798bebdee74746ec20343da835945115985a43d723c16e943b350dba"
+    },
+    {
+      "card_id": "card-key_moment-9134a9deffe2f54c",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "b548168a21f67606b0ce9ec8f4cbd46a08dd0ffbfa07bbe8448636efa7beacde"
+    },
+    {
+      "card_id": "card-goal-f9ad85d9f1e6625c",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "13789e632edbebd3c9d296e55812d638383da4c7c22192862ce12d4598b83a73"
+    },
+    {
+      "card_id": "card-key_moment-6530d300abd70fc9",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "5dd206a3c5c333c0a2038b565d15f76b6bd9400458681077bd74e80ce169d4d5"
+    },
+    {
+      "card_id": "card-goal-402b8c377a6a74bf",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "20f12c96616b4622076bff993e291d70deb8e0fa16514df0875cd11b6df07a2e"
+    },
+    {
+      "card_id": "card-key_moment-d3f4996344cec06f",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "c2b4e540be2decb85bca72c58c4c2ca704e89ccd6193f7543c18330716148aa1"
+    },
+    {
+      "card_id": "card-key_moment-8530ffe5aa577273",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "ac2595cfdf9dd28acc8d4fd1c4be0f62230b069bfcc497f4477dc3f658cb6e26"
+    },
+    {
+      "card_id": "card-key_moment-b91386881d9de472",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "bb7fe26de681993f6bcc4926ac28fdc77f057a54f1b610eb17c14c83e8356cc5"
+    },
+    {
+      "card_id": "card-key_moment-40d5ab57245cdbb5",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "05a24c2feb5ff3681d8f063700fba3f8b514857e5262a9fbb0d8867aafb13f46"
+    },
+    {
+      "card_id": "card-goal-4b176cc7979ef63d",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e5b433415c3a7568966a28e7c0fc0e70555faed7efc18c428b84766c6f241c46"
+    },
+    {
+      "card_id": "card-key_moment-3fcf160521a421ad",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "34fb51a9b62dd1f4323a4a081588ec5595b7acfccc157caa9baf250d2ce89174"
+    },
+    {
+      "card_id": "card-key_moment-ad3f87f14c21d09f",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "715eb65540d77b557a4220949bff2e3294b1edc05278859e0a07f91d399929f8"
+    },
+    {
+      "card_id": "card-key_moment-65801fd3c9a8449a",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "d8e5e64159e67d2b4088a4295c9ea821fbeaf9168522b72ad8a6d823f55bb039"
+    },
+    {
+      "card_id": "card-key_moment-1b68c0529b02acff",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "ab1d46967b647e5b7ea6d2d74f659d1ff0d28a33d58e9b88c5facfcbdef3a4a1"
+    },
+    {
+      "card_id": "card-key_moment-5c0e5464b93f6e2b",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "628f7ebb7ae4c64ddc3c225c9b4411c63de5a7987fe0b5b564420b98dd68d246"
+    },
+    {
+      "card_id": "card-goal-7ac2c4eae0e4a4e7",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "f6c0b190b4f2f4003e78d63022200f3678b6fcbb9edf249542ecb936ff086dd7"
+    },
+    {
+      "card_id": "card-key_moment-de4f91fb40265e1c",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "55dbf33c91af31c39840a42460e141b83d166ce2971ab98df1428796df0fe0fe"
+    },
+    {
+      "card_id": "card-key_moment-66af1cea1226302c",
+      "profile_key": "comeback_from_two_down-42.sw.casual.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "5f76973a30404a39e08fab8233d9ba420714c1e36708b6309b76c0eb9c593d06"
+    },
+    {
+      "card_id": "card-goal-9560ecb57a54cc15",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9af1e360203d720babea4a24960a90eeea021fb6511cfe3099759aeedb5b473f"
+    },
+    {
+      "card_id": "card-key_moment-20bb04b0d64e36dd",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "b9605d84e860c713b10a187640d32bc451e7dd86d0f58e9e29071b6bd4683f5c"
+    },
+    {
+      "card_id": "card-goal-53f173b7675aac18",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e745cedc0484814d5902055adbed8ca260e34f3e16dee4b41b3eb60857cf9d0b"
+    },
+    {
+      "card_id": "card-key_moment-4d5385b38f5c0037",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "2b1a3d6b3bd068ce549a0909be2852695fa72c4d6142566a92b668543cf2fdeb"
+    },
+    {
+      "card_id": "card-goal-6c94988cd4ac6490",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e4bf57aecdaa0b4c911da5eb8404b2350e2ca2dc56aec6d0e115199985e8f164"
+    },
+    {
+      "card_id": "card-key_moment-52ad53afb62a1124",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "51241c89588c271df16a0e6638be56afc42b54609ea243141d75f061ff466e6c"
+    },
+    {
+      "card_id": "card-key_moment-6e70f6548bc48efb",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "aedd5b3d42708d7f3fa0c1310fc72177ba8086cefa09561031cd480a9b905302"
+    },
+    {
+      "card_id": "card-key_moment-4ca82552fe09fcd4",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "67f95342f181620b979b432c3c1e3a0649ff70fa8664fa52c5581c547f778f4e"
+    },
+    {
+      "card_id": "card-key_moment-a08555ed6c5555bf",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b41e4c9fde85f8e01c6a50c7e8f32b7cb29020afc9daf1af1d821c6c7df4141b"
+    },
+    {
+      "card_id": "card-goal-59b1af415c38233a",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b82f54fd4a1bc5d3721f8b12346ddb3c3cff221ee08cdee50fd4feaa9e8ef501"
+    },
+    {
+      "card_id": "card-key_moment-aa52773d2fb749b5",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e02685f7cf0345302b6d3b37037235d9f9e98c18084c2f5d4b777f05dd8b642a"
+    },
+    {
+      "card_id": "card-key_moment-35848e0e09104e95",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "48d227f2b35f8ea23efec090dad5d6fd23c96f512983d3f06943b4569bdd6569"
+    },
+    {
+      "card_id": "card-key_moment-1f6faa046e84ce45",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "a7ba79501823c1bc79e3b04cba1fe097fc383d7342858cac9951ea2a783f544c"
+    },
+    {
+      "card_id": "card-key_moment-fa37c5f804d4f66a",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "7e70e47f9f9fec3fcd7a320ca23da798f7a099d9d5a44f3c428cbed952421992"
+    },
+    {
+      "card_id": "card-key_moment-f55b8abbc1066374",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "ef85ab0f17772bf62d2495cb11d94d7aa1d99909b34b72bf7b8ddbac2ab4b0c9"
+    },
+    {
+      "card_id": "card-goal-2840a476d270d8a2",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6460766b9b3bd9c1b98d1fcf8b0de2477318fa1b1f7ef4dd663d45fe8fe09d6b"
+    },
+    {
+      "card_id": "card-key_moment-e1a1a092ba83ccb6",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "ca93e4aa057ad508e959c81f722f4bf12fcaee526fcdbd1d11ed63d8de3e926a"
+    },
+    {
+      "card_id": "card-key_moment-09258cd3a6b574a5",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.home",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "12603a3747f21240c6b5350cfe5126987e281051fa8f02b3fafa8c54b65aa9ec"
+    },
+    {
+      "card_id": "card-goal-db38c2cd294df870",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "d27e318656b30a01a7f8f967999bf330dbc8eea59bb6c0e1a03fe9bafcd7ab34"
+    },
+    {
+      "card_id": "card-key_moment-85e8b2ec58915233",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "05191f789ca8894095e865c77ed5f933a586c25581d4823112b23a5dce9d7887"
+    },
+    {
+      "card_id": "card-goal-c6aac82d2ab0d32d",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "bf5eeb34bdc5b87ddcf5ab0fc1f3e88546cf48ab00c26462ab48dd3665e8e0eb"
+    },
+    {
+      "card_id": "card-key_moment-038ab159d93dd941",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "4d7b69319d6ab8f49d9ebf2748a1c41170f86ae1cebf21a96664e0aab5dbd863"
+    },
+    {
+      "card_id": "card-goal-a7165bb3fe4b991a",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "c773342d32f84db5e042967217d8db3a0c3b38fcd7637c76f56d23bf6081e16f"
+    },
+    {
+      "card_id": "card-key_moment-e984c1593d38ee81",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "c922f908d3e19af9c0dc5676c9f832249909484ba867ca4c497e2701a1fb0e78"
+    },
+    {
+      "card_id": "card-key_moment-865cd4e8b140eb29",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "3f7d53e8e7dcc86b957ae3408495786f3b9dacda1e670bc2be2e0976b3ec4f12"
+    },
+    {
+      "card_id": "card-key_moment-6d05a90583ffb2a9",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "7defbac91c5eeb0976666d05b26694afa8b64b6d1682d1635e1113b9a01cd5dd"
+    },
+    {
+      "card_id": "card-key_moment-bc7b86a34311f31c",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "33d8630c059e26b9360f30bc98d8702bb46e6465da3c2fb9dd47056fde4d30bc"
+    },
+    {
+      "card_id": "card-goal-c250f7355c2e1347",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9b594596e25f405fe524cd20772dcb7c53289c395bc3874df02beca9a3077177"
+    },
+    {
+      "card_id": "card-key_moment-d5965844609d62c0",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "bf24f2f2bba538834f6e01db5bf436625b2f86c1c58a79565ee905856fd7edb3"
+    },
+    {
+      "card_id": "card-key_moment-0798500d42e8e388",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "cd43ca146e30d118e2012a5a6b3b4a914d12be268750a357d7989d1ca9da85c3"
+    },
+    {
+      "card_id": "card-key_moment-f70b623dc10d1645",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "783aee2ca065d12594aa03003d032976699a4c6330fbccc3f45a8b02b7bc5b3c"
+    },
+    {
+      "card_id": "card-key_moment-bd71c64eed6f0c93",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "44a24d765af821fe1653ba15ffc953f688f97ce90aeea2871e12347c5dd665b4"
+    },
+    {
+      "card_id": "card-key_moment-6d12626a4d76117a",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "226e739c5e33084b61a53a880336cc4a29126cb625b44524b0775e6bb4f3859d"
+    },
+    {
+      "card_id": "card-goal-81d2d0b810747e2f",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "cd502ed04bdc09ea818b0b574625b89ecf861a83313485e1cd41fdafa277aa35"
+    },
+    {
+      "card_id": "card-key_moment-3907e3480e7e27f8",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "474ebcc071a0fbe35476e6889ca6fbe35a6d0955ed3f7dd165f5bff89117e866"
+    },
+    {
+      "card_id": "card-key_moment-0f39e867429f7160",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.away",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "f770856f13ccc864550e976a64080ebb6654298c618dd260e0a78115612cf475"
+    },
+    {
+      "card_id": "card-goal-2c7c571c281e592a",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 720.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "3f9d7fd3f21250f7e7ec11fc2c96430eb7770596b3680dc7d3786c8221a03d3e"
+    },
+    {
+      "card_id": "card-key_moment-80af827191aafe79",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 721.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "d3f2e796608e950adceec1fc61db72a624286262ecc7363ca648b1170b78aba4"
+    },
+    {
+      "card_id": "card-goal-567e39fbfc44a67e",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 1860.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "ada7f65f3d92a3c861601cb6f677384bfd48f3737d94a2e70d892b893a5d0e6d"
+    },
+    {
+      "card_id": "card-key_moment-378437f31173845c",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 1861.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "0b2dfba09e3ace0311062f5f3c49799831561aa1990e119529cd3f9eafe61568"
+    },
+    {
+      "card_id": "card-goal-6f838bb70a242006",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 3480.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "b9f5adda580d1680c766d0f0c7cc4ab31d71b126b2dc8fbd196d00cf382c613b"
+    },
+    {
+      "card_id": "card-key_moment-5005656f7dfcc1b8",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3481.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "70e83d8046cad857ffc011a2f16ddf61634884bfa54bb177ac04539c7e399e8b"
+    },
+    {
+      "card_id": "card-key_moment-4b6e81058c664315",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 3843.0,
+      "priority": 4,
+      "audio_url": null,
+      "narration_checksum": "ddcfca7520bc4776805e5f455afd2cbfbb1ae4af4fe91fad55fa559c64f4551c"
+    },
+    {
+      "card_id": "card-key_moment-7431e0bcfc633e78",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4530.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "a12e6d657570c83455a3d975e41fbb193c9839ac30e42fb23c47b99ac1d0eacd"
+    },
+    {
+      "card_id": "card-key_moment-8fc3e9556655be06",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4575.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "58cc521dd2b7108d0d8c2dd4dfdc42cee1c867fb49e55b8d00ae019d3b38f3cb"
+    },
+    {
+      "card_id": "card-goal-6d857cb56f7a0f3c",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 4620.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "e63a3dcff39c19b05387811d364916459d7899057abe61639897a5b0515fcd6d"
+    },
+    {
+      "card_id": "card-key_moment-a70105d1f83c0704",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4621.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "6c3117e9333996c2f609c8e028ae1038778f417406d5916cec8c84715c0f4a5c"
+    },
+    {
+      "card_id": "card-key_moment-f20df8461a4c32b4",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4808.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "1ae9a48ef24d3e00d40629107ca4f60f5259d1344073b7ef2caed33519454eda"
+    },
+    {
+      "card_id": "card-key_moment-5011f768baef62d7",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 4813.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "8a4cc6d6f89bb6e108c661f9775bf90e1f041d0ea980785ed28872e06d612178"
+    },
+    {
+      "card_id": "card-key_moment-9603ac2f09da954b",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5190.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "c9d187a977298b31ce1ac21b1b75efae848529a8a8cf1834d07c7cd39d107b5e"
+    },
+    {
+      "card_id": "card-key_moment-c6bc646ade1b92c2",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5235.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "9fb04e985443bc15257a5095875e58d0065aaccdda39b3faf2f00335b1569aa4"
+    },
+    {
+      "card_id": "card-goal-e498f7f516966ae9",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "goal",
+      "match_seconds": 5280.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "2820eb48798b586218586bd45f2f9facc51fb7fd93a5dcacf2d344a309b750ca"
+    },
+    {
+      "card_id": "card-key_moment-88deff4c221002f9",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5281.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "d9dab5d29e26b29e4845ba14359a30ee0b1435a77823cb330356c83f7be1e524"
+    },
+    {
+      "card_id": "card-key_moment-4900f498577ffed2",
+      "profile_key": "comeback_from_two_down-42.sw.analyst.neutral",
+      "card_type": "key_moment",
+      "match_seconds": 5400.0,
+      "priority": 1,
+      "audio_url": null,
+      "narration_checksum": "22820d5e779e4f1fd3c76f6949a8e5d85641c4faf274e70aa9515feb255e68ea"
+    }
+  ]
+}
