@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* ── Design tokens ──────────────────────────────────────────────────────── */
+:root {
+  /* Slate-dark base (skeumorphic "dark glass" feel) */
+  --bg-base:        #0B0E14;
+  --bg-surface:     #111520;
+  --bg-elevated:    #161b28;
+  --bg-inset:       #0d1019;
+
+  /* Borders with slight luminosity */
+  --border-subtle:  rgba(255,255,255,0.06);
+  --border-muted:   rgba(255,255,255,0.10);
+  --border-default: rgba(255,255,255,0.16);
+
+  /* Typography */
+  --text-primary:   #E8EBF0;
+  --text-secondary: #8A92A3;
+  --text-muted:     #4E5668;
+  --text-inverse:   #0B0E14;
+
+  /* Accent — Electric Violet  */
+  --accent-violet:  #7C3AED;
+  --accent-violet2: #6D28D9;
+  --accent-violet-glow: rgba(124,58,237,0.18);
+
+  /* Goal gold */
+  --accent-gold:    #F59E0B;
+  --accent-gold-glow: rgba(245,158,11,0.15);
+
+  /* Status colours */
+  --live-red:       #EF4444;
+  --green:          #22C55E;
+  --blue-stat:      #3B82F6;
+
+  /* Card type accent map (used via data-attrs) */
+  --card-goal:        #F59E0B;
+  --card-key-moment:  #7C3AED;
+  --card-stat:        #3B82F6;
+  --card-spotlight:   #22C55E;
+  --card-recap:       #8B5CF6;
+
+  /* Pitch */
+  --pitch-green:    #1A3A1F;
+  --pitch-line:     rgba(255,255,255,0.18);
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-inset); }
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--border-muted); }
+
+/* ── Focus ring ──────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent-violet);
+  outline-offset: 2px;
+}
+
+/* ── Utility: subtle glass surface ──────────────────────────────────────── */
+.glass {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(12px);
+}
+
+/* ── Card type glow helpers ─────────────────────────────────────────────── */
+[data-card-type="goal"]        { --card-accent: var(--card-goal);        --card-glow: var(--accent-gold-glow); }
+[data-card-type="key_moment"]  { --card-accent: var(--card-key-moment);  --card-glow: var(--accent-violet-glow); }
+[data-card-type="stat"]        { --card-accent: var(--card-stat);        --card-glow: rgba(59,130,246,0.15); }
+[data-card-type="player_spotlight"] { --card-accent: var(--card-spotlight); --card-glow: rgba(34,197,94,0.15); }
+[data-card-type="recap"]       { --card-accent: var(--card-recap);       --card-glow: rgba(139,92,246,0.15); }
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+@keyframes event-dot-pop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.4); opacity: 1; }
+  100% { transform: scale(1);  opacity: 1; }
+}
+
+.animate-slide-up   { animation: slide-up 0.25s ease forwards; }
+.animate-pulse-live { animation: pulse-live 1.5s ease-in-out infinite; }
+.animate-dot-pop    { animation: event-dot-pop 0.3s ease forwards; }

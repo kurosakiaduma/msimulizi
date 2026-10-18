@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Msimulizi — Live Slice</title>
+  <meta name="description" content="Msimulizi thin vertical slice: synthetic football match overlay cards in real time." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ------------------------------------------------------------------ */
+    /* Design tokens                                                         */
+    /* ------------------------------------------------------------------ */
+    :root {
+      --bg:          #0b0f1a;
+      --surface:     #131929;
+      --surface2:    #1c2540;
+      --border:      rgba(255,255,255,.08);
+      --text-1:      #f0f4ff;
+      --text-2:      #8b9ac2;
+      --text-3:      #596386;
+      --accent:      #4f8ef7;
+      --accent-glow: rgba(79,142,247,.25);
+      --goal:        #f7a24f;
+      --goal-glow:   rgba(247,162,79,.25);
+      --sw:          #4fccf7;
+      --sw-glow:     rgba(79,204,247,.2);
+      --danger:      #f75c5c;
+      --success:     #5cf7b4;
+      --radius:      12px;
+      --radius-sm:   8px;
+      --transition:  220ms cubic-bezier(.25,.8,.25,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Header / scorebar                                                     */
+    /* ------------------------------------------------------------------ */
+    #header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      height: 60px;
+    }
+    #logo {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      font-size: 1.35rem;
+      background: linear-gradient(135deg, var(--accent) 0%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
+    }
+    #scorebar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      justify-content: center;
+    }
+    .team-name {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text-2);
+      max-width: 140px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    #score {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--text-1);
+      min-width: 64px;
+      text-align: center;
+      letter-spacing: .05em;
+    }
+    #clock-badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--text-2);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    #status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-3);
+      flex-shrink: 0;
+      transition: background var(--transition), box-shadow var(--transition);
+    }
+    #status-dot.live { background: var(--success); box-shadow: 0 0 8px var(--success); animation: pulse 1.6s infinite; }
+    #status-dot.error { background: var(--danger); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+    /* ------------------------------------------------------------------ */
+    /* Main layout                                                           */
+    /* ------------------------------------------------------------------ */
+    #main {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 0;
+      overflow: hidden;
+      height: calc(100vh - 60px);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Left panel: controls + connection                                     */
+    /* ------------------------------------------------------------------ */
+    #sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .panel-title {
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 8px;
+    }
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: .8rem; color: var(--text-2); }
+    select, input[type=number], input[type=range] {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-1);
+      font-family: inherit;
+      font-size: .85rem;
+      padding: 6px 10px;
+      width: 100%;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    select:focus, input:focus { border-color: var(--accent); }
+    input[type=range] { padding: 4px 0; cursor: pointer; }
+    #speed-label { font-size: .8rem; color: var(--accent); font-weight: 600; }
+    .btn {
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: .85rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      transition: opacity var(--transition), transform var(--transition);
+      width: 100%;
+    }
+    .btn:hover { opacity: .85; }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    #conn-status {
+      font-size: .8rem;
+      color: var(--text-3);
+      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      line-height: 1.5;
+      word-break: break-all;
+    }
+    #stats-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .stat-item { font-size: .75rem; }
+    .stat-label { color: var(--text-3); }
+    .stat-value { color: var(--text-1); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* ------------------------------------------------------------------ */
+    /* Right panel: card feed                                               */
+    /* ------------------------------------------------------------------ */
+    #feed-panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #feed-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #feed-header h2 {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text-2);
+    }
+    #card-count-badge {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: .75rem;
+      color: var(--text-2);
+      padding: 2px 10px;
+    }
+    #feed {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    /* ------------------------------------------------------------------ */
+    /* Overlay cards                                                         */
+    /* ------------------------------------------------------------------ */
+    .card {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 16px;
+      animation: slide-in 350ms cubic-bezier(.22,1,.36,1) forwards;
+      opacity: 0;
+      transform: translateY(16px);
+      background: var(--surface);
+    }
+    @keyframes slide-in { to { opacity:1; transform:translateY(0); } }
+
+    .card.type-goal {
+      border-color: var(--goal);
+      background: linear-gradient(135deg, #1f1608 0%, var(--surface) 60%);
+      box-shadow: 0 0 24px var(--goal-glow);
+    }
+    .card.type-key_moment {
+      border-color: var(--accent);
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+    .card.type-stat    { border-color: rgba(92,247,180,.3); }
+    .card.type-recap   { border-color: #a78bfa; box-shadow: 0 0 16px rgba(167,139,250,.2); }
+    .card.type-fallback{ border-color: rgba(255,255,255,.1); opacity: .8; }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 20px;
+      line-height: 1.6;
+    }
+    .badge-goal       { background: var(--goal); color: #1a0e00; }
+    .badge-key_moment { background: var(--accent); color: #fff; }
+    .badge-stat       { background: var(--success); color: #001a0e; }
+    .badge-recap      { background: #a78bfa; color: #1a0030; }
+    .badge-fallback   { background: var(--text-3); color: #000; }
+
+    .card-clock {
+      font-size: .72rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-3);
+      margin-left: auto;
+    }
+    .card-priority {
+      font-size: .7rem;
+      color: var(--text-3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1px 7px;
+    }
+
+    .card-headline {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-1);
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .card-body {
+      font-size: .82rem;
+      color: var(--text-2);
+      line-height: 1.55;
+    }
+    .card-gloss {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .gloss-label {
+      font-size: .65rem;
+      color: var(--sw);
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .gloss-headline { font-size: .82rem; font-weight: 600; color: var(--sw); }
+    .gloss-body { font-size: .78rem; color: #7dcce0; margin-top: 2px; }
+
+    .card-reason {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: rgba(255,255,255,.03);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: .75rem;
+      color: var(--text-3);
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    .card-synthetic {
+      margin-top: 8px;
+      font-size: .65rem;
+      color: var(--text-3);
+      letter-spacing: .04em;
+    }
+
+    #empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 12px;
+      color: var(--text-3);
+      text-align: center;
+      padding: 40px;
+    }
+    #empty-state .icon { font-size: 3rem; }
+    #empty-state p { font-size: .9rem; line-height: 1.6; }
+
+    /* ------------------------------------------------------------------ */
+    /* Responsive tweaks                                                    */
+    /* ------------------------------------------------------------------ */
+    @media (max-width: 720px) {
+      #main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      #sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 240px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ------------------------------------------------------------------ -->
+<!-- Header                                                               -->
+<!-- ------------------------------------------------------------------ -->
+<header id="header">
+  <div id="logo">Msimulizi</div>
+  <div id="scorebar">
+    <span class="team-name" id="home-name">Home</span>
+    <span id="score">0 – 0</span>
+    <span class="team-name" id="away-name">Away</span>
+  </div>
+  <span id="clock-badge">0:00</span>
+  <div id="status-dot" title="Connection status"></div>
+</header>
+
+<!-- ------------------------------------------------------------------ -->
+<!-- Main layout                                                          -->
+<!-- ------------------------------------------------------------------ -->
+<div id="main">
+
+  <!-- Sidebar / controls -->
+  <aside id="sidebar">
+    <div>
+      <div class="panel-title">Match Setup</div>
+      <div class="field-group">
+        <label for="sel-storyline">Storyline</label>
+        <select id="sel-storyline">
+          <option value="comeback_from_two_down">Comeback from Two Down</option>
+          <option value="red_card_shift">Red Card Shift</option>
+          <option value="late_equaliser">Late Equaliser</option>
+          <option value="dominant_side_loses">Dominant Side Loses</option>
+        </select>
+      </div>
+      <div class="field-group" style="margin-top:10px">
+        <label for="sel-language">Language</label>
+        <select id="sel-language">
+          <option value="en">English</option>
+          <option value="sw">Swahili (sw)</option>
+          <option value="fr">French</option>
+        </select>
+      </div>
+      <div class="field-group" style="margin-top:10px">
+        <label for="sel-mode">Mode</label>
+        <select id="sel-mode">
+          <option value="casual">Casual fan</option>
+          <option value="analyst">Analyst</option>
+        </select>
+      </div>
+      <div class="field-group" style="margin-top:10px">
+        <label>Speed — <span id="speed-label">1.0×</span></label>
+        <input id="rng-speed" type="range" min="0.1" max="4" step="0.1" value="1" />
+      </div>
+      <button id="btn-start" class="btn" style="margin-top:14px">▶ Start Match</button>
+    </div>
+
+    <div>
+      <div class="panel-title">Connection</div>
+      <div id="conn-status">Not connected.</div>
+    </div>
+
+    <div>
+      <div class="panel-title">Stats</div>
+      <div id="stats-box">
+        <div class="stat-item"><div class="stat-label">Cards received</div><div class="stat-value" id="stat-cards">0</div></div>
+        <div class="stat-item"><div class="stat-label">Clock</div><div class="stat-value" id="stat-clock">0:00</div></div>
+        <div class="stat-item"><div class="stat-label">Session ID</div><div class="stat-value" id="stat-session" style="font-size:.65rem;word-break:break-all">—</div></div>
+        <div class="stat-item"><div class="stat-label">Match ID</div><div class="stat-value" id="stat-match" style="font-size:.65rem;word-break:break-all">—</div></div>
+      </div>
+    </div>
+
+    <div style="font-size:.7rem; color:var(--text-3); line-height:1.5;">
+      <strong style="color:var(--text-2)">Synthetic &amp; AI-generated</strong><br/>
+      All match data is synthetic. Narration is generated by Azure AI Foundry.
+      This page is a thin vertical slice checkpoint (Task 24) — not the final UI.
+    </div>
+  </aside>
+
+  <!-- Card feed -->
+  <section id="feed-panel">
+    <div id="feed-header">
+      <h2>Live Overlay Cards</h2>
+      <span id="card-count-badge">0 cards</span>
+    </div>
+    <div id="feed">
+      <div id="empty-state">
+        <div class="icon">⚽</div>
+        <p>Click <strong>Start Match</strong> to begin streaming.<br/>
+           Cards will appear here as key moments are detected.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ------------------------------------------------------------------ -->
+<!-- JS                                                                   -->
+<!-- ------------------------------------------------------------------ -->
+<script>
+"use strict";
+
+/* ---------- state ---------- */
+const state = {
+  ws: null,
+  sessionId: null,
+  matchId: null,
+  cardCount: 0,
+  clockMinute: 0,
+  clockSecond: 0,
+  scoreHome: 0,
+  scoreAway: 0,
+};
+
+/* ---------- DOM refs ---------- */
+const $ = id => document.getElementById(id);
+const btnStart    = $("btn-start");
+const feed        = $("feed");
+const emptyState  = $("empty-state");
+const connStatus  = $("conn-status");
+const statusDot   = $("status-dot");
+const scoreEl     = $("score");
+const clockBadge  = $("clock-badge");
+const statCards   = $("stat-cards");
+const statClock   = $("stat-clock");
+const statSession = $("stat-session");
+const statMatch   = $("stat-match");
+const cardCountBadge = $("card-count-badge");
+const speedSlider = $("rng-speed");
+const speedLabel  = $("speed-label");
+
+/* ---------- speed label ---------- */
+speedSlider.addEventListener("input", () => {
+  speedLabel.textContent = `${parseFloat(speedSlider.value).toFixed(1)}×`;
+});
+
+/* ---------- helpers ---------- */
+function pad2(n) { return String(n).padStart(2, "0"); }
+function formatClock(m, s) { return `${m}:${pad2(s)}`; }
+function setDot(cls) {
+  statusDot.className = "";
+  if (cls) statusDot.classList.add(cls);
+}
+function setStatus(msg) { connStatus.textContent = msg; }
+
+function updateClock(minute, second) {
+  state.clockMinute = minute;
+  state.clockSecond = second;
+  const txt = formatClock(minute, second);
+  clockBadge.textContent = txt;
+  statClock.textContent  = txt;
+}
+
+function updateScore(home, away) {
+  state.scoreHome = home;
+  state.scoreAway = away;
+  scoreEl.textContent = `${home} \u2013 ${away}`;
+}
+
+/* ---------- card rendering ---------- */
+function cardBadgeClass(type) {
+  const map = { goal:"badge-goal", key_moment:"badge-key_moment", stat:"badge-stat", recap:"badge-recap" };
+  return map[type] || "badge-fallback";
+}
+
+function renderCard(data) {
+  if (emptyState.parentNode) emptyState.remove();
+
+  const lang = $("sel-language").value;
+  const text = (data.text || {})[lang] || (data.text || {})["en"] || {};
+  const headline = text.headline || data.card_id || "Match update";
+  const body = text.body || "";
+  const gloss = data.gloss_en;
+
+  const clock = data.match_clock || {};
+  const clockStr = formatClock(clock.minute ?? 0, clock.second ?? 0);
+  const type = data.card_type || "key_moment";
+  const priority = data.priority || 1;
+
+  // Determine if this is actually a fallback card
+  const isFallback = data.synthetic_ai_generated === false;
+
+  const card = document.createElement("article");
+  card.className = `card type-${type}${isFallback ? " type-fallback" : ""}`;
+  card.setAttribute("aria-label", `${type} card at ${clockStr}`);
+
+  let html = `
+    <div class="card-meta">
+      <span class="badge ${cardBadgeClass(type)}">${type.replace("_", " ")}</span>
+      ${priority <= 2 ? `<span class="badge" style="background:rgba(247,162,79,.2);color:var(--goal)">P${priority}</span>` : ""}
+      <span class="card-clock">⏱ ${clockStr}</span>
+    </div>
+    <div class="card-headline">${escHtml(headline)}</div>
+    <div class="card-body">${escHtml(body)}</div>
+  `;
+
+  // Swahili gloss
+  if (lang === "sw" && gloss) {
+    html += `
+      <div class="card-gloss">
+        <div class="gloss-label">English gloss</div>
+        <div class="gloss-headline">${escHtml(gloss.headline || "")}</div>
+        <div class="gloss-body">${escHtml(gloss.body || "")}</div>
+      </div>`;
+  }
+
+  // Reason / explanation
+  const expl = data.structured_explanation;
+  if (expl && expl.reason) {
+    html += `<div class="card-reason">${escHtml(expl.reason)}</div>`;
+  }
+
+  html += `<div class="card-synthetic">🤖 Synthetic &amp; AI-generated${isFallback ? " · fallback template" : ""}</div>`;
+  card.innerHTML = html;
+  feed.prepend(card);
+
+  state.cardCount++;
+  statCards.textContent = state.cardCount;
+  cardCountBadge.textContent = `${state.cardCount} card${state.cardCount === 1 ? "" : "s"}`;
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/* ---------- WebSocket ---------- */
+function connectWS(sessionId, matchId) {
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  const host   = location.host || "localhost:8000";
+  const url    = `${proto}://${host}/ws?session_id=${sessionId}&match_id=${matchId}`;
+
+  setStatus(`Connecting to WebSocket…\n${url}`);
+  setDot("");
+
+  const ws = new WebSocket(url);
+  state.ws = ws;
+
+  ws.onopen = () => {
+    setDot("live");
+    setStatus(`Connected ✓\nSession: ${sessionId}`);
+    statSession.textContent = sessionId.slice(0, 18) + "…";
+    statMatch.textContent   = (matchId || "").slice(0, 18) + "…";
+  };
+
+  ws.onmessage = evt => {
+    let msg;
+    try { msg = JSON.parse(evt.data); } catch { return; }
+
+    switch (msg.type) {
+      case "clock_update":
+        handleClock(msg.clock || msg);
+        break;
+      case "card":
+        renderCard(msg.card || msg);
+        break;
+      case "score_update":
+        updateScore(msg.score_home ?? state.scoreHome, msg.score_away ?? state.scoreAway);
+        break;
+      case "welcome":
+        setStatus(`Connected ✓\nSession: ${msg.session_id || sessionId}`);
+        break;
+      case "ping":
+        ws.send(JSON.stringify({ type: "pong", ts: Date.now() / 1000 }));
+        break;
+      case "full_time":
+        setDot("");
+        setStatus(`Match complete. ${state.cardCount} cards received.`);
+        btnStart.disabled = false;
+        btnStart.textContent = "▶ Start New Match";
+        break;
+    }
+  };
+
+  ws.onerror = () => {
+    setDot("error");
+    setStatus("WebSocket error — check the backend is running.");
+  };
+
+  ws.onclose = () => {
+    setDot("error");
+    setStatus(`Disconnected.\nSession: ${sessionId}`);
+  };
+}
+
+function handleClock(c) {
+  const minute = c.minute ?? c.match_seconds != null ? Math.floor((c.match_seconds || 0) / 60) : state.clockMinute;
+  const second = c.second ?? (c.match_seconds != null ? Math.floor((c.match_seconds || 0) % 60) : state.clockSecond);
+  updateClock(minute, second);
+  if (c.score_home != null) updateScore(c.score_home, c.score_away ?? state.scoreAway);
+}
+
+/* ---------- Start button ---------- */
+btnStart.addEventListener("click", async () => {
+  // Close existing connection if any
+  if (state.ws && state.ws.readyState < 2) {
+    state.ws.close();
+  }
+  state.cardCount = 0;
+  statCards.textContent = "0";
+  cardCountBadge.textContent = "0 cards";
+  // Clear the feed (leave empty state until first card)
+  feed.innerHTML = "";
+  feed.appendChild(emptyState);
+  scoreEl.textContent = "0 \u2013 0";
+  clockBadge.textContent = "0:00";
+
+  const storyline = $("sel-storyline").value;
+  const language  = $("sel-language").value;
+  const mode      = $("sel-mode").value;
+  const speed     = parseFloat(speedSlider.value);
+
+  btnStart.disabled = true;
+  btnStart.textContent = "Starting…";
+  setStatus("Creating session…");
+  setDot("");
+
+  try {
+    const resp = await fetch("/v1/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ storyline, language, mode, speed }),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    state.sessionId = data.session_id;
+    state.matchId   = data.match_id || `${storyline}-42`;
+
+    btnStart.disabled = false;
+    btnStart.textContent = "⏹ Running…";
+    btnStart.disabled = true;
+
+    connectWS(state.sessionId, state.matchId);
+  } catch (err) {
+    setDot("error");
+    setStatus(`Failed to create session:\n${err.message}`);
+    btnStart.disabled = false;
+    btnStart.textContent = "▶ Start Match";
+  }
+});
+</script>
+</body>
+</html>
