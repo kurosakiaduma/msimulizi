@@ -266,6 +266,12 @@ def generate_match(storyline: str, seed: int) -> Iterator[Event]:
         scorer = str(goal.get("scorer", home_players[0]))
         minute = int(goal.get("minute", 30))
         second = int(goal.get("second", 0))
+        # The home side attacks the right-hand goal and the away side attacks
+        # the left-hand goal in the pitch visualisation. Keep finishing events
+        # inside the attacking penalty area so the replay reflects the
+        # underlying football action instead of placing every shot at midfield.
+        attacking_x = 88.0 if team_side == "home" else 12.0
+        attacking_y = rng.uniform(32.0, 68.0)
         distance = float(goal.get("distance", rng.uniform(7.0, 18.0)))
         angle = float(goal.get("angle", rng.uniform(0.25, 1.2)))
         is_header = bool(goal.get("is_header", rng.random() < 0.25))
@@ -279,10 +285,10 @@ def generate_match(storyline: str, seed: int) -> Iterator[Event]:
                 scorer,
                 minute,
                 second,
-                x_start=50.0,
-                y_start=50.0,
-                x_end=50.0,
-                y_end=40.0,
+                x_start=attacking_x,
+                y_start=attacking_y,
+                x_end=100.0 if team_side == "home" else 0.0,
+                y_end=50.0,
                 outcome="goal",
                 xg=xg_value,
                 is_header=is_header,
@@ -315,6 +321,9 @@ def generate_match(storyline: str, seed: int) -> Iterator[Event]:
         shot_distance = float(goal.get("shot_distance", rng.uniform(10.0, 24.0)))
         shot_angle = float(goal.get("shot_angle", rng.uniform(0.60, 1.50)))
         shot_xg = compute_xg(distance=shot_distance, angle=shot_angle, is_header=is_header, is_penalty=is_penalty)
+        shot_x = attacking_x + (
+            rng.uniform(-8.0, 4.0) if team_side == "home" else rng.uniform(-4.0, 8.0)
+        )
         events.append(
             emit(
                 EventType.shot,
@@ -322,9 +331,9 @@ def generate_match(storyline: str, seed: int) -> Iterator[Event]:
                 shot_player,
                 minute,
                 second + 1,
-                x_start=50.0,
-                y_start=50.0,
-                x_end=60.0,
+                x_start=shot_x,
+                y_start=attacking_y + rng.uniform(-10.0, 10.0),
+                x_end=100.0 if team_side == "home" else 0.0,
                 y_end=50.0,
                 outcome="goal",
                 xg=shot_xg,

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from generator.generate import generate_match, make_match_id
 from generator.validate import validate_storyline
+from shared.models import EventType
 
 
 def test_make_match_id_is_stable_and_slugged():
@@ -28,6 +29,22 @@ def test_event_ids_use_match_id_then_sequence_number():
     assert events[0].event_id.startswith("red-card-shift-11-")
     assert events[0].event_id.endswith("-000001")
     assert len({event.event_id for event in events}) == len(events)
+
+
+def test_shots_and_goals_are_emitted_in_attacking_areas():
+    """Finishing events should appear near the goal being attacked."""
+    events = list(generate_match("comeback_from_two_down", 42))
+    finishing_events = [
+        event for event in events
+        if event.event_type in {EventType.shot, EventType.goal}
+    ]
+
+    assert finishing_events
+    assert all(
+        event.x_start >= 80 if event.team == "Kisumu City" else event.x_start <= 20
+        for event in finishing_events
+    )
+    assert all(15 <= event.y_start <= 85 for event in finishing_events)
 
 
 def test_fictional_names_are_used_in_generated_events():
