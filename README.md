@@ -2,7 +2,7 @@
 
 > **Msimulizi** (Swahili: "the narrator") is a real-time football match intelligence system that transforms a synthetic event stream into live, explainable commentary and overlay cards in Swahili, English, and French.
 
-Built for the [Microsoft AI Tour Hackathon](https://developer.microsoft.com/en-us/reactor/) — *Inside the Game* challenge.
+Built for the [Microsoft AI Tour Hackathon](https://developer.microsoft.com/en-us/reactor/series/S-1709/) — *Inside the Game* challenge.
 
 > All code, model weights, calibration data, and the pre-generated bundle in this repository were created during the hackathon submission window (on or after 29 September 2026). No pre-existing scripts, notebooks, data, or model files were copied in.
 
