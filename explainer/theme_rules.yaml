@@ -1,0 +1,31 @@
+# Deterministic fallback reasons for the Explainer (task 16).
+#
+# Used when the LLM call times out or fails the number check twice. Rules for every sentence:
+# one sentence, English, no digits (so it always passes the number check), and nothing that is
+# not true by definition of the trigger. The theme and numeric_evidence travel separately in the
+# Structured Explanation, so the Narrator still frames the moment from them.
+
+# When a Key Moment has several tags, the first tag in this list that has a template wins.
+tag_precedence:
+  - red_card
+  - goal
+  - lead_change
+  - big_chance
+  - momentum_swing
+  - player_milestone
+
+tag_overrides:
+  red_card: "The red card left one side a player short for the rest of the match."
+  goal: "The goal changed the scoreline and the stakes for both teams."
+  lead_change: "The lead changed hands."
+  big_chance: "The big chance gave one side a clear opportunity to change the scoreline."
+  momentum_swing: "Momentum swung noticeably toward one side over the recent stretch of play."
+  player_milestone: "A player reached a notable milestone in the match."
+  full_time: "The final whistle ended the match."
+
+# Used only when no tag has a template. These are neutral on purpose, because default_theme
+# can be selected when no threshold was actually met.
+default:
+  control_vs_chaos: "The balance of control in the match is the context for this moment."
+  pressure_change: "The pressure on both teams is the context for this moment."
+  rhythm_shift: "The tempo of the match is the context for this moment."

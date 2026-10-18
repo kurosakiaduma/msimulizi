@@ -1,0 +1,13 @@
+default:
+  control_vs_chaos: "The tactical control shifted and the match tilted in one direction."
+  pressure_change: "The pressure pattern changed and the game swung in a new direction."
+  rhythm_shift: "The tempo shifted and the rhythm of the match changed."
+
+tag_overrides:
+  goal: "The goal changed the scoreline and shifted the momentum."
+  red_card: "The red card changed the pressure profile and the balance of the match."
+  big_chance: "The big chance created a decisive opening and raised the stakes."
+  lead_change: "The lead changed hands and the match tilted in a new direction."
+  momentum_swing: "The momentum swing changed the rhythm and direction of the match."
+  player_milestone: "The player milestone reinforced the team's control of the match."
+  full_time: "The final whistle ended the contest and settled the story of the match."

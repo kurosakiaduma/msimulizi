@@ -1,0 +1,22 @@
+# Default priority ranks for Msimulizi Key Moment detection.
+# The values are intentionally deterministic and shared across the project.
+xg_threshold: 0.40
+
+# Direct mapping keeps simple lookups easy while preserving a nested structure
+# for configuration consumers that want one canonical dictionary.
+priority_ranks:
+  goal: 1
+  red_card: 1
+  big_chance: 2
+  lead_change: 2
+  momentum_swing: 3
+  player_milestone: 4
+  full_time: 5
+
+goal: 1
+red_card: 1
+big_chance: 2
+lead_change: 2
+momentum_swing: 3
+player_milestone: 4
+full_time: 5
