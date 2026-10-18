@@ -1,0 +1,108 @@
+{
+  "pass_completion_by_zone": {
+    "attacking_third": {
+      "attempts": 765571,
+      "completions": 527452,
+      "rate": 0.688965
+    },
+    "defending_third": {
+      "attempts": 968806,
+      "completions": 744718,
+      "rate": 0.768697
+    },
+    "middle_third": {
+      "attempts": 1697388,
+      "completions": 1392581,
+      "rate": 0.820426
+    }
+  },
+  "shot_conversion_by_distance": {
+    "0-6y": {
+      "attempts": 2875,
+      "goals": 1309,
+      "rate": 0.455304
+    },
+    "12-18y": {
+      "attempts": 22040,
+      "goals": 3127,
+      "rate": 0.141878
+    },
+    "18-25y": {
+      "attempts": 22478,
+      "goals": 1261,
+      "rate": 0.056099
+    },
+    "25-35y": {
+      "attempts": 19944,
+      "goals": 554,
+      "rate": 0.027778
+    },
+    "35-50y": {
+      "attempts": 2841,
+      "goals": 82,
+      "rate": 0.028863
+    },
+    "50-200y": {
+      "attempts": 339,
+      "goals": 13,
+      "rate": 0.038348
+    },
+    "6-12y": {
+      "attempts": 19873,
+      "goals": 3900,
+      "rate": 0.196246
+    }
+  },
+  "shot_conversion_by_angle": {
+    "0.0-0.2rad": {
+      "attempts": 5443,
+      "goals": 207,
+      "rate": 0.03803
+    },
+    "0.2-0.4rad": {
+      "attempts": 47372,
+      "goals": 2404,
+      "rate": 0.050747
+    },
+    "0.4-0.6rad": {
+      "attempts": 17475,
+      "goals": 2343,
+      "rate": 0.134077
+    },
+    "0.6-0.8rad": {
+      "attempts": 10476,
+      "goals": 2467,
+      "rate": 0.235491
+    },
+    "0.8-1.0rad": {
+      "attempts": 4992,
+      "goals": 1018,
+      "rate": 0.203926
+    },
+    "1.0-1.2rad": {
+      "attempts": 2550,
+      "goals": 759,
+      "rate": 0.297647
+    },
+    "1.2+rad": {
+      "attempts": 5,
+      "goals": 4,
+      "rate": 0.8
+    },
+    "1.2-3.1rad": {
+      "attempts": 2077,
+      "goals": 1044,
+      "rate": 0.502648
+    }
+  },
+  "events_per_minute": 37.0352,
+  "pressure_rate": 0.094189,
+  "shot_count": 90390,
+  "pass_count": 3431765,
+  "total_events": 12468812,
+  "total_minutes": 336674.43,
+  "sources_consulted": [
+    "StatsBomb Open Data (https://github.com/statsbomb/open-data)",
+    "Premier League competition (competition_id=2) EXCLUDED"
+  ]
+}
