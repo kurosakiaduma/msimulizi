@@ -97,7 +97,7 @@ graph LR
 
 ```bash
 # 1. Clone and enter the repository
-git clone <your-fork>
+git clone https://github.com/kurosakiaduma/msimulizi
 cd msimulizi
 
 # 2. Copy the environment template and fill in values (never commit .env)
