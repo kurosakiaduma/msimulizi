@@ -62,6 +62,32 @@ def _card_to_dict(card: OverlayCard) -> dict[str, Any]:
     return d
 
 
+def _find_bundle_card(
+    bundle_cards: dict[str, Any] | None,
+    *,
+    profile_key: str,
+    match_seconds: float,
+    card_type: str,
+) -> dict[str, Any] | None:
+    """Find a pre-generated card when bundle records lack a moment ID."""
+    if not bundle_cards:
+        return None
+    cards = bundle_cards.get(profile_key)
+    if not isinstance(cards, list):
+        return None
+    for candidate in cards:
+        if not isinstance(candidate, dict):
+            continue
+        candidate_seconds = candidate.get("match_seconds")
+        if (
+            isinstance(candidate_seconds, (int, float))
+            and float(candidate_seconds) == match_seconds
+            and candidate.get("card_type") == card_type
+        ):
+            return candidate
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Main pipeline driver
 # ---------------------------------------------------------------------------
@@ -271,13 +297,22 @@ async def run_pipeline_session(
 
             # Check in-memory narration cache first (populated from bundle at startup)
             _cache_key = f"{narration_request.profile_key}:{narration_request.moment_id}"
-            if narration_cache is not None and _cache_key in narration_cache:
+            _match_seconds = float(event.minute * 60 + event.second)
+            _card_type = "goal" if "goal" in key_moment.trigger_tags else "key_moment"
+            cached = narration_cache.get(_cache_key) if narration_cache is not None else None
+            if cached is None:
+                cached = _find_bundle_card(
+                    bundle_cards,
+                    profile_key=narration_request.profile_key,
+                    match_seconds=_match_seconds,
+                    card_type=_card_type,
+                )
+            if cached is not None:
                 logger.info("[narrator] cache hit for %s", _cache_key)
                 # Treat the cached dict as already verified — skip to rendering
-                cached = narration_cache[_cache_key]
-                card_type = "goal" if "goal" in key_moment.trigger_tags else "key_moment"
+                card_type = _card_type
                 match_clock_dict = {"period": event.period, "minute": event.minute, "second": event.second}
-                match_secs = float(event.minute * 60 + event.second)
+                match_secs = _match_seconds
                 from renderer.renderer import build_card_id
                 from shared.models import GlossEn as _GlossEn
                 # Build a minimal card from the cached dict
