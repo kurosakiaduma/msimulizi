@@ -1,0 +1,193 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  # ── Repository hygiene ────────────────────────────────────────────────────
+  hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history needed for commit-date check
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Run hygiene check
+        run: python scripts/check_repo_hygiene.py
+
+  # ── Lint (ruff) ───────────────────────────────────────────────────────────
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint
+        run: ruff check .
+
+  # ── Backend tests (pytest) ────────────────────────────────────────────────
+  backend-tests:
+    name: Backend tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+
+      - name: Run tests
+        run: pytest --tb=short -q
+
+  # ── Frontend tests (Vitest) ───────────────────────────────────────────────
+  # NOTE: This job is skipped until frontend/ is scaffolded (task 25).
+  frontend-tests:
+    name: Frontend tests (Vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check whether frontend is scaffolded
+        id: frontend-check
+        run: |
+          if [ -f "package.json" ]; then
+            echo "scaffolded=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "scaffolded=false" >> "$GITHUB_OUTPUT"
+            echo "frontend/package.json not found — skipping Vitest (frontend not yet scaffolded)"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.frontend-check.outputs.scaffolded == 'true'
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        if: steps.frontend-check.outputs.scaffolded == 'true'
+        run: npm ci
+
+      - name: Run Vitest
+        if: steps.frontend-check.outputs.scaffolded == 'true'
+        run: npx vitest run
+
+  # ── Validation script (generator calibration) ────────────────────────────
+  # NOTE: This job is skipped until generator/validate.py is implemented (task 10).
+  validate-generator:
+    name: Generator calibration validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+
+      - name: Check whether validate.py exists
+        id: validate-check
+        run: |
+          if [ -f "generator/validate.py" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "generator/validate.py not found — skipping validation (added in task 10)"
+          fi
+
+      - name: Run generator validation
+        if: steps.validate-check.outputs.exists == 'true'
+        run: python generator/validate.py
+
+  # ── Deploy to Azure (task 31) ──────────────────────────────────────────────
+  # Runs on push to main after all test jobs pass.  Authenticates to Azure via
+  # GitHub OIDC (federated identity — no long-lived credentials), then provisions
+  # infrastructure and deploys the backend + frontend services with `azd up`.
+  # The backend is deployed with minReplicas=1 and scale-to-zero disabled
+  # (infra/main.bicep) so the live demo stays warm.
+  deploy:
+    name: Deploy to Azure (azd)
+    needs: [hygiene, lint, backend-tests, frontend-tests, validate-generator]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    env:
+      AZURE_ENV_NAME: dev
+      AZURE_LOCATION: eastus  # confirmed to offer sw-KE / sw-TZ Speech voices
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ── GitHub OIDC → Azure (federated identity, no client secret) ─────────
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-Oidc: true
+
+      # ── Azure Developer CLI (azd) ──────────────────────────────────────────
+      - name: Install Azure Developer CLI (azd)
+        run: |
+          curl -fsSL https://azd.github.io/install.sh | sh -s -- -d /usr/local/bin
+          echo "$HOME/.azd/bin" >> "$GITHUB_PATH"
+          azd --version
+
+      - name: Configure azd environment
+        run: |
+          azd env set AZURE_ENV_NAME "${AZURE_ENV_NAME}"
+          azd env set AZURE_LOCATION "${AZURE_LOCATION}"
+
+      - name: Provision infrastructure and deploy services (azd up)
+        run: |
+          # azd builds and pushes the two container images (Dockerfile.backend
+          # and frontend/Dockerfile per azure.yaml) and deploys them to the
+          # Container Apps environment defined in infra/main.bicep.
+          azd up --no-prompt
+
+      # ── Post-deploy verification (task 31) ─────────────────────────────────
+      # Confirms Swahili voices (sw-KE/sw-TZ) are available and that Foundry
+      # model retirement dates cover the judging window (through 10 Nov 2026).
+      # Best-effort: the SPEECH/FOUNDRY endpoints are only known after azd up
+      # provisions them, so this step gracefully skips when they are unset and
+      # does not fail the build. It is also run manually after deployment via
+      # `python scripts/verify_azure_deployment.py`.
+      - name: Verify Azure deployment (voices + model retirement dates)
+        continueOnError: true
+        run: python scripts/verify_azure_deployment.py
+        env:
+          SPEECH_ENDPOINT: ${{ secrets.SPEECH_ENDPOINT }}
+          SPEECH_API_KEY: ${{ secrets.SPEECH_API_KEY }}
+          FOUNDRY_ENDPOINT: ${{ secrets.FOUNDRY_ENDPOINT }}
+          FOUNDRY_API_KEY: ${{ secrets.FOUNDRY_API_KEY }}
+

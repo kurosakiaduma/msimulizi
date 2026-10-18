@@ -1,0 +1,45 @@
+# azure.yaml — Azure Developer CLI (azd) service definitions for Msimulizi
+# Deploy everything with: azd up
+# Teardown with: azd down
+
+name: msimulizi
+
+metadata:
+  template: msimulizi@0.1.0
+
+# Resource group and location are set via:
+#   azd env set AZURE_LOCATION eastus
+#   azd env set AZURE_ENV_NAME dev
+infra:
+  provider: bicep
+  path: infra
+  module: main
+
+services:
+  backend:
+    project: .
+    language: py
+    host: containerapp
+    docker:
+      path: Dockerfile.backend
+      context: .
+    hooks:
+      postdeploy:
+        shell: sh
+        run: echo "Backend deployed to ${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}"
+        interactive: false
+        continueOnError: true
+
+  frontend:
+    project: frontend
+    language: js
+    host: containerapp
+    docker:
+      path: Dockerfile
+      context: frontend
+    hooks:
+      postdeploy:
+        shell: sh
+        run: echo "Frontend deployed to ${AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN}"
+        interactive: false
+        continueOnError: true

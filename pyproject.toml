@@ -1,0 +1,32 @@
+[project]
+name = "msimulizi"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "agent-framework-core>=1.20.0",
+    "agent-framework-foundry>=1.14.0",
+    "azure-cognitiveservices-speech>=1.52.0",
+    "azure-identity>=1.26.0",
+    "azure-storage-blob>=12.31.0",
+    "fastapi>=0.115.0",
+    "mcp>=1.24,<2",
+    "pyyaml>=6.0",
+    "scikit-learn>=1.9.1",
+    "uvicorn[standard]>=0.32.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=9.1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "timeout: mark a test with a wall-clock timeout (requires pytest-timeout plugin)",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["shared", "generator", "adapter", "pipeline", "renderer", "api", "mcp_server", "explainer", "scripts"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
