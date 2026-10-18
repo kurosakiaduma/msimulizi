@@ -181,6 +181,9 @@ export default function Home() {
           };
           setLatestEvent(dot);
           setEvents((prev) => [...prev.slice(-200), dot]);
+          // Re-anchor the clock to the event's authoritative match minute so the
+          // timer stays synced even between less frequent state/card updates.
+          clock.updateAnchor(Date.now(), dot.minute * 60, clock.speed);
           break;
         }
 
