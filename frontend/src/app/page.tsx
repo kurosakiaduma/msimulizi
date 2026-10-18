@@ -158,6 +158,14 @@ export default function Home() {
       switch (msg.type) {
         case "state_update":
           setMatchState(msg.payload);
+          // Re-anchor the match clock to the authoritative backend time so the
+          // topbar timer stays in sync with cards and events instead of
+          // counting up independently from session start.
+          clock.updateAnchor(
+            Date.now(),
+            msg.payload.minute * 60 + msg.payload.second,
+            clock.speed
+          );
           break;
 
         case "event": {
@@ -188,6 +196,7 @@ export default function Home() {
             score_away: msg.away,
             minute: msg.minute,
           }));
+          clock.updateAnchor(Date.now(), msg.minute * 60, clock.speed);
           break;
 
         case "clock_update": {
@@ -330,7 +339,26 @@ export default function Home() {
   }
 
   // ── Derived clock values ─────────────────────────────────────────────
-  const displayClock = clock.toClock(clock.matchSeconds);
+  // matchSeconds is a float advanced every animation frame. Rendering off it
+  // directly re-renders the page at ~60fps, which makes the topbar clock and
+  // cards jitter. Only commit a new clock to the UI when the displayed second
+  // actually changes so the rendered clock stays stable between ticks.
+  const [renderClock, setRenderClock] = useState<{ minute: number; second: number }>(
+    clock.toClock(clock.matchSeconds)
+  );
+  const prevRenderClock = useRef(renderClock);
+
+  useEffect(() => {
+    const next = clock.toClock(clock.matchSeconds);
+    if (
+      next.minute !== prevRenderClock.current.minute ||
+      next.second !== prevRenderClock.current.second
+    ) {
+      prevRenderClock.current = next;
+      setRenderClock(next);
+    }
+  }, [clock.matchSeconds]);
+
   const isLive = isConnected;
   // Approximate period from match seconds
   const period = clock.matchSeconds < 2700 ? 1 : 2;
@@ -343,8 +371,8 @@ export default function Home() {
       <div className="min-h-screen bg-[--bg-base] flex flex-col items-center justify-center gap-6 p-8">
         <header aria-label="Match header (audio-only mode)">
           <MatchClock
-            minute={displayClock.minute}
-            second={displayClock.second}
+            minute={renderClock.minute}
+            second={renderClock.second}
             period={period as 1 | 2}
             isLive={isLive}
           />
@@ -417,8 +445,8 @@ export default function Home() {
 
         <div className="flex items-center gap-4">
           <MatchClock
-            minute={displayClock.minute}
-            second={displayClock.second}
+            minute={renderClock.minute}
+            second={renderClock.second}
             period={period as 1 | 2}
             isLive={isLive}
           />
