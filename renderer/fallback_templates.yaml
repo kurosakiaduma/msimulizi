@@ -1,0 +1,53 @@
+default:
+  goal:
+    sw:
+      headline: "Gool! {player} anafunga"
+      body: "Dakika ya {minute}, {player} anafunga kwa {score}."
+      gloss_en:
+        headline: "Goal! {player} scores"
+        body: "In the {minute}th minute, {player} scores for {score}."
+    en:
+      headline: "Goal! {player} scores"
+      body: "In the {minute}th minute, {player} scores to make it {score}."
+    fr:
+      headline: "But ! {player} marque"
+      body: "À la {minute}e minute, {player} marque pour faire {score}."
+  red_card:
+    sw:
+      headline: "Kadi nyekundu!"
+      body: "Dakika ya {minute}, {player} anatolewa nje na timu inaendelea kwa {score}."
+      gloss_en:
+        headline: "Red card!"
+        body: "In the {minute}th minute, {player} is sent off as the score remains {score}."
+    en:
+      headline: "Red card!"
+      body: "In the {minute}th minute, {player} is sent off as the score stays {score}."
+    fr:
+      headline: "Carton rouge !"
+      body: "À la {minute}e minute, {player} est exclu, score {score}."
+  big_chance:
+    sw:
+      headline: "Nafasi kubwa!"
+      body: "Dakika ya {minute}, {player} anapata nafasi kubwa na mchezo unaendelea kwa {score}."
+      gloss_en:
+        headline: "Big chance!"
+        body: "At {minute} minutes, {player} has a big chance and the score remains {score}."
+    en:
+      headline: "Big chance!"
+      body: "At {minute} minutes, {player} has a clear opening and the score stays {score}."
+    fr:
+      headline: "Grande occasion !"
+      body: "À la {minute}e minute, {player} a une grande occasion, score {score}."
+  default:
+    sw:
+      headline: "Mabadiliko ya mchezo"
+      body: "Dakika ya {minute}, {player} anafanya jambo muhimu kwa {score}."
+      gloss_en:
+        headline: "Match shift"
+        body: "At the {minute}th minute, {player} is involved as the score stands {score}."
+    en:
+      headline: "Match turn"
+      body: "At {minute} minutes, {player} is involved as the score stands {score}."
+    fr:
+      headline: "Changement de match"
+      body: "À la {minute}e minute, {player} est impliqué avec le score {score}."
