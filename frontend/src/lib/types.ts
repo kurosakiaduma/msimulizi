@@ -95,7 +95,8 @@ export interface ClockUpdate {
   type: "clock_update";
   match_seconds: number;
   speed: number;
-  anchor: number;              // wall-clock epoch ms when anchor was set
+  anchor_wall: number;         // wall-clock epoch ms when the replay started
+  anchor_match: number;        // match seconds at anchor_wall
 }
 
 export interface AudioUpdate {
@@ -109,6 +110,7 @@ export type WsMessage =
   | { type: "card";          card: OverlayCard; match_id: string }
   | { type: "clock_update";  clock: {
       match_seconds?: number; speed?: number;
+      anchor_wall?: number; anchor_match?: number;
       minute?: number; second?: number;
       score_home?: number; score_away?: number;
       momentum_home?: number; momentum_away?: number;

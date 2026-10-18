@@ -15,12 +15,14 @@ export type { ScheduledCard } from "./types";
 export interface SchedulerState {
   current: ScheduledCard | null;
   rank1Queue: ScheduledCard[];
+  /** Cards received before their match timestamp is reached. */
+  pending: ScheduledCard[];
   /** wall-clock ms when current card's display window ends */
   currentEndsAt: number;
 }
 
 export function createSchedulerState(): SchedulerState {
-  return { current: null, rank1Queue: [], currentEndsAt: 0 };
+  return { current: null, rank1Queue: [], pending: [], currentEndsAt: 0 };
 }
 
 /**
@@ -64,6 +66,15 @@ export function enqueueCard(
     ...card,
     display_from_wall: computeDisplayFrom(card, anchorWall, anchorMatch, speed),
   };
+
+  if (scheduled.display_from_wall > nowMs) {
+    return {
+      ...state,
+      pending: [...state.pending, scheduled].sort(
+        (a, b) => a.display_from_wall - b.display_from_wall
+      ),
+    };
+  }
 
   // Drop stale lower-priority cards immediately
   if (card.priority > 1 && isStale(scheduled, nowMs)) {
@@ -120,19 +131,34 @@ export function tick(
   state: SchedulerState,
   nowMs: number = Date.now()
 ): SchedulerState {
+  const due = state.pending.filter((card) => card.display_from_wall <= nowMs);
+  const pending = state.pending.filter((card) => card.display_from_wall > nowMs);
+
+  if (state.current === null && due.length > 0) {
+    const [next, ...rest] = due;
+    return {
+      ...state,
+      current: next,
+      pending,
+      rank1Queue: [...state.rank1Queue, ...rest],
+      currentEndsAt: next.display_from_wall + next.display_duration_ms,
+    };
+  }
+
   if (state.current !== null && nowMs >= state.currentEndsAt) {
     // Retire current
-    const [next, ...rest] = state.rank1Queue;
+    const [next, ...rest] = [...state.rank1Queue, ...due];
     if (next) {
       // Late arrival: show immediately
       const displayFrom = Math.min(next.display_from_wall, nowMs);
       return {
         current: { ...next, display_from_wall: displayFrom },
         rank1Queue: rest,
+        pending,
         currentEndsAt: displayFrom + next.display_duration_ms,
       };
     }
-    return { current: null, rank1Queue: [], currentEndsAt: 0 };
+    return { current: null, rank1Queue: [], pending, currentEndsAt: 0 };
   }
-  return state;
+  return pending.length === state.pending.length ? state : { ...state, pending };
 }

@@ -147,6 +147,10 @@ async def run_pipeline_session(
     # ------------------------------------------------------------------
     cards_emitted = 0
     recent_events: list[Any] = []
+    # Use one epoch anchor for the whole replay so the browser can derive the
+    # same continuously advancing match clock between event notifications.
+    clock_anchor_wall = time.time() * 1000.0
+    clock_anchor_match = 0.0
 
     try:
         async for event in adapter.events(session_id, speed=speed):
@@ -170,6 +174,8 @@ async def run_pipeline_session(
                 "score_away": event.score_away,
                 "match_seconds": float(event.minute * 60 + event.second),
                 "speed": speed,
+                "anchor_wall": clock_anchor_wall,
+                "anchor_match": clock_anchor_match,
                 # rolling state for momentum / possession / xG display
                 "momentum_home": round(state.momentum_home, 1),
                 "momentum_away": round(state.momentum_away, 1),

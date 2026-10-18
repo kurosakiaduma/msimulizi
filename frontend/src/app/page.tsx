@@ -195,7 +195,11 @@ export default function Home() {
           const matchSecs =
             c.match_seconds ?? ((c.minute ?? 0) * 60 + (c.second ?? 0));
           const spd = c.speed ?? clock.speed;
-          clock.updateAnchor(Date.now(), matchSecs, spd);
+          clock.updateAnchor(
+            c.anchor_wall ?? Date.now(),
+            c.anchor_match ?? matchSecs,
+            spd
+          );
           setMatchState((s) => ({
             ...s,
             score_home: c.score_home ?? s.score_home,

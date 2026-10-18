@@ -47,6 +47,17 @@ describe("Scheduler — enqueueCard", () => {
     expect(s1.current?.card_id).toBe("c1");
   });
 
+  it("waits for a future card's match timestamp", () => {
+    const s0 = createSchedulerState();
+    const future = makeCard({ card_id: "future", match_seconds: ANCHOR_MATCH + 10 });
+
+    const s1 = enqueueCard(s0, future, ANCHOR_WALL, ANCHOR_MATCH, SPEED, ANCHOR_WALL);
+
+    expect(s1.current).toBeNull();
+    expect(s1.pending.map((card) => card.card_id)).toEqual(["future"]);
+    expect(tick(s1, ANCHOR_WALL + 10_000).current?.card_id).toBe("future");
+  });
+
   it("pre-empts the current card when a higher-priority card arrives", () => {
     const s0 = createSchedulerState();
     const low  = makeCard({ card_id: "low",  priority: 3 });
@@ -168,8 +179,8 @@ describe("Scheduler — speed changes", () => {
     const now  = ANCHOR_WALL;
     const s1   = enqueueCard(s0, card, ANCHOR_WALL, ANCHOR_MATCH, 2, now);
 
-    // display_from_wall = ANCHOR_WALL + (620-600)/2 * 1000 = ANCHOR_WALL + 10_000
-    expect(s1.current?.display_from_wall).toBeCloseTo(ANCHOR_WALL + 10_000, 0);
+    // Future cards wait in pending until their match timestamp is reached.
+    expect(s1.pending[0]?.display_from_wall).toBeCloseTo(ANCHOR_WALL + 10_000, 0);
   });
 
   it("scales display_from_wall correctly at 0.1x speed", () => {
@@ -178,8 +189,8 @@ describe("Scheduler — speed changes", () => {
     const now  = ANCHOR_WALL;
     const s1   = enqueueCard(s0, card, ANCHOR_WALL, ANCHOR_MATCH, 0.1, now);
 
-    // display_from_wall = ANCHOR_WALL + 10/0.1 * 1000 = ANCHOR_WALL + 100_000
-    expect(s1.current?.display_from_wall).toBeCloseTo(ANCHOR_WALL + 100_000, 0);
+    // Future cards wait in pending until their match timestamp is reached.
+    expect(s1.pending[0]?.display_from_wall).toBeCloseTo(ANCHOR_WALL + 100_000, 0);
   });
 });
 
