@@ -1,0 +1,50 @@
+# ── Msimulizi backend container image ──
+# Context: repository root.  Builds the FastAPI service and runs it under uvicorn.
+# Deployed to Azure Container Apps with minReplicas=1, scale-to-zero disabled
+# (see infra/main.bicep) so in-memory session state survives.
+
+FROM python:3.13-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PORT=8000
+
+WORKDIR /app
+
+# System packages: build tools only (kept minimal; wheels are preferred).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies first for better layer caching.
+COPY pyproject.toml uv.lock ./
+RUN pip install --upgrade pip setuptools wheel \
+    && pip install -e ".[dev]"
+
+# Copy application code (editable install above already points at /app).
+COPY shared ./shared
+COPY generator ./generator
+COPY adapter ./adapter
+COPY pipeline ./pipeline
+COPY renderer ./renderer
+COPY api ./api
+COPY mcp_server ./mcp_server
+COPY explainer ./explainer
+COPY config ./config
+COPY bundle ./bundle
+COPY scripts ./scripts
+COPY LICENSE README.md DATA_PROVENANCE.md ./
+
+# Non-root runtime user.
+RUN useradd --create-home --shell /bin/bash msimulizi \
+    && chown -R msimulizi:msimulizi /app
+USER msimulizi
+
+EXPOSE 8000
+
+# Entrypoint: FastAPI app factory exposed by api.main.
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

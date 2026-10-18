@@ -1,0 +1,10 @@
+default:
+  en:
+    headline: "{stat_label}: {stat_value}"
+    body: "The latest {stat_label} is {stat_value}."
+  fr:
+    headline: "{stat_label} : {stat_value}"
+    body: "Le dernier {stat_label} est {stat_value}."
+  sw:
+    headline: "{stat_label}: {stat_value}"
+    body: "Takwimu ya hivi punde ya {stat_label} ni {stat_value}."
