@@ -230,6 +230,13 @@ export default function Home() {
         case "card": {
           const card = msg.card;
           if (!card) break;
+          // Re-anchor the clock to the card's authoritative match time so the
+          // topbar timer stays synced with the cards/events the backend
+          // broadcasts instead of drifting from session start.
+          const cardMatchSecs: number =
+            (card.match_seconds as number | undefined) ??
+            card.match_clock.minute * 60 + card.match_clock.second;
+          clock.updateAnchor(Date.now(), cardMatchSecs, clock.speed);
           setScheduler((s) =>
             enqueueCard(
               s,
