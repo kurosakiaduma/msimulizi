@@ -1,0 +1,923 @@
+{
+  "mode": "mock",
+  "seed": 42,
+  "generated_at": "2026-10-03T21:16:12+00:00",
+  "few_shot_source": "sw.draft.jsonl",
+  "selected_candidate": null,
+  "blind_map": {
+    "A": "narrator_en_fr",
+    "B": "narrator_sw"
+  },
+  "moments": [
+    {
+      "moment_id": "bench-km-0001",
+      "minute": 9,
+      "score": "0-1",
+      "team": "Mto wa Nuru",
+      "player": "Tariq Nyalu",
+      "trigger_tags": [
+        "goal",
+        "lead_change"
+      ],
+      "priority": 1,
+      "mode": "analyst",
+      "club_perspective": "neutral",
+      "theme": "pressure_change",
+      "reason": "Mto wa Nuru won the ball high up the pitch and scored from their first shot on target.",
+      "numeric_evidence": [
+        {
+          "metric": "xg",
+          "display_value": "0.31"
+        }
+      ],
+      "evidence_event_ids": [
+        "bench-000001"
+      ]
+    },
+    {
+      "moment_id": "bench-km-0002",
+      "minute": 23,
+      "score": "0-2",
+      "team": "Mto wa Nuru",
+      "player": "Khalifa Moyo",
+      "trigger_tags": [
+        "goal"
+      ],
+      "priority": 1,
+      "mode": "casual",
+      "club_perspective": "home",
+      "theme": "control_vs_chaos",
+      "reason": "A quick counterattack punished Kisima City while they were pushing forward.",
+      "numeric_evidence": [
+        {
+          "metric": "field_tilt",
+          "display_value": "57%"
+        }
+      ],
+      "evidence_event_ids": [
+        "bench-000002"
+      ]
+    },
+    {
+      "moment_id": "bench-km-0003",
+      "minute": 34,
+      "score": "0-2",
+      "team": "Kisima City",
+      "player": "Amina Kivuva",
+      "trigger_tags": [
+        "big_chance"
+      ],
+      "priority": 2,
+      "mode": "analyst",
+      "club_perspective": "home",
+      "theme": "control_vs_chaos",
+      "reason": "Kisima City's territorial control finally produced a clear chance, but it was missed.",
+      "numeric_evidence": [
+        {
+          "metric": "xg",
+          "display_value": "0.46"
+        }
+      ],
+      "evidence_event_ids": [
+        "bench-000003"
+      ]
+    },
+    {
+      "moment_id": "bench-km-0004",
+      "minute": 41,
+      "score": "0-2",
+      "team": "Kisima City",
+      "player": null,
+      "trigger_tags": [
+        "momentum_swing"
+      ],
+      "priority": 3,
+      "mode": "casual",
+      "club_perspective": "neutral",
+      "theme": "rhythm_shift",
+      "reason": "The rhythm of the match has shifted toward Kisima City, who now push Mto wa Nuru back.",
+      "numeric_evidence": [
+        {
+          "metric": "momentum_diff",
+          "display_value": "18"
+        }
+      ],
+      "evidence_event_ids": [
+        "bench-000004"
+      ]
+    },
+    {
+      "moment_id": "bench-km-0005",
+      "minute": 52,
+      "score": "0-2",
+      "team": "Mto wa Nuru",
+      "player": "Dani Kibiriti",
+      "trigger_tags": [
+        "red_card"
+      ],
+      "priority": 1,
+      "mode": "analyst",
+      "club_perspective": "neutral",
+      "theme": "pressure_change",
+      "reason": "Mto wa Nuru lose a defender, which hands Kisima City the initiative.",
+      "numeric_evidence": [
+        {
+          "metric": "possession",
+          "display_value": "61%"
+        }
+      ],
+      "evidence_event_ids": [
+        "bench-000005"
+      ]
+    },
+    {
+      "moment_id": "bench-km-0006",
+      "minute": 58,
+      "score": "1-2",
+      "team": "Kisima City",
+      "player": "Amina Kivuva",
+      "trigger_tags": [
+        "goal"
+      ],
+      "priority": 1,
+      "mode": "casual",
+      "club_perspective": "home",
+      "theme": "control_vs_chaos",
+      "reason": "Kisima City's pressure against a weakened side finally paid off.",
+      "numeric_evidence": [
+        {
+          "metric": "field_tilt",
+          "display_value": "68%"
+        }
+      ],
+      "evidence_event_ids": [
+        "bench-000006"
+      ]
+    },
+    {
+      "moment_id": "bench-km-0007",
+      "minute": 67,
+      "score": "2-2",
+      "team": "Kisima City",
+      "player": "Zuri Amini",
+      "trigger_tags": [
+        "goal"
+      ],
+      "priority": 1,
+      "mode": "analyst",
+      "club_perspective": "neutral",
+      "theme": "control_vs_chaos",
+      "reason": "Sustained pressure with a man advantage produced the equaliser.",
+      "numeric_evidence": [
+        {
+          "metric": "xg_total",
+          "display_value": "2.4"
+        }
+      ],
+      "evidence_event_ids": [
+        "bench-000007"
+      ]
+    },
+    {
+      "moment_id": "bench-km-0008",
+      "minute": 71,
+      "score": "2-2",
+      "team": "Kisima City",
+      "player": "Lina Saidi",
+      "trigger_tags": [
+        "player_milestone"
+      ],
+      "priority": 4,
+      "mode": "casual",
+      "club_perspective": "home",
+      "theme": "rhythm_shift",
+      "reason": "Lina Saidi has become the engine of Kisima City's attacks.",
+      "numeric_evidence": [
+        {
+          "metric": "passes_into_final_third",
+          "display_value": "10"
+        }
+      ],
+      "evidence_event_ids": [
+        "bench-000008"
+      ]
+    },
+    {
+      "moment_id": "bench-km-0009",
+      "minute": 78,
+      "score": "3-2",
+      "team": "Kisima City",
+      "player": "Amina Kivuva",
+      "trigger_tags": [
+        "goal",
+        "lead_change",
+        "late_game"
+      ],
+      "priority": 1,
+      "mode": "casual",
+      "club_perspective": "home",
+      "theme": "rhythm_shift",
+      "reason": "Kisima City complete the comeback from two goals down.",
+      "numeric_evidence": [
+        {
+          "metric": "momentum_diff",
+          "display_value": "26"
+        }
+      ],
+      "evidence_event_ids": [
+        "bench-000009"
+      ]
+    },
+    {
+      "moment_id": "bench-km-0010",
+      "minute": 84,
+      "score": "3-2",
+      "team": "Mto wa Nuru",
+      "player": "Tariq Nyalu",
+      "trigger_tags": [
+        "big_chance",
+        "late_game"
+      ],
+      "priority": 1,
+      "mode": "analyst",
+      "club_perspective": "away",
+      "theme": "pressure_change",
+      "reason": "Mto wa Nuru pushed hard for an equaliser and created a late clear chance.",
+      "numeric_evidence": [
+        {
+          "metric": "xg",
+          "display_value": "0.52"
+        }
+      ],
+      "evidence_event_ids": [
+        "bench-000010"
+      ]
+    }
+  ],
+  "candidates": {
+    "narrator_sw": {
+      "summary": {
+        "calls": 10,
+        "errors": 0,
+        "auto_pass_rate": 1.0,
+        "latency_p50_ms": 0,
+        "latency_p95_ms": 0
+      },
+      "results": [
+        {
+          "moment_id": "bench-km-0001",
+          "response": {
+            "headline": "Tariq Nyalu: dakika ya 9",
+            "body": "Dakika ya 9, Mto wa Nuru. Ni 0-1. 0.31.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "9"
+              },
+              {
+                "claim_type": "score",
+                "value": "0-1"
+              },
+              {
+                "claim_type": "player",
+                "value": "Tariq Nyalu"
+              },
+              {
+                "claim_type": "metric",
+                "value": "0.31",
+                "metric": "xg"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Tariq Nyalu: minute 9",
+              "body": "In the 9th minute, Mto wa Nuru. It is 0-1. 0.31."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0002",
+          "response": {
+            "headline": "Khalifa Moyo: dakika ya 23",
+            "body": "Dakika ya 23, Mto wa Nuru. Ni 0-2.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "23"
+              },
+              {
+                "claim_type": "score",
+                "value": "0-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Khalifa Moyo"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Khalifa Moyo: minute 23",
+              "body": "In the 23th minute, Mto wa Nuru. It is 0-2."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0003",
+          "response": {
+            "headline": "Amina Kivuva: dakika ya 34",
+            "body": "Dakika ya 34, Kisima City. Ni 0-2. 0.46.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "34"
+              },
+              {
+                "claim_type": "score",
+                "value": "0-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Amina Kivuva"
+              },
+              {
+                "claim_type": "metric",
+                "value": "0.46",
+                "metric": "xg"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Amina Kivuva: minute 34",
+              "body": "In the 34th minute, Kisima City. It is 0-2. 0.46."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0004",
+          "response": {
+            "headline": "Kisima City: dakika ya 41",
+            "body": "Dakika ya 41, Kisima City. Ni 0-2.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "41"
+              },
+              {
+                "claim_type": "score",
+                "value": "0-2"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Kisima City: minute 41",
+              "body": "In the 41th minute, Kisima City. It is 0-2."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0005",
+          "response": {
+            "headline": "Dani Kibiriti: dakika ya 52",
+            "body": "Dakika ya 52, Mto wa Nuru. Ni 0-2. 61%.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "52"
+              },
+              {
+                "claim_type": "score",
+                "value": "0-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Dani Kibiriti"
+              },
+              {
+                "claim_type": "metric",
+                "value": "61%",
+                "metric": "possession"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Dani Kibiriti: minute 52",
+              "body": "In the 52th minute, Mto wa Nuru. It is 0-2. 61%."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0006",
+          "response": {
+            "headline": "Amina Kivuva: dakika ya 58",
+            "body": "Dakika ya 58, Kisima City. Ni 1-2.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "58"
+              },
+              {
+                "claim_type": "score",
+                "value": "1-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Amina Kivuva"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Amina Kivuva: minute 58",
+              "body": "In the 58th minute, Kisima City. It is 1-2."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0007",
+          "response": {
+            "headline": "Zuri Amini: dakika ya 67",
+            "body": "Dakika ya 67, Kisima City. Ni 2-2. 2.4.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "67"
+              },
+              {
+                "claim_type": "score",
+                "value": "2-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Zuri Amini"
+              },
+              {
+                "claim_type": "metric",
+                "value": "2.4",
+                "metric": "xg_total"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Zuri Amini: minute 67",
+              "body": "In the 67th minute, Kisima City. It is 2-2. 2.4."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0008",
+          "response": {
+            "headline": "Lina Saidi: dakika ya 71",
+            "body": "Dakika ya 71, Kisima City. Ni 2-2.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "71"
+              },
+              {
+                "claim_type": "score",
+                "value": "2-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Lina Saidi"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Lina Saidi: minute 71",
+              "body": "In the 71th minute, Kisima City. It is 2-2."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0009",
+          "response": {
+            "headline": "Amina Kivuva: dakika ya 78",
+            "body": "Dakika ya 78, Kisima City. Ni 3-2.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "78"
+              },
+              {
+                "claim_type": "score",
+                "value": "3-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Amina Kivuva"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Amina Kivuva: minute 78",
+              "body": "In the 78th minute, Kisima City. It is 3-2."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0010",
+          "response": {
+            "headline": "Tariq Nyalu: dakika ya 84",
+            "body": "Dakika ya 84, Mto wa Nuru. Ni 3-2. 0.52.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "84"
+              },
+              {
+                "claim_type": "score",
+                "value": "3-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Tariq Nyalu"
+              },
+              {
+                "claim_type": "metric",
+                "value": "0.52",
+                "metric": "xg"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Tariq Nyalu: minute 84",
+              "body": "In the 84th minute, Mto wa Nuru. It is 3-2. 0.52."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        }
+      ]
+    },
+    "narrator_en_fr": {
+      "summary": {
+        "calls": 10,
+        "errors": 0,
+        "auto_pass_rate": 1.0,
+        "latency_p50_ms": 0,
+        "latency_p95_ms": 0
+      },
+      "results": [
+        {
+          "moment_id": "bench-km-0001",
+          "response": {
+            "headline": "Tariq Nyalu: dakika ya 9",
+            "body": "Dakika ya 9, Mto wa Nuru. Ni 0-1. 0.31.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "9"
+              },
+              {
+                "claim_type": "score",
+                "value": "0-1"
+              },
+              {
+                "claim_type": "player",
+                "value": "Tariq Nyalu"
+              },
+              {
+                "claim_type": "metric",
+                "value": "0.31",
+                "metric": "xg"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Tariq Nyalu: minute 9",
+              "body": "In the 9th minute, Mto wa Nuru. It is 0-1. 0.31."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0002",
+          "response": {
+            "headline": "Khalifa Moyo: dakika ya 23",
+            "body": "Dakika ya 23, Mto wa Nuru. Ni 0-2.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "23"
+              },
+              {
+                "claim_type": "score",
+                "value": "0-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Khalifa Moyo"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Khalifa Moyo: minute 23",
+              "body": "In the 23th minute, Mto wa Nuru. It is 0-2."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0003",
+          "response": {
+            "headline": "Amina Kivuva: dakika ya 34",
+            "body": "Dakika ya 34, Kisima City. Ni 0-2. 0.46.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "34"
+              },
+              {
+                "claim_type": "score",
+                "value": "0-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Amina Kivuva"
+              },
+              {
+                "claim_type": "metric",
+                "value": "0.46",
+                "metric": "xg"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Amina Kivuva: minute 34",
+              "body": "In the 34th minute, Kisima City. It is 0-2. 0.46."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0004",
+          "response": {
+            "headline": "Kisima City: dakika ya 41",
+            "body": "Dakika ya 41, Kisima City. Ni 0-2.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "41"
+              },
+              {
+                "claim_type": "score",
+                "value": "0-2"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Kisima City: minute 41",
+              "body": "In the 41th minute, Kisima City. It is 0-2."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0005",
+          "response": {
+            "headline": "Dani Kibiriti: dakika ya 52",
+            "body": "Dakika ya 52, Mto wa Nuru. Ni 0-2. 61%.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "52"
+              },
+              {
+                "claim_type": "score",
+                "value": "0-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Dani Kibiriti"
+              },
+              {
+                "claim_type": "metric",
+                "value": "61%",
+                "metric": "possession"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Dani Kibiriti: minute 52",
+              "body": "In the 52th minute, Mto wa Nuru. It is 0-2. 61%."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0006",
+          "response": {
+            "headline": "Amina Kivuva: dakika ya 58",
+            "body": "Dakika ya 58, Kisima City. Ni 1-2.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "58"
+              },
+              {
+                "claim_type": "score",
+                "value": "1-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Amina Kivuva"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Amina Kivuva: minute 58",
+              "body": "In the 58th minute, Kisima City. It is 1-2."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0007",
+          "response": {
+            "headline": "Zuri Amini: dakika ya 67",
+            "body": "Dakika ya 67, Kisima City. Ni 2-2. 2.4.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "67"
+              },
+              {
+                "claim_type": "score",
+                "value": "2-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Zuri Amini"
+              },
+              {
+                "claim_type": "metric",
+                "value": "2.4",
+                "metric": "xg_total"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Zuri Amini: minute 67",
+              "body": "In the 67th minute, Kisima City. It is 2-2. 2.4."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0008",
+          "response": {
+            "headline": "Lina Saidi: dakika ya 71",
+            "body": "Dakika ya 71, Kisima City. Ni 2-2.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "71"
+              },
+              {
+                "claim_type": "score",
+                "value": "2-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Lina Saidi"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Lina Saidi: minute 71",
+              "body": "In the 71th minute, Kisima City. It is 2-2."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0009",
+          "response": {
+            "headline": "Amina Kivuva: dakika ya 78",
+            "body": "Dakika ya 78, Kisima City. Ni 3-2.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "78"
+              },
+              {
+                "claim_type": "score",
+                "value": "3-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Amina Kivuva"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Amina Kivuva: minute 78",
+              "body": "In the 78th minute, Kisima City. It is 3-2."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        },
+        {
+          "moment_id": "bench-km-0010",
+          "response": {
+            "headline": "Tariq Nyalu: dakika ya 84",
+            "body": "Dakika ya 84, Mto wa Nuru. Ni 3-2. 0.52.",
+            "claims_list": [
+              {
+                "claim_type": "minute",
+                "value": "84"
+              },
+              {
+                "claim_type": "score",
+                "value": "3-2"
+              },
+              {
+                "claim_type": "player",
+                "value": "Tariq Nyalu"
+              },
+              {
+                "claim_type": "metric",
+                "value": "0.52",
+                "metric": "xg"
+              }
+            ],
+            "gloss_en": {
+              "headline": "Tariq Nyalu: minute 84",
+              "body": "In the 84th minute, Mto wa Nuru. It is 3-2. 0.52."
+            }
+          },
+          "error": null,
+          "latency_ms": 0,
+          "issues": [],
+          "warnings": [],
+          "auto_pass": true
+        }
+      ]
+    }
+  }
+}

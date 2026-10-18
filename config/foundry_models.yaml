@@ -1,0 +1,51 @@
+# Microsoft Foundry model deployments for Msimulizi
+# Pinned API versions ensure stability across the judging window (until 10 Nov 2026).
+# Verify retirement dates in Azure OpenAI model lifecycle before deploying:
+#   https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-retirements
+#
+# gpt-4o (2024-08-06) retirement: no earlier than 2025-10-01 → safe past 10 Nov 2026
+# gpt-4o-mini (2024-07-18) retirement: no earlier than 2025-09-27 → safe past 10 Nov 2026
+
+deployments:
+  explainer:
+    model: gpt-4o-mini
+    deployment_name: msimulizi-explainer
+    api_version: "2024-08-01-preview"
+    description: "Explainer Agent — structured output, low token count (reason = 1 sentence)"
+
+  narrator_sw:
+    model: gpt-4o
+    deployment_name: msimulizi-narrator-sw
+    api_version: "2024-08-01-preview"
+    description: "Narrator Agent Swahili — best multilingual quality; validated by native speaker"
+    # Populated after running scripts/compare_swahili_models.py and native-speaker review (task 15)
+    chosen_after_eval: true
+
+  narrator_en_fr:
+    model: gpt-4o-mini
+    deployment_name: msimulizi-narrator-en-fr
+    api_version: "2024-08-01-preview"
+    description: "Narrator Agent English/French — sufficient quality for these locales"
+
+  verifier:
+    model: gpt-4o-mini
+    deployment_name: msimulizi-verifier
+    api_version: "2024-08-01-preview"
+    description: "Verifier Agent LLM check — short grounding check"
+
+# Azure AI Speech voices — confirmed available in eastus region
+# sw-KE-ZuriNeural and sw-TZ-RehemaNeural are available in regions that support
+# the East Africa locale set. Verify with: az cognitiveservices account list-skus
+speech:
+  swahili_ke:
+    locale: sw-KE
+    voice: sw-KE-ZuriNeural
+  swahili_tz:
+    locale: sw-TZ
+    voice: sw-TZ-RehemaNeural
+  english:
+    locale: en-US
+    voice: en-US-AriaNeural
+  french:
+    locale: fr-FR
+    voice: fr-FR-DeniseNeural
