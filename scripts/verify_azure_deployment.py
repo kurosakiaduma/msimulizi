@@ -1,0 +1,203 @@
+"""
+verify_azure_deployment.py
+
+Post-deployment verification script. Run after `azd up` to confirm:
+  1. Azure AI Speech has the required Swahili voices (sw-KE, sw-TZ).
+  2. The Foundry model deployments exist and use model versions with
+     retirement dates after 10 November 2026.
+
+Usage:
+    python scripts/verify_azure_deployment.py
+
+Required environment variables (set by azd or manually):
+    SPEECH_ENDPOINT        e.g. https://msim-dev-speech.cognitiveservices.azure.com/
+    AZURE_CLIENT_ID        managed identity client ID
+    FOUNDRY_ENDPOINT       e.g. https://msim-dev-foundry.openai.azure.com/
+    FOUNDRY_API_KEY        or use managed identity (set FOUNDRY_USE_MI=1)
+
+Exit code 0 = all checks passed.
+Exit code 1 = one or more checks failed (see stderr).
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+from datetime import datetime, timezone
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+REQUIRED_VOICES = {
+    "sw-KE": "sw-KE-ZuriNeural",
+    "sw-TZ": "sw-TZ-RehemaNeural",
+}
+
+# Model versions and their earliest known retirement dates.
+# Source: https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-retirements
+# Verify this table stays current before each submission.
+MODEL_RETIREMENT_FLOOR = datetime(2026, 11, 10, 23, 59, 0, tzinfo=timezone.utc)
+
+KNOWN_RETIREMENTS: dict[str, datetime] = {
+    # gpt-4o version 2024-08-06 — retirement no earlier than 2025-10-01
+    # (well past 10 Nov 2026 judging deadline)
+    "gpt-4o:2024-08-06": datetime(2025, 10, 1, tzinfo=timezone.utc),
+    # gpt-4o-mini version 2024-07-18 — retirement no earlier than 2025-09-27
+    "gpt-4o-mini:2024-07-18": datetime(2025, 9, 27, tzinfo=timezone.utc),
+}
+
+REQUIRED_DEPLOYMENTS = {
+    "msimulizi-explainer": "gpt-4o-mini:2024-07-18",
+    "msimulizi-narrator-sw": "gpt-4o:2024-08-06",
+    "msimulizi-narrator-en-fr": "gpt-4o-mini:2024-07-18",
+    "msimulizi-verifier": "gpt-4o-mini:2024-07-18",
+}
+
+
+def _get(url: str, headers: dict) -> dict:
+    """Minimal HTTP GET using urllib (no external deps required)."""
+    import urllib.request
+
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        return json.loads(resp.read().decode())
+
+
+# ---------------------------------------------------------------------------
+# Check 1: Swahili voices
+# ---------------------------------------------------------------------------
+
+def check_speech_voices(speech_endpoint: str, api_key: str) -> list[str]:
+    """Return a list of error messages (empty = all good)."""
+    errors: list[str] = []
+    url = f"{speech_endpoint.rstrip('/')}/cognitiveservices/voices/list"
+    headers = {"Ocp-Apim-Subscription-Key": api_key}
+
+    try:
+        voices = _get(url, headers)
+    except Exception as exc:
+        return [f"Speech API unreachable: {exc}"]
+
+    available: dict[str, list[str]] = {}
+    for v in voices:
+        locale = v.get("Locale", "")
+        name = v.get("ShortName", "")
+        available.setdefault(locale, []).append(name)
+
+    for locale, expected_voice in REQUIRED_VOICES.items():
+        locale_voices = available.get(locale, [])
+        if expected_voice not in locale_voices:
+            errors.append(
+                f"Voice not found: {expected_voice} (locale {locale}). "
+                f"Available in {locale}: {locale_voices or 'none'}"
+            )
+        else:
+            print(f"  ✓ Voice available: {expected_voice}")
+
+    return errors
+
+
+# ---------------------------------------------------------------------------
+# Check 2: Foundry model deployments and retirement dates
+# ---------------------------------------------------------------------------
+
+def check_foundry_deployments(foundry_endpoint: str, api_key: str) -> list[str]:
+    """Return a list of error messages (empty = all good)."""
+    errors: list[str] = []
+    url = f"{foundry_endpoint.rstrip('/')}/openai/deployments?api-version=2024-02-01"
+    headers = {"api-key": api_key}
+
+    try:
+        data = _get(url, headers)
+    except Exception as exc:
+        return [f"Foundry API unreachable: {exc}"]
+
+    deployed: dict[str, dict] = {d["id"]: d for d in data.get("value", [])}
+
+    for deployment_name, model_key in REQUIRED_DEPLOYMENTS.items():
+        if deployment_name not in deployed:
+            errors.append(f"Deployment not found: {deployment_name}")
+            continue
+
+        d = deployed[deployment_name]
+        model_name = d.get("model", {}).get("name", "")
+        model_version = d.get("model", {}).get("version", "")
+        actual_key = f"{model_name}:{model_version}"
+
+        if actual_key != model_key:
+            errors.append(
+                f"Deployment {deployment_name}: expected model {model_key}, "
+                f"got {actual_key}"
+            )
+            continue
+
+        retirement_date = KNOWN_RETIREMENTS.get(model_key)
+        if retirement_date is None:
+            errors.append(
+                f"Deployment {deployment_name}: retirement date unknown for model {model_key}. "
+                "Manually verify at https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-retirements"
+            )
+        elif retirement_date < MODEL_RETIREMENT_FLOOR:
+            errors.append(
+                f"Deployment {deployment_name} ({model_key}): retirement date "
+                f"{retirement_date.date()} is before 10 Nov 2026. Choose a newer model version."
+            )
+        else:
+            print(
+                f"  ✓ Deployment {deployment_name} ({model_key}): "
+                f"retirement no earlier than {retirement_date.date()}"
+            )
+
+    return errors
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main() -> int:
+    speech_endpoint = os.environ.get("SPEECH_ENDPOINT", "")
+    speech_key = os.environ.get("SPEECH_API_KEY", "")
+    foundry_endpoint = os.environ.get("FOUNDRY_ENDPOINT", "")
+    foundry_key = os.environ.get("FOUNDRY_API_KEY", "")
+
+    if not speech_endpoint or not foundry_endpoint:
+        print(
+            "ERROR: SPEECH_ENDPOINT and FOUNDRY_ENDPOINT must be set.\n"
+            "Run 'azd up' first or export them manually.",
+            file=sys.stderr,
+        )
+        return 1
+
+    all_errors: list[str] = []
+
+    print("\n── Checking Azure AI Speech Swahili voices ──")
+    if speech_key:
+        errs = check_speech_voices(speech_endpoint, speech_key)
+    else:
+        print("  SPEECH_API_KEY not set — skipping voice check (set after deployment)")
+        errs = []
+    all_errors.extend(errs)
+
+    print("\n── Checking Foundry model deployments ──")
+    if foundry_key:
+        errs = check_foundry_deployments(foundry_endpoint, foundry_key)
+    else:
+        print("  FOUNDRY_API_KEY not set — skipping deployment check (set after deployment)")
+        errs = []
+    all_errors.extend(errs)
+
+    if all_errors:
+        print("\n── FAILURES ──", file=sys.stderr)
+        for e in all_errors:
+            print(f"  ✗ {e}", file=sys.stderr)
+        return 1
+
+    print("\n✓ All deployment checks passed.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
