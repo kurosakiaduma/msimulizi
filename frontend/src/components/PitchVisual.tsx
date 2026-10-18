@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { EventDot } from "@/lib/types";
 
 interface Props {
@@ -28,6 +28,16 @@ function eventColor(type: string): string {
   return EVENT_COLOR[type] ?? EVENT_COLOR.default;
 }
 
+const EVENT_LABEL: Record<string, string> = {
+  shot:         "Shot",
+  goal:         "Goal",
+  pass:         "Pass",
+  tackle:       "Tackle",
+  interception: "Interception",
+  foul:         "Foul",
+  card:         "Card",
+};
+
 export function PitchVisual({
   events,
   latestEvent,
@@ -37,6 +47,7 @@ export function PitchVisual({
   className = "",
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [hovered, setHovered] = useState<EventDot | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -185,6 +196,12 @@ export function PitchVisual({
     }
   }, [events, latestEvent, homeTeam, awayTeam, showHeatmap]);
 
+  // Map pitch coordinates (0–100) to canvas pixels (480×300) for overlays.
+  const pointToPx = (ev: EventDot): { x: number; y: number } => ({
+    x: (ev.x / 100) * 480,
+    y: (ev.y / 100) * 300,
+  });
+
   return (
     <div className={`relative rounded-lg overflow-hidden ${className}`}>
       <canvas
@@ -195,6 +212,73 @@ export function PitchVisual({
         aria-label="Pitch visualization showing event locations"
         role="img"
       />
+
+      {/* Hover targets + tooltips over each event dot (canvas is drawn beneath) */}
+      {events.slice(-40).map((ev, i) => {
+        const { x: px, y: py } = pointToPx(ev);
+        const age = events.slice(-40).length - i;
+        const alpha = Math.max(0.15, 1 - age / 40);
+        const size = Math.max(6, 3 / alpha); // hit target matches visual dot size
+        const label = EVENT_LABEL[ev.event_type] ?? ev.event_type;
+        const minuteLabel = ev.minute ? `′` : "";
+        return (
+          <button
+            key={ev.event_id ?? i}
+            type="button"
+            aria-label={`${label} at minute ${ev.minute}${minuteLabel}`}
+            onMouseEnter={() => setHovered(ev)}
+            onMouseLeave={() => setHovered(null)}
+            style={{
+              position: "absolute",
+              left: px - size / 2,
+              top: py - size / 2,
+              width: size,
+              height: size,
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              zIndex: 10,
+            }}
+          />
+        );
+      })}
+
+      {/* Tooltip for hovered marker */}
+      {hovered && (
+        <div
+          className="pointer-events-none absolute z-20 bg-[--bg-surface]
+                     border border-[--border-subtle] rounded-md px-2 py-1
+                     text-[10px] text-[--text-primary] shadow-lg whitespace-nowrap"
+          style={{
+            left: pointToPx(hovered).x + 10,
+            top: pointToPx(hovered).y - 12,
+          }}
+        >
+          {EVENT_LABEL[hovered.event_type] ?? hovered.event_type}{" "}
+          {hovered.minute ? `${hovered.minute}′` : ""}{" "}
+          {hovered.player ? `— ${hovered.player}` : ""}
+        </div>
+      )}
+
+      {/* Event-type legend */}
+      <div className="absolute bottom-2 left-2 z-20 flex flex-wrap gap-2 px-2">
+        {Object.entries(EVENT_LABEL).map(([type, label]) => (
+          <button
+            key={type}
+            type="button"
+            className="flex items-center gap-1.5 rounded border border-[--border-subtle]
+                       bg-[--bg-surface]/90 px-1.5 py-0.5 text-[9px]
+                       text-[--text-muted] hover:text-[--text-primary]
+                       transition-colors"
+            style={{ borderLeft: `3px solid ${eventColor(type)}` }}
+            aria-label={label}
+          >
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: eventColor(type) }} />
+            {label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
