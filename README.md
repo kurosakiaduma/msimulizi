@@ -82,7 +82,7 @@ graph LR
     class INT,MOM,PER,EXP,NAR,VER pipe
 ```
 
-> A higher-resolution isometric version of this diagram is available in [`docs/architecture-eraser-spec.md`](docs/architecture-eraser-spec.md) — paste the spec into [eraser.io](https://eraser.io) to render it.
+> A higher-resolution isometric version of this diagram is available in [`docs/architecture-eraser-spec.md`](docs/architecture-eraser-spec.md).
 
 ## Setup
 
