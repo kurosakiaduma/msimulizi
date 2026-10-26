@@ -134,7 +134,8 @@ azd auth login
 
 # Pick your environment and region
 azd env new msimulizi-demo
-azd env set AZURE_LOCATION eastus   # verify sw-KE / sw-TZ Speech voices and model quota
+azd env set AZURE_SUBSCRIPTION_ID <subscription-id>
+azd env set AZURE_LOCATION eastus2  # verified: gpt-5.4 / gpt-5.4-mini and sw-KE / sw-TZ voices
 
 # Provision infrastructure and deploy backend + frontend (builds the two
 # Docker images per azure.yaml and deploys to Container Apps).
@@ -145,10 +146,17 @@ azd up
 ```
 
 The backend is deployed with **minimum 1 replica and scale-to-zero disabled**
-(`infra/main.bicep`), so the live demo stays warm. After `azd up`, run
-`python scripts/verify_azure_deployment.py` to confirm the Swahili voices and
-that the Foundry model retirement dates cover the judging window through
-10 November 2026.
+(`infra/main.bicep`), so the live demo stays warm. `azd up` first creates the
+Container Apps with a temporary public bootstrap image, then `azd deploy`
+pushes and activates the real images; this avoids a first-provision failure
+when the ACR is still empty.
+
+After the first deployment, rotate the two Key Vault secrets and run
+`azd env set KEY_MODE preserve` so later `azd up` runs leave the rotated values
+alone. Then run `python scripts/verify_azure_deployment.py` with
+`SPEECH_ENDPOINT` and `FOUNDRY_ENDPOINT` set to confirm the Swahili voices and
+the Foundry model retirement dates through 10 November 2026. See
+[`docs/azure-resources-and-env.md`](docs/azure-resources-and-env.md).
 
 For the complete production checklist, frontend build-argument requirements,
 post-deployment smoke test, rollback procedure, and known deployment gaps, see

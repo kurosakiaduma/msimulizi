@@ -78,7 +78,8 @@ az login
 azd auth login
 azd env new msimulizi-prod
 azd env set AZURE_ENV_NAME msimulizi-prod
-azd env set AZURE_LOCATION eastus
+azd env set AZURE_SUBSCRIPTION_ID <subscription-id>
+azd env set AZURE_LOCATION eastus2  # verified for Cosmos, gpt-5.4, and sw-KE / sw-TZ
 ```
 
 Review the generated environment values before provisioning:
@@ -93,6 +94,11 @@ The backend should use managed identity and Key Vault in Azure. Configure
 secret references according to the resources created by
 [`infra/main.bicep`](../infra/main.bicep), not by placing API keys in
 `azure.yaml`, Bicep source, GitHub workflow files, or Docker build arguments.
+
+`infra/main.bicep` creates placeholder Key Vault values only when
+`KEY_MODE=bootstrap`. Rotate both secrets after the first deployment, then set
+`azd env set KEY_MODE preserve` so later `azd up` runs do not overwrite the
+rotated values.
 
 At minimum, verify these production concerns:
 
@@ -150,6 +156,16 @@ Or, for a first deployment:
 ```bash
 azd up
 ```
+
+The Container Apps are created with a temporary public bootstrap image because
+the environment ACR is empty during the first provision. `azd deploy` then
+pushes the real backend/frontend images and creates new revisions. Running
+`azd provision` alone resets both apps to that bootstrap image; always follow
+it with `azd deploy` (or use `azd up`).
+
+The first provision attempt in `eastus` failed on 26 Oct 2026 with a Cosmos DB
+capacity error. The working demo uses `eastus2`; check Cosmos regional capacity
+before choosing a different region for a fresh deployment.
 
 Capture the URLs printed by `azd`:
 
@@ -239,46 +255,54 @@ resources for the environment.
 
 ## Gaps to close before calling production ready
 
-The following items are not fully proven by local tests and must be closed or
-explicitly accepted:
+The 26 Oct 2026 demo deployment closed the live-integration gaps. Remaining
+items are either operational hardening or human deliverables:
 
-- **Frontend runtime routing:** verify `/api/config` returns the deployed
-  backend and `wss://` URLs after provisioning; the image no longer needs
-  build-time `NEXT_PUBLIC_*` values.
-- **Live Azure integration:** local validation uses fallback narration because
-  Foundry, Speech, and Content Safety endpoints are unset. Run one authenticated
-  staging smoke test.
-- **Review security policy:** confirm the reviewer key is stored in Key Vault,
-  rotated, and never exposed in browser logs or URLs.
-- **CORS:** the template computes `MSIMULIZI_ALLOWED_ORIGINS` from the default
-  frontend Container App domain; update it if a custom domain is used.
-- **Audio delivery:** verify Blob permissions, URL expiry/access policy, and
-  browser playback over HTTPS.
-- **Persistence:** verify whether cards, audit entries, and corrections are
-  intentionally in-memory or persisted to Cosmos in production.
-- **CI deployment gate:** the workflow currently deploys on every push to
-  `main`. Add environment approval, staging promotion, or a protected
-  production branch before using it for a public production environment.
-- **Post-deploy verification:** make voice/model verification fail when a
-  required production dependency is missing; a best-effort check is not a
-  release gate.
+- **Verified live:** `/api/config` returns deployed backend/`wss://` URLs;
+  Speech has both Swahili voices; all four Foundry deployments answer chat
+  requests; a live Swahili session produced an `audio_update` and a public
+  `audio/mpeg` blob; rotated reviewer key returns 200 and the old placeholder
+  returns 401.
+- **CORS / custom domain:** the template computes
+  `MSIMULIZI_ALLOWED_ORIGINS` from the default frontend Container App domain.
+  Adding a custom domain requires updating it plus `BACKEND_URL` and `WS_URL`.
+- **Persistence:** cards, corrections, and audit entries remain in process
+  memory; confirm whether that is acceptable or persist them to Cosmos before
+  treating the backend as stateless/scale-ready.
+- **CI deployment gate:** the workflow deploys on every push to `main`. Add
+  environment approval, staging promotion, or a protected production branch
+  before using it for a public production environment.
+- **Post-deploy verification:** `scripts/verify_azure_deployment.py` now makes
+  real Speech and chat calls, but the CI step is still best-effort. Make it a
+  release gate with endpoints supplied from the provisioned environment.
 - **Frontend warnings:** the build passes, but remaining ESLint warnings in
   tests, the home page dependency list, and metric ARIA attributes should be
   cleaned up before a final accessibility review.
 - **Capacity and cost:** load-test WebSockets, model calls, Speech, Cosmos, and
   Blob usage with the intended replica and rate-limit settings; configure
-  Azure budgets and alerts.
+  Azure budgets and alerts. No budget alert was created during the initial
+  deployment.
 - **Public demo resilience:** test a full replay with model quota exhausted and
   confirm the bundle/fallback path remains grounded, translated, and visibly
   labelled.
+- **Human deliverables:** native-speaker Swahili review, demo video, pitch, and
+  submission remain open (tasks 33–34); hard deadline 27 Oct 2026 23:59 PT.
 
 ## Release record
 
-For each public release, record:
+### 26 Oct 2026 — demo deployment
 
-- Git commit SHA and image tags.
-- Azure subscription, region, and `azd` environment name.
-- Frontend, backend, WebSocket, and review URLs.
-- Model and Speech deployment names.
-- Smoke-test date and operator.
-- Known accepted gaps and rollback image tag.
+| Field | Value |
+| --- | --- |
+| `azd` environment | `msimulizi-demo2` |
+| Region / resource group | `eastus2` / `rg-msimulizi-demo2` |
+| Backend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/backend-msimulizi-demo2:azd-deploy-1793050519` |
+| Frontend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/frontend-msimulizi-demo2:azd-deploy-1793050822` |
+| Frontend URL | <https://msim-msimulizi-demo2-frontend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io> |
+| Backend URL | <https://msim-msimulizi-demo2-backend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io> |
+| WebSocket URL | `wss://msim-msimulizi-demo2-backend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io/ws` |
+| Smoke test | 26 Oct 2026 UTC: health 200, `/api/config` runtime URLs correct, both Swahili voices present, four Foundry deployments answer, Swahili card + English gloss, public MP3 `200 audio/mpeg` |
+| Rollback | Redeploy the previous image tag with `azd deploy --from-package <tag>` |
+
+For each subsequent public release, record the same fields, the operator, and
+the accepted gaps from the section above.

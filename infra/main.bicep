@@ -14,14 +14,15 @@ param environmentName string
 @description('Primary Azure region for all resources.')
 param location string = resourceGroup().location
 
-@description('Container image tag for the backend service.')
-param backendImageTag string = 'latest'
-
-@description('Container image tag for the frontend service.')
-param frontendImageTag string = 'latest'
-
 @description('Optional: override the Cosmos DB account name.')
 param cosmosAccountName string = ''
+
+@allowed([
+  'bootstrap'
+  'preserve'
+])
+@description('bootstrap writes placeholder Key Vault credentials; preserve leaves rotated values untouched.')
+param keyMode string = 'bootstrap'
 
 // ---------------------------------------------------------------------------
 // Variables
@@ -41,6 +42,9 @@ var frontendAppName = '${prefix}-frontend'
 var managedIdentityName = '${prefix}-mid'
 var acrName = toLower(replace('${prefix}acr${uniqueString(resourceGroup().id)}', '-', ''))
 var registryServer = acr.properties.loginServer
+// Bootstrap image used only while provisioning. `azd deploy` replaces it with
+// the image it builds and pushes to the environment ACR.
+var bootstrapImage = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
 
 // Cosmos DB containers
 var cosmosContainers = [
@@ -164,10 +168,11 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   }
 }
 
-// Placeholder secrets — set real values via: azd env set + azd deploy
-// or: az keyvault secret set --vault-name <kvName> --name <secret-name> --value <value>
+// Placeholder secrets — created only in bootstrap mode. Rotate with:
+//   az keyvault secret set --vault-name <kvName> --name <secret-name> --value <value>
+// then set KEY_MODE=preserve so later deployments do not reset them.
 
-resource kvSecretMcpApiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource kvSecretMcpApiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if (keyMode == 'bootstrap') {
   parent: keyVault
   name: 'mcp-api-key'
   properties: {
@@ -176,7 +181,7 @@ resource kvSecretMcpApiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   }
 }
 
-resource kvSecretReviewerApiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource kvSecretReviewerApiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if (keyMode == 'bootstrap') {
   parent: keyVault
   name: 'reviewer-api-key'
   properties: {
@@ -537,6 +542,9 @@ resource acaEnv 'Microsoft.App/managedEnvironments@2023-11-02-preview' = {
 resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
   name: backendAppName
   location: location
+  tags: {
+    'azd-service-name': 'backend'
+  }
   dependsOn: [
     acrPullRoleAssignment
     kvRoleAssignment
@@ -597,7 +605,7 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
       containers: [
         {
           name: 'backend'
-          image: '${registryServer}/msimulizi-backend:${backendImageTag}'
+          image: bootstrapImage
           resources: {
             cpu: json('0.5')
             memory: '1Gi'
@@ -689,6 +697,9 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
 resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
   name: frontendAppName
   location: location
+  tags: {
+    'azd-service-name': 'frontend'
+  }
   dependsOn: [
     acrPullRoleAssignment
   ]
@@ -721,7 +732,7 @@ resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
       containers: [
         {
           name: 'frontend'
-          image: '${registryServer}/msimulizi-frontend:${frontendImageTag}'
+          image: bootstrapImage
           resources: {
             cpu: json('0.25')
             memory: '0.5Gi'

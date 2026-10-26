@@ -8,11 +8,8 @@
     "location": {
       "value": "${AZURE_LOCATION}"
     },
-    "backendImageTag": {
-      "value": "${BACKEND_IMAGE_TAG=latest}"
-    },
-    "frontendImageTag": {
-      "value": "${FRONTEND_IMAGE_TAG=latest}"
+    "keyMode": {
+      "value": "${KEY_MODE=bootstrap}"
     }
   }
 }

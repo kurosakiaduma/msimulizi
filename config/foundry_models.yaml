@@ -33,9 +33,10 @@ deployments:
     api_version: "v1"
     description: "Verifier Agent LLM check — short grounding check"
 
-# Azure AI Speech voices — confirmed available in eastus region
+# Azure AI Speech voices — verified live in eastus2 (26 Oct 2026)
 # sw-KE-ZuriNeural and sw-TZ-RehemaNeural are available in regions that support
-# the East Africa locale set. Verify with: az cognitiveservices account list-skus
+# the East Africa locale set. Verify with:
+#   GET <speech-endpoint>/tts/cognitiveservices/voices/list
 speech:
   swahili_ke:
     locale: sw-KE

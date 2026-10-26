@@ -88,7 +88,9 @@ def _get(url: str, headers: dict) -> dict:
 def check_speech_voices(speech_endpoint: str, api_key: str = "") -> list[str]:
     """Return a list of error messages (empty = all good)."""
     errors: list[str] = []
-    url = f"{speech_endpoint.rstrip('/')}/cognitiveservices/voices/list"
+    # Resource endpoints expose the voice catalogue under /tts; the
+    # region host (e.g. eastus2.tts.speech.microsoft.com) is not required.
+    url = f"{speech_endpoint.rstrip('/')}/tts/cognitiveservices/voices/list"
 
     try:
         headers = (
@@ -127,41 +129,63 @@ def check_speech_voices(speech_endpoint: str, api_key: str = "") -> list[str]:
 # Check 2: Foundry model deployments and retirement dates
 # ---------------------------------------------------------------------------
 
+def _post(url: str, headers: dict, payload: dict) -> dict:
+    """Minimal HTTP POST using urllib (no external deps required)."""
+    import urllib.request
+
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={**headers, "Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return json.loads(resp.read().decode())
+
+
 def check_foundry_deployments(foundry_endpoint: str, api_key: str = "") -> list[str]:
-    """Return a list of error messages (empty = all good)."""
+    """Return a list of error messages (empty = all good).
+
+    The Foundry data plane has no deployment-list endpoint. A tiny chat call
+    to each deployment both proves the deployment exists and validates which
+    model version is actually serving traffic.
+    """
     errors: list[str] = []
-    url = f"{foundry_endpoint.rstrip('/')}/openai/deployments?api-version=2024-02-01"
+    url = f"{foundry_endpoint.rstrip('/')}/openai/v1/chat/completions"
 
     try:
         headers = (
             {"api-key": api_key}
             if api_key
-            else _bearer_headers("https://cognitiveservices.azure.com/.default")
+            else _bearer_headers("https://ai.azure.com/.default")
         )
     except Exception as exc:
         return [f"Foundry authentication failed: {exc}"]
 
-    try:
-        data = _get(url, headers)
-    except Exception as exc:
-        return [f"Foundry API unreachable: {exc}"]
-
-    deployed: dict[str, dict] = {d["id"]: d for d in data.get("value", [])}
-
     for deployment_name, model_key in REQUIRED_DEPLOYMENTS.items():
-        if deployment_name not in deployed:
-            errors.append(f"Deployment not found: {deployment_name}")
+        payload = {
+            "model": deployment_name,
+            "messages": [
+                {"role": "user", "content": "Reply with the single word OK."}
+            ],
+            "reasoning_effort": "none",
+            "max_completion_tokens": 8,
+        }
+
+        try:
+            data = _post(url, headers, payload)
+        except Exception as exc:
+            errors.append(f"Deployment {deployment_name}: chat call failed: {exc}")
             continue
 
-        d = deployed[deployment_name]
-        model_name = d.get("model", {}).get("name", "")
-        model_version = d.get("model", {}).get("version", "")
-        actual_key = f"{model_name}:{model_version}"
+        response_model = str(data.get("model", ""))
+        expected_model = model_key.replace(":", "-")
 
-        if actual_key != model_key:
+        if not response_model.lower().startswith(expected_model.lower()):
             errors.append(
                 f"Deployment {deployment_name}: expected model {model_key}, "
-                f"got {actual_key}"
+                f"but the response reports {response_model or 'no model'}"
             )
             continue
 
