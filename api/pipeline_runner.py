@@ -1,21 +1,18 @@
 """api/pipeline_runner.py — asyncio pipeline driver for a single replay session.
 
-This module contains the event loop that drives one match from the adapter through
-every pipeline stage and pushes resulting OverlayCards to the WebSocket gateway.
+This module drives one match from the adapter through every pipeline stage and
+pushes resulting OverlayCards to the WebSocket gateway.
 
-It is intentionally separate from orchestrator.py, which holds the Agent-Framework
+Audio integration:
+* Broadcast the approved caption first.
+* Schedule TTS in a background task so synthesis does not block match playback.
+* Publish audio updates through the existing WebSocket manager using the
+  existing four-field audio_update payload.
+* Cancel session-owned audio wrapper tasks when the session is cancelled.
+
+It remains separate from orchestrator.py, which holds the Agent-Framework
 workflow declaration. This file owns the per-session asyncio task and the
 stage-by-stage wiring.
-
-Design notes
-------------
-* One coroutine per session; spawned as an asyncio.Task from api/main.py.
-* Every stage runs sequentially inside the loop. LLM stages (Explainer, Narrator,
-  Verifier) are awaited; deterministic stages are synchronous calls.
-* Failure recovery follows the spec: Verifier fail → Narrator retry → Fallback Line.
-* A QuotaExceeded error falls back to template narration and logs the event.
-* Clock updates are broadcast after every event so the browser clock tracks
-  match time in real time.
 """
 
 from __future__ import annotations
@@ -24,6 +21,7 @@ import asyncio
 import dataclasses
 import logging
 import os
+import re
 import time
 from typing import Any
 
@@ -36,19 +34,29 @@ from pipeline.personaliser import PersonaliserAgent
 from pipeline.verifier import VerifierAgent
 from renderer.fallback import build_fallback_line
 from renderer.renderer import render_fallback_card, render_narration_card
+from renderer.tts import synthesize_card_audio
 from shared.foundry_client import QuotaExceeded
 from shared.models import EventType, GlossEn, KeyMoment, MatchState, OverlayCard
 from shared.observability import metrics
 
 logger = logging.getLogger(__name__)
 
+# A process-level strong-reference registry keeps fire-and-forget audio tasks
+# alive even after a session pipeline finishes. Per-session sets are still used
+# to cancel work if that session is cancelled.
+_BACKGROUND_AUDIO_TASKS: set[asyncio.Task[Any]] = set()
+
 
 # ---------------------------------------------------------------------------
-# Helpers
+# General helpers
 # ---------------------------------------------------------------------------
 
 def _match_clock(state: MatchState) -> dict[str, int]:
-    return {"period": state.sequence_number and 1 or 1, "minute": state.minute, "second": state.second}
+    return {
+        "period": state.sequence_number and 1 or 1,
+        "minute": state.minute,
+        "second": state.second,
+    }
 
 
 def _match_seconds(state: MatchState) -> float:
@@ -56,10 +64,8 @@ def _match_seconds(state: MatchState) -> float:
 
 
 def _card_to_dict(card: OverlayCard) -> dict[str, Any]:
-    """Convert an OverlayCard dataclass to a JSON-serialisable dict."""
-    d = dataclasses.asdict(card)
-    # StructuredExplanation and GlossEn are nested dataclasses — asdict handles them.
-    return d
+    """Convert an OverlayCard dataclass to a JSON-serialisable dictionary."""
+    return dataclasses.asdict(card)
 
 
 def _find_bundle_card(
@@ -72,9 +78,11 @@ def _find_bundle_card(
     """Find a pre-generated card when bundle records lack a moment ID."""
     if not bundle_cards:
         return None
+
     cards = bundle_cards.get(profile_key)
     if not isinstance(cards, list):
         return None
+
     for candidate in cards:
         if not isinstance(candidate, dict):
             continue
@@ -85,7 +93,211 @@ def _find_bundle_card(
             and candidate.get("card_type") == card_type
         ):
             return candidate
+
     return None
+
+
+def _read_field(obj: Any, *names: str, default: Any = None) -> Any:
+    """Read the first available field from a dictionary or object."""
+    for name in names:
+        value = obj.get(name) if isinstance(obj, dict) else getattr(obj, name, None)
+        if value is not None:
+            return value
+    return default
+
+
+def _normalise_audio_key(value: Any) -> str:
+    """Normalize an enum/string event tag to a stable snake-case key."""
+    if value is None:
+        return ""
+    value = getattr(value, "value", value)
+    if not isinstance(value, str):
+        value = getattr(value, "name", value)
+    return re.sub(r"[^a-z0-9]+", "_", str(value).strip().lower()).strip("_")
+
+
+def _audio_event_key(event: Any, key_moment: KeyMoment) -> str:
+    """Resolve emotion policy from verified event/moment fields, not prose."""
+    aliases = {
+        "equalizer": "equaliser",
+        "equalizer_goal": "equaliser",
+        "equaliser_goal": "equaliser",
+        "goal_scored": "goal",
+        "scored_goal": "goal",
+        "redcard": "red_card",
+        "card_red": "red_card",
+        "bigchance": "big_chance",
+        "momentum_shift": "momentum_swing",
+    }
+
+    raw_tags = getattr(key_moment, "trigger_tags", None) or []
+    if isinstance(raw_tags, str):
+        raw_tags = [raw_tags]
+
+    tags: set[str] = set()
+    for tag in raw_tags:
+        normalized = _normalise_audio_key(tag)
+        tags.add(aliases.get(normalized, normalized))
+
+    # Prefer a specific moment over a generic goal tag.
+    for candidate in (
+        "equaliser",
+        "red_card",
+        "big_chance",
+        "momentum_swing",
+        "goal",
+    ):
+        if candidate in tags:
+            return candidate
+
+    event_key = _normalise_audio_key(getattr(event, "event_type", None))
+    event_key = aliases.get(event_key, event_key)
+    if event_key in {
+        "goal", "equaliser", "red_card", "big_chance", "momentum_swing"
+    }:
+        return event_key
+
+    # In particular, do not assume an ordinary card is a red card.
+    return event_key or "unknown"
+
+
+def _audio_card_payload(
+    card: Any,
+    *,
+    session_id: str,
+    language: str,
+    match_seconds: float,
+    event: Any,
+    key_moment: KeyMoment,
+    narration_request: Any,
+) -> dict[str, Any]:
+    """Copy the card and attach trusted context required by renderer.tts."""
+    if isinstance(card, dict):
+        payload = dict(card)
+    elif dataclasses.is_dataclass(card):
+        payload = dataclasses.asdict(card)
+    else:
+        payload = dict(vars(card)) if hasattr(card, "__dict__") else {}
+
+    card_id = _read_field(card, "card_id", default=payload.get("card_id"))
+    if not card_id:
+        stable_part = (
+            getattr(key_moment, "moment_id", None)
+            or getattr(event, "event_id", None)
+            or f"{session_id}:{int(match_seconds)}"
+        )
+        card_id = str(stable_part)
+
+    payload["card_id"] = str(card_id)
+    payload["language"] = language
+    payload["match_seconds"] = float(match_seconds)
+    payload["minute"] = int(getattr(event, "minute", 0) or 0)
+    payload["event_type"] = _audio_event_key(event, key_moment)
+
+    # Only use perspective that a domain object explicitly provides. Never
+    # infer a viewer's supported club from profile_key or narration wording.
+    perspective = (
+        _read_field(
+            narration_request,
+            "viewer_perspective", "perspective", "supporter_perspective",
+        )
+        or _read_field(
+            key_moment,
+            "viewer_perspective", "perspective", "supporter_perspective",
+        )
+        or _read_field(
+            card,
+            "viewer_perspective", "perspective", "supporter_perspective",
+        )
+        or "neutral"
+    )
+    payload["viewer_perspective"] = _normalise_audio_key(perspective) or "neutral"
+    return payload
+
+
+def _schedule_card_audio(
+    *,
+    card: Any,
+    session_id: str,
+    match_id: str,
+    language: str,
+    match_seconds: float,
+    event: Any,
+    key_moment: KeyMoment,
+    narration_request: Any,
+    ws_manager: Any,
+    tts_client: Any,
+    audio_tasks: set[asyncio.Task[Any]],
+) -> None:
+    """Schedule a single TTS render after its caption has been broadcast."""
+    if tts_client is None or ws_manager is None:
+        return
+
+    audio_card = _audio_card_payload(
+        card,
+        session_id=session_id,
+        language=language,
+        match_seconds=match_seconds,
+        event=event,
+        key_moment=key_moment,
+        narration_request=narration_request,
+    )
+
+    async def publish_audio_update(payload: dict[str, Any]) -> None:
+        # The tts.py facade emits exactly the legacy audio_update fields:
+        # type, card_id, audio_url and match_seconds. match_id is routing data.
+        await ws_manager.broadcast_clock(payload, match_id=match_id)
+
+    async def render_audio() -> None:
+        try:
+            # Delegates to the registered AudioService singleton. Publication is
+            # owned by the facade; do not broadcast a second audio_update here.
+            await synthesize_card_audio(
+                audio_card,
+                synthesizer=tts_client,
+                language=language,
+                publisher=publish_audio_update,
+            )
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            # TTS must never retract or delay the approved caption.
+            logger.exception(
+                "[audio] background synthesis failed session=%s card_id=%s",
+                session_id,
+                audio_card.get("card_id"),
+            )
+
+    task = asyncio.create_task(
+        render_audio(),
+        name=f"audio-{session_id}-{audio_card['card_id']}",
+    )
+    audio_tasks.add(task)
+    _BACKGROUND_AUDIO_TASKS.add(task)
+    task.add_done_callback(audio_tasks.discard)
+    task.add_done_callback(_BACKGROUND_AUDIO_TASKS.discard)
+
+
+async def _cancel_audio_tasks(
+    audio_tasks: set[asyncio.Task[Any]],
+    *,
+    session_id: str,
+) -> None:
+    """Cancel and drain all audio wrapper tasks owned by a cancelled session."""
+    tasks = tuple(audio_tasks)
+    if not tasks:
+        return
+
+    logger.info(
+        "[audio] cancelling %d background task(s) for session=%s",
+        len(tasks),
+        session_id,
+    )
+    for task in tasks:
+        task.cancel()
+
+    await asyncio.gather(*tasks, return_exceptions=True)
+    audio_tasks.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -108,36 +320,10 @@ async def run_pipeline_session(
     narration_cache: dict[str, Any] | None = None,
     bundle_cards: dict[str, Any] | None = None,
 ) -> None:
-    """Drive a synthetic match session through the full pipeline.
+    """Drive one synthetic match session through the full pipeline.
 
-    Parameters
-    ----------
-    session_id:
-        The caller-assigned session identifier (used for WebSocket routing).
-    match_id:
-        Stable match identifier for this storyline + seed combination.
-    storyline:
-        Storyline name passed to the generator / adapter.
-    seed:
-        Random seed for the generator (deterministic replay).
-    speed:
-        Replay speed multiplier (1.0 = real-time, 4.0 = 4× faster).
-    language:
-        Preferred narration language for the default profile.
-    mode:
-        Narration mode — ``"casual"`` or ``"analyst"``.
-    ws_manager:
-        The WebSocketManager instance for broadcasting cards.
-    foundry_client:
-        A FoundryClient (or MockFoundryClient) for LLM calls.
-    tts_client:
-        An optional TTS client; cards are emitted without audio when absent.
-    content_safety:
-        An optional ContentSafetyClient; skipped when absent.
-    narration_cache:
-        Optional in-memory dict seeded from the bundle; cache hits skip the LLM.
-    bundle_cards:
-        Optional pre-generated cards by profile_key; used when quota is exceeded.
+    Captions are broadcast immediately. TTS runs asynchronously after the
+    caption is sent and publishes an audio_update when rendering completes.
     """
     logger.info(
         "[pipeline] session=%s match=%s storyline=%s seed=%d speed=%.1fx lang=%s mode=%s",
@@ -172,7 +358,11 @@ async def run_pipeline_session(
     # Event loop
     # ------------------------------------------------------------------
     cards_emitted = 0
+    # Keep strong references to audio tasks until they finish. On session
+    # cancellation, cancel and drain these wrappers explicitly.
+    audio_tasks: set[asyncio.Task[Any]] = set()
     recent_events: list[Any] = []
+
     # Use one epoch anchor for the whole replay so the browser can derive the
     # same continuously advancing match clock between event notifications.
     clock_anchor_wall = time.time() * 1000.0
@@ -180,17 +370,19 @@ async def run_pipeline_session(
 
     try:
         async for event in adapter.events(session_id, speed=speed):
-            # Record wall time at event receipt for end-to-end latency measurement.
+            # Record wall time at event receipt for end-to-end card latency.
             _event_wall = time.monotonic()
 
             # ----------------------------------------------------------
             # 1. Interpreter — update rolling match state
             # ----------------------------------------------------------
-            state: MatchState = await asyncio.to_thread(interpreter.process_event, event)
+            state: MatchState = await asyncio.to_thread(
+                interpreter.process_event,
+                event,
+            )
 
             # ----------------------------------------------------------
-            # 2. Broadcast clock update + event dot so the browser tracks
-            #    match time and the pitch shows event locations
+            # 2. Broadcast clock update + event dot
             # ----------------------------------------------------------
             clock_payload = {
                 "period": event.period,
@@ -202,7 +394,6 @@ async def run_pipeline_session(
                 "speed": speed,
                 "anchor_wall": clock_anchor_wall,
                 "anchor_match": clock_anchor_match,
-                # rolling state for momentum / possession / xG display
                 "momentum_home": round(state.momentum_home, 1),
                 "momentum_away": round(state.momentum_away, 1),
                 "possession_home": round(state.possession_home, 3),
@@ -213,11 +404,8 @@ async def run_pipeline_session(
                 "tempo": round(state.tempo, 2),
             }
             if ws_manager is not None:
-                await ws_manager.broadcast_clock(
-                    clock_payload,
-                    match_id=match_id,
-                )
-                # Also broadcast a raw event dot for the pitch visualiser
+                await ws_manager.broadcast_clock(clock_payload, match_id=match_id)
+
                 event_dot = {
                     "type": "event",
                     "event_id": event.event_id,
@@ -236,13 +424,12 @@ async def run_pipeline_session(
             # ----------------------------------------------------------
             key_moment: KeyMoment | None = moment_agent.detect(state, event)
 
-            # track recent events for spotlight assist detection
             recent_events.append(event)
             if len(recent_events) > 200:
                 recent_events = recent_events[-200:]
 
             if key_moment is None:
-                # No moment: emit a lightweight score/event update
+                # No moment: emit lightweight score updates for goals/cards.
                 if event.event_type in {EventType.goal, EventType.card}:
                     score_msg = {
                         "type": "score_update",
@@ -261,16 +448,22 @@ async def run_pipeline_session(
 
             logger.info(
                 "[moment] %s tags=%s priority=%d min=%d",
-                key_moment.moment_id, key_moment.trigger_tags,
-                key_moment.priority_rank, key_moment.minute,
+                key_moment.moment_id,
+                key_moment.trigger_tags,
+                key_moment.priority_rank,
+                key_moment.minute,
             )
 
             # ----------------------------------------------------------
             # 4. Personaliser — build NarrationRequest
             # ----------------------------------------------------------
-            narration_request = personaliser.prepare(key_moment, event=event, match_id=match_id)
+            narration_request = personaliser.prepare(
+                key_moment,
+                event=event,
+                match_id=match_id,
+            )
             if narration_request is None:
-                # Cache hit — card already sent for this profile key
+                # Already emitted/cached for this profile key.
                 continue
 
             # ----------------------------------------------------------
@@ -282,9 +475,10 @@ async def run_pipeline_session(
                 narration_request.structured_explanation = explanation
                 logger.info(
                     "[explainer] theme=%s grounded=%s",
-                    explanation.theme, not explanation.partially_grounded,
+                    explanation.theme,
+                    not explanation.partially_grounded,
                 )
-            except Exception as exc:  # pragma: no cover
+            except Exception as exc:  # pragma: no cover - runtime-dependent
                 logger.warning("[explainer] failed: %s", exc)
                 explanation = None
 
@@ -295,11 +489,19 @@ async def run_pipeline_session(
             _quota_exceeded = False
             card: OverlayCard | None = None
 
-            # Check in-memory narration cache first (populated from bundle at startup)
             _cache_key = f"{narration_request.profile_key}:{narration_request.moment_id}"
             _match_seconds = float(event.minute * 60 + event.second)
-            _card_type = "goal" if "goal" in key_moment.trigger_tags else "key_moment"
-            cached = narration_cache.get(_cache_key) if narration_cache is not None else None
+            _card_type = (
+                "goal"
+                if "goal" in key_moment.trigger_tags
+                else "key_moment"
+            )
+
+            cached = (
+                narration_cache.get(_cache_key)
+                if narration_cache is not None
+                else None
+            )
             if cached is None:
                 cached = _find_bundle_card(
                     bundle_cards,
@@ -307,25 +509,48 @@ async def run_pipeline_session(
                     match_seconds=_match_seconds,
                     card_type=_card_type,
                 )
+
             if cached is not None:
                 logger.info("[narrator] cache hit for %s", _cache_key)
-                # Treat the cached dict as already verified — skip to rendering
                 card_type = _card_type
-                match_clock_dict = {"period": event.period, "minute": event.minute, "second": event.second}
+                match_clock_dict = {
+                    "period": event.period,
+                    "minute": event.minute,
+                    "second": event.second,
+                }
                 match_secs = _match_seconds
-                from renderer.renderer import build_card_id
+
                 from shared.models import GlossEn as _GlossEn
-                # Build a minimal card from the cached dict
-                text = cached.get("text") or {"en": {"headline": cached.get("headline", ""), "body": cached.get("body", "")}}
-                gloss_raw = cached.get("gloss_en")
-                gloss_en = _GlossEn(headline=gloss_raw["headline"], body=gloss_raw["body"]) if isinstance(gloss_raw, dict) else None
+                from shared.models import NarratorResponse as _NR
                 from renderer.renderer import render_narration_card as _rnc
-                from shared.models import NarratorResponse as _NR, Claim as _Claim
+
+                text = cached.get("text") or {
+                    "en": {
+                        "headline": cached.get("headline", ""),
+                        "body": cached.get("body", ""),
+                    }
+                }
+                gloss_raw = cached.get("gloss_en")
+                gloss_en = (
+                    _GlossEn(
+                        headline=gloss_raw.get("headline", ""),
+                        body=gloss_raw.get("body", ""),
+                    )
+                    if isinstance(gloss_raw, dict)
+                    else None
+                )
+
                 _nr = _NR(
                     profile_key=narration_request.profile_key,
                     moment_id=narration_request.moment_id,
-                    headline=text.get("en", {}).get("headline", "") or text.get(narration_request.language, {}).get("headline", ""),
-                    body=text.get("en", {}).get("body", "") or text.get(narration_request.language, {}).get("body", ""),
+                    headline=(
+                        text.get("en", {}).get("headline", "")
+                        or text.get(narration_request.language, {}).get("headline", "")
+                    ),
+                    body=(
+                        text.get("en", {}).get("body", "")
+                        or text.get(narration_request.language, {}).get("body", "")
+                    ),
                     claims_list=[],
                     gloss_en=gloss_en,
                 )
@@ -338,16 +563,24 @@ async def run_pipeline_session(
                     team_ref=event.team,
                     player_ref=event.player or None,
                     structured_explanation=explanation,
-                    evidence_event_ids=(explanation.evidence_event_ids if explanation else []),
+                    evidence_event_ids=(
+                        explanation.evidence_event_ids if explanation else []
+                    ),
                 )
                 card.from_bundle = cached.get("from_bundle", False)
-                # Skip to broadcast
+                # Continue to the common broadcast/audio scheduling path.
+
             else:
                 try:
                     narrator_response = await narrator.generate(narration_request)
-                    logger.info("[narrator] headline=%r", narrator_response.headline[:50])
+                    logger.info(
+                        "[narrator] headline=%r",
+                        narrator_response.headline[:50],
+                    )
                 except QuotaExceeded:
-                    logger.warning("[narrator] QuotaExceeded — trying bundle fallback")
+                    logger.warning(
+                        "[narrator] QuotaExceeded — trying bundle fallback"
+                    )
                     metrics.record_quota_exceeded()
                     _quota_exceeded = True
                 except Exception as exc:
@@ -356,31 +589,53 @@ async def run_pipeline_session(
             # ----------------------------------------------------------
             # 7. Verifier — validate + emit card
             # ----------------------------------------------------------
-            if card is None:  # may have been set via cache hit above
-                match_clock_dict = {"period": event.period, "minute": event.minute, "second": event.second}
+            if card is None:
+                match_clock_dict = {
+                    "period": event.period,
+                    "minute": event.minute,
+                    "second": event.second,
+                }
                 match_secs = float(event.minute * 60 + event.second)
 
-                # Quota exceeded — try the bundle first, then Fallback Line
+                # Quota exceeded — try the bundle first, then Fallback Line.
                 if _quota_exceeded and bundle_cards is not None:
-                    from scripts.generate_bundle import serve_bundle_card_for_quota_exceeded
+                    from scripts.generate_bundle import (
+                        serve_bundle_card_for_quota_exceeded,
+                    )
+
                     bundle_hit = serve_bundle_card_for_quota_exceeded(
                         narration_request.profile_key,
                         key_moment.moment_id,
                         bundle_cards,
                     )
                     if bundle_hit is not None:
-                        logger.info("[narrator] serving bundle card on QuotaExceeded")
-                        # Convert the bundle dict back to an OverlayCard-compatible dict for broadcast
-                        card = None  # will fall through to build a fallback card below
-                        # Broadcast the bundle card directly as a dict
+                        logger.info(
+                            "[narrator] serving bundle card on QuotaExceeded"
+                        )
                         bundle_hit["from_bundle"] = True
+
                         if ws_manager is not None:
+                            # Caption first; only after successful broadcast do
+                            # we enqueue audio for this direct-dict branch.
                             await ws_manager.broadcast_card(
                                 match_id=match_id,
                                 card=bundle_hit,
                                 session_id=session_id,
                             )
                             cards_emitted += 1
+                            _schedule_card_audio(
+                                card=bundle_hit,
+                                session_id=session_id,
+                                match_id=match_id,
+                                language=narration_request.language,
+                                match_seconds=match_secs,
+                                event=event,
+                                key_moment=key_moment,
+                                narration_request=narration_request,
+                                ws_manager=ws_manager,
+                                tts_client=tts_client,
+                                audio_tasks=audio_tasks,
+                            )
                         continue
 
             if narrator_response is not None:
@@ -392,7 +647,11 @@ async def run_pipeline_session(
                         match_state=state,
                     )
                     if result.verdict == "pass" and result.response is not None:
-                        card_type = "goal" if "goal" in key_moment.trigger_tags else "key_moment"
+                        card_type = (
+                            "goal"
+                            if "goal" in key_moment.trigger_tags
+                            else "key_moment"
+                        )
                         card = render_narration_card(
                             response=result.response,
                             match_clock=match_clock_dict,
@@ -402,15 +661,17 @@ async def run_pipeline_session(
                             team_ref=event.team,
                             player_ref=event.player if event.player else None,
                             structured_explanation=explanation,
-                            evidence_event_ids=(explanation.evidence_event_ids if explanation else []),
+                            evidence_event_ids=(
+                                explanation.evidence_event_ids if explanation else []
+                            ),
                         )
                         logger.info("[verifier] PASS card_id=%s", card.card_id)
                     else:
                         logger.info(
                             "[verifier] FAIL reason=%s retry=%s",
-                            result.rejection_reason, result.retry_attempted,
+                            result.rejection_reason,
+                            result.retry_attempted,
                         )
-                        # Use the fallback line from the verifier if present
                         if result.fallback_line:
                             fb = result.fallback_line
                             card = render_fallback_card(
@@ -437,11 +698,16 @@ async def run_pipeline_session(
                 except Exception as exc:
                     logger.warning("[verifier] exception: %s", exc)
 
-            # Narrator absent or failed — use fallback line directly
+            # Narrator absent/failed or verifier returned no fallback: use the
+            # deterministic fallback line directly.
             if card is None:
                 fb = build_fallback_line(
                     language=narration_request.language,
-                    moment_type=(key_moment.trigger_tags[0] if key_moment.trigger_tags else "default"),
+                    moment_type=(
+                        key_moment.trigger_tags[0]
+                        if key_moment.trigger_tags
+                        else "default"
+                    ),
                     player=event.player,
                     minute=event.minute,
                     event_type=event.event_type.value,
@@ -471,7 +737,7 @@ async def run_pipeline_session(
                 logger.info("[renderer] fallback card card_id=%s", card.card_id)
 
             # ----------------------------------------------------------
-            # 8. Renderer — broadcast card to WebSocket clients
+            # 8. Renderer — broadcast caption, then schedule TTS
             # ----------------------------------------------------------
             if ws_manager is not None and card is not None:
                 await ws_manager.broadcast_card(
@@ -483,27 +749,73 @@ async def run_pipeline_session(
                 metrics.record_card_latency(
                     (time.monotonic() - _event_wall) * 1000,
                     language=language,
-                    card_type=card.card_type if hasattr(card, "card_type") else "key_moment",
+                    card_type=(
+                        card.card_type
+                        if hasattr(card, "card_type")
+                        else "key_moment"
+                    ),
                 )
-                logger.info("[ws] broadcast card #%d card_id=%s", cards_emitted, card.card_id)
+                logger.info(
+                    "[ws] broadcast card #%d card_id=%s",
+                    cards_emitted,
+                    card.card_id,
+                )
+
+                # Audio is intentionally scheduled after the caption broadcast.
+                _schedule_card_audio(
+                    card=card,
+                    session_id=session_id,
+                    match_id=match_id,
+                    language=narration_request.language,
+                    match_seconds=match_secs,
+                    event=event,
+                    key_moment=key_moment,
+                    narration_request=narration_request,
+                    ws_manager=ws_manager,
+                    tts_client=tts_client,
+                    audio_tasks=audio_tasks,
+                )
 
     except asyncio.CancelledError:
-        logger.info("[pipeline] session=%s cancelled after %d cards", session_id, cards_emitted)
+        logger.info(
+            "[pipeline] session=%s cancelled after %d cards",
+            session_id,
+            cards_emitted,
+        )
+        await _cancel_audio_tasks(audio_tasks, session_id=session_id)
         return
     except Exception as exc:
         logger.exception("[pipeline] session=%s fatal error: %s", session_id, exc)
+        # If the pipeline fails unexpectedly, avoid leaving its audio wrapper
+        # tasks running without an owning session task.
+        await _cancel_audio_tasks(audio_tasks, session_id=session_id)
         return
 
-    logger.info("[pipeline] session=%s complete. Total cards: %d", session_id, cards_emitted)
+    logger.info(
+        "[pipeline] session=%s complete. Total cards: %d",
+        session_id,
+        cards_emitted,
+    )
 
     # ------------------------------------------------------------------
     # Emit full-time notification
     # ------------------------------------------------------------------
     if ws_manager is not None:
         await ws_manager.broadcast_clock(
-            {"type": "full_time", "session_id": session_id, "match_id": match_id, "cards_emitted": cards_emitted},
+            {
+                "type": "full_time",
+                "session_id": session_id,
+                "match_id": match_id,
+                "cards_emitted": cards_emitted,
+            },
             match_id=match_id,
         )
+
+    # Do not wait here for TTS: full-time delivery and pipeline completion
+    # should not be delayed by synthesis. The process-level registry retains
+    # background tasks until they complete; each task removes itself from both
+    # registries through done callbacks. Session cancellation cancels its own
+    # tasks in _cancel_audio_tasks().
 
 
 __all__ = ["run_pipeline_session"]
