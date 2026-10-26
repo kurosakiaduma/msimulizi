@@ -8,9 +8,6 @@
     "location": {
       "value": "${AZURE_LOCATION}"
     },
-    "containerRegistryServer": {
-      "value": "${AZURE_CONTAINER_REGISTRY_ENDPOINT}"
-    },
     "backendImageTag": {
       "value": "${BACKEND_IMAGE_TAG=latest}"
     },

@@ -13,14 +13,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
-
-import pytest
+from types import SimpleNamespace
+from typing import Any
 
 from shared.content_safety import (
     Allowed,
     Blocked,
+    ContentSafetyClient,
     MockContentSafetyClient,
-    SafetyResult,
 )
 
 
@@ -128,3 +128,54 @@ class TestSafetyResultTypes:
     def test_blocked_is_hashable(self):
         b = Blocked(text="x", category="Hate", severity=4, context="ctx")
         assert {b}
+
+
+class _FakeCredential:
+    def __init__(self) -> None:
+        self.scopes: list[str] = []
+
+    async def get_token(self, scope: str) -> Any:
+        self.scopes.append(scope)
+        return SimpleNamespace(token="test-token")
+
+
+class _FakeHttp:
+    def __init__(self) -> None:
+        self.calls: list[dict[str, Any]] = []
+
+    async def post(self, url: str, **kwargs: Any) -> Any:
+        self.calls.append({"url": url, **kwargs})
+        return SimpleNamespace(
+            status_code=200,
+            json=lambda: {"categoriesAnalysis": []},
+            text="",
+        )
+
+    async def aclose(self) -> None:
+        return None
+
+
+class TestContentSafetyAuth:
+    def test_managed_identity_bearer_header(self):
+        credential = _FakeCredential()
+        client = ContentSafetyClient(
+            "https://example.cognitiveservices.azure.com/",
+            credential=credential,
+        )
+        http = _FakeHttp()
+        client._http_client = http
+
+        result = run(client.check("clean text"))
+
+        assert isinstance(result, Allowed)
+        assert http.calls[0]["headers"]["Authorization"] == "Bearer test-token"
+        assert credential.scopes == ["https://cognitiveservices.azure.com/.default"]
+
+    def test_api_key_header(self):
+        client = ContentSafetyClient("https://example.cognitiveservices.azure.com/", "secret")
+        http = _FakeHttp()
+        client._http_client = http
+
+        run(client.check("clean text"))
+
+        assert http.calls[0]["headers"]["Ocp-Apim-Subscription-Key"] == "secret"

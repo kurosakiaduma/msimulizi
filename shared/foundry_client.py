@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import pathlib
 from typing import Any
 
@@ -72,30 +73,97 @@ class FoundryClient:
     endpoint:
         Azure OpenAI endpoint URL (e.g. ``https://<resource>.openai.azure.com``).
     api_key:
-        Azure OpenAI API key.  Pass ``None`` to use managed identity (not
-        supported in the fake / test path).
+        Azure OpenAI API key. Pass ``None`` to authenticate with managed
+        identity through ``DefaultAzureCredential``.
     """
 
-    def __init__(self, endpoint: str, api_key: str | None = None) -> None:
+    def __init__(
+        self,
+        endpoint: str,
+        api_key: str | None = None,
+        *,
+        use_managed_identity: bool | None = None,
+    ) -> None:
         self._endpoint = endpoint
         self._api_key = api_key
-        self._client: Any = None  # lazy-initialised on first call
+        self._use_managed_identity = (
+            use_managed_identity if use_managed_identity is not None else not api_key
+        )
 
-    def _get_client(self) -> Any:
-        if self._client is None:
-            try:
-                from openai import AsyncAzureOpenAI  # type: ignore[import]
-            except ImportError as exc:
-                raise ImportError(
-                    "openai package is required for FoundryClient. "
-                    "Install it with: pip install openai"
-                ) from exc
-            self._client = AsyncAzureOpenAI(
-                azure_endpoint=self._endpoint,
-                api_key=self._api_key,
-                api_version="2024-08-01-preview",  # overridden per-call below
+        if not api_key and not self._use_managed_identity:
+            raise ValueError(
+                "FoundryClient needs an API key or managed-identity authentication"
             )
+
+        self._credential: Any = None
+        self._client: Any = None
+
+    def _build_client(self) -> Any:
+        """Create the shared v1-API client on first use.
+
+        The v1 endpoint removes dated ``api-version`` pinning, which is
+        important because newer Foundry models are not served by the old
+        preview API versions. The deployment name remains the model argument.
+        """
+        if self._client is not None:
+            return self._client
+
+        try:
+            from openai import AsyncOpenAI  # type: ignore[import]
+        except ImportError as exc:
+            raise ImportError(
+                "openai package is required for FoundryClient. "
+                "Install it with: pip install openai"
+            ) from exc
+
+        base_url = self._endpoint.rstrip("/")
+        if not base_url.endswith("/openai/v1"):
+            base_url += "/openai/v1/"
+        else:
+            base_url += "/"
+        kwargs: dict[str, Any] = {"base_url": base_url, "max_retries": 0}
+
+        if self._use_managed_identity and not self._api_key:
+            # Container Apps injects AZURE_CLIENT_ID for the user-assigned
+            # identity; DefaultAzureCredential consumes it automatically.
+            from azure.identity.aio import (  # type: ignore[import]
+                DefaultAzureCredential,
+                get_bearer_token_provider,
+            )
+
+            if self._credential is None:
+                self._credential = DefaultAzureCredential()
+
+            kwargs["api_key"] = get_bearer_token_provider(
+                self._credential,
+                "https://ai.azure.com/.default",
+            )
+        else:
+            kwargs["api_key"] = self._api_key
+
+        self._client = AsyncOpenAI(**kwargs)
         return self._client
+
+    def _get_client(self, api_version: str | None = None) -> Any:
+        # ``api_version`` is accepted for callers written before the v1 API
+        # migration; it is ignored because v1 is unversioned.
+        return self._build_client()
+
+    async def aclose(self) -> None:
+        """Close the SDK client and the managed-identity credential."""
+        if self._client is not None:
+            try:
+                await self._client.close()
+            except Exception:  # pragma: no cover - shutdown best effort
+                pass
+            self._client = None
+
+        if self._credential is not None:
+            try:
+                await self._credential.close()
+            except Exception:  # pragma: no cover - shutdown best effort
+                pass
+            self._credential = None
 
     async def structured_output(
         self,
@@ -129,25 +197,32 @@ class FoundryClient:
         """
         deployment = get_deployment(agent_key)
         deployment_name = deployment["deployment_name"]
-        api_version = deployment.get("api_version", "2024-08-01-preview")
 
         client = self._get_client()
-        # Override api_version per call via a fresh client with the pinned version.
+
         try:
-            from openai import AsyncAzureOpenAI  # type: ignore[import]
-            from openai import APIStatusError    # type: ignore[import]
-        except ImportError as exc:
+            from openai import APIStatusError  # type: ignore[import]
+        except ImportError as exc:  # pragma: no cover - dependency is declared
             raise ImportError("openai package required") from exc
 
-        versioned_client = AsyncAzureOpenAI(
-            azure_endpoint=self._endpoint,
-            api_key=self._api_key,
-            api_version=api_version,
-        )
+        request_options: dict[str, Any] = {}
+        reasoning_effort = os.getenv("FOUNDRY_REASONING_EFFORT", "none").strip()
+        if reasoning_effort:
+            # The 3-second contract leaves no room for hidden reasoning. The
+            # default keeps calls inside that budget; raise it deliberately
+            # if a deployment needs deeper reasoning and the budget allows.
+            request_options["reasoning_effort"] = reasoning_effort
+
+        max_completion_tokens = os.getenv("FOUNDRY_MAX_COMPLETION_TOKENS", "").strip()
+        if max_completion_tokens:
+            try:
+                request_options["max_completion_tokens"] = int(max_completion_tokens)
+            except ValueError:
+                pass
 
         async def _call() -> dict[str, Any]:
             try:
-                response = await versioned_client.chat.completions.create(
+                response = await client.chat.completions.create(
                     model=deployment_name,
                     messages=messages,  # type: ignore[arg-type]
                     response_format={
@@ -158,6 +233,7 @@ class FoundryClient:
                             "schema": response_schema,
                         },
                     },
+                    **request_options,
                 )
             except APIStatusError as exc:
                 if exc.status_code == 429:

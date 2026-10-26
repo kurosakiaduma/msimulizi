@@ -62,6 +62,47 @@ def _card_to_dict(card: OverlayCard) -> dict[str, Any]:
     return d
 
 
+async def _render_card_audio(
+    *,
+    card: Any,
+    audio_service: Any,
+    language: str,
+    ws_manager: Any,
+    match_id: str,
+    session_id: str,
+    existing_audio_url: str | None = None,
+) -> None:
+    """Synthesize one card's audio and broadcast ``audio_update``.
+
+    Runs after the caption has already been sent, so a slow speech call never
+    delays the viewer. Failures are contained inside ``AudioService`` and
+    produce ``audio_url=null`` instead of breaking the pipeline.
+    """
+    from renderer.audio.bridge import synthesize_card_audio
+
+    started = time.monotonic()
+
+    async def publish(payload: dict[str, Any]) -> None:
+        await ws_manager.broadcast_message(
+            payload,
+            match_id=match_id,
+            session_id=session_id,
+        )
+
+    try:
+        await synthesize_card_audio(
+            card,
+            audio_service,
+            language=language,
+            publish=publish,
+            existing_audio_url=existing_audio_url,
+        )
+    except Exception as exc:  # pragma: no cover - service already contains most
+        logger.warning("[audio] card %s failed: %s", getattr(card, "card_id", "?"), exc)
+    else:
+        metrics.record_audio_latency((time.monotonic() - started) * 1000.0)
+
+
 def _find_bundle_card(
     bundle_cards: dict[str, Any] | None,
     *,
@@ -103,6 +144,7 @@ async def run_pipeline_session(
     mode: str = "casual",
     ws_manager: Any | None = None,
     foundry_client: Any | None = None,
+    audio_service: Any | None = None,
     tts_client: Any | None = None,
     content_safety: Any | None = None,
     narration_cache: dict[str, Any] | None = None,
@@ -130,8 +172,11 @@ async def run_pipeline_session(
         The WebSocketManager instance for broadcasting cards.
     foundry_client:
         A FoundryClient (or MockFoundryClient) for LLM calls.
+    audio_service:
+        Optional production AudioService (renderer.audio). Audio is rendered
+        in the background after each caption and published as audio_update.
     tts_client:
-        An optional TTS client; cards are emitted without audio when absent.
+        Backwards-compatible alias for ``audio_service``.
     content_safety:
         An optional ContentSafetyClient; skipped when absent.
     narration_cache:
@@ -139,6 +184,9 @@ async def run_pipeline_session(
     bundle_cards:
         Optional pre-generated cards by profile_key; used when quota is exceeded.
     """
+    if audio_service is None:
+        audio_service = tts_client
+
     logger.info(
         "[pipeline] session=%s match=%s storyline=%s seed=%d speed=%.1fx lang=%s mode=%s",
         session_id, match_id, storyline, seed, speed, language, mode,
@@ -172,6 +220,7 @@ async def run_pipeline_session(
     # Event loop
     # ------------------------------------------------------------------
     cards_emitted = 0
+    audio_tasks: set[asyncio.Task[Any]] = set()
     recent_events: list[Any] = []
     # Use one epoch anchor for the whole replay so the browser can derive the
     # same continuously advancing match clock between event notifications.
@@ -313,14 +362,13 @@ async def run_pipeline_session(
                 card_type = _card_type
                 match_clock_dict = {"period": event.period, "minute": event.minute, "second": event.second}
                 match_secs = _match_seconds
-                from renderer.renderer import build_card_id
                 from shared.models import GlossEn as _GlossEn
                 # Build a minimal card from the cached dict
                 text = cached.get("text") or {"en": {"headline": cached.get("headline", ""), "body": cached.get("body", "")}}
                 gloss_raw = cached.get("gloss_en")
                 gloss_en = _GlossEn(headline=gloss_raw["headline"], body=gloss_raw["body"]) if isinstance(gloss_raw, dict) else None
                 from renderer.renderer import render_narration_card as _rnc
-                from shared.models import NarratorResponse as _NR, Claim as _Claim
+                from shared.models import NarratorResponse as _NR
                 _nr = _NR(
                     profile_key=narration_request.profile_key,
                     moment_id=narration_request.moment_id,
@@ -341,6 +389,9 @@ async def run_pipeline_session(
                     evidence_event_ids=(explanation.evidence_event_ids if explanation else []),
                 )
                 card.from_bundle = cached.get("from_bundle", False)
+                cached_audio_url = cached.get("audio_url")
+                if isinstance(cached_audio_url, str) and cached_audio_url:
+                    card.audio_url = cached_audio_url
                 # Skip to broadcast
             else:
                 try:
@@ -487,12 +538,47 @@ async def run_pipeline_session(
                 )
                 logger.info("[ws] broadcast card #%d card_id=%s", cards_emitted, card.card_id)
 
+                # Speech runs after the caption. Bundle cards already carry a
+                # pre-generated URL, so only synthesize when audio is missing.
+                if audio_service is not None and not card.audio_url:
+                    task = asyncio.create_task(
+                        _render_card_audio(
+                            card=card,
+                            audio_service=audio_service,
+                            language=language,
+                            ws_manager=ws_manager,
+                            match_id=match_id,
+                            session_id=session_id,
+                        ),
+                        name=f"audio-{card.card_id}",
+                    )
+                    audio_tasks.add(task)
+                    task.add_done_callback(audio_tasks.discard)
+
     except asyncio.CancelledError:
+        for task in list(audio_tasks):
+            task.cancel()
         logger.info("[pipeline] session=%s cancelled after %d cards", session_id, cards_emitted)
         return
     except Exception as exc:
+        for task in list(audio_tasks):
+            task.cancel()
         logger.exception("[pipeline] session=%s fatal error: %s", session_id, exc)
         return
+
+    # Let in-flight speech finish before the session is reported complete.
+    # The cap prevents a stuck provider from holding the session open.
+    if audio_tasks:
+        pending = list(audio_tasks)
+        _, still_running = await asyncio.wait(pending, timeout=15.0)
+        for task in still_running:
+            task.cancel()
+        if still_running:
+            logger.warning(
+                "[audio] session=%s cancelled %d audio task(s) after timeout",
+                session_id,
+                len(still_running),
+            )
 
     logger.info("[pipeline] session=%s complete. Total cards: %d", session_id, cards_emitted)
 

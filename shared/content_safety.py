@@ -14,6 +14,8 @@ Design points:
 
 from __future__ import annotations
 
+import asyncio
+import inspect
 import logging
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
@@ -96,17 +98,56 @@ class ContentSafetyClient:
         endpoint: str,
         api_key: str | None = None,
         *,
+        credential: Any | None = None,
+        close_credential: bool = False,
         block_threshold: int = 2,
     ) -> None:
         self._endpoint = endpoint.rstrip("/")
-        self._api_key = api_key
+        self._api_key = (api_key or "").strip() or None
+        self._credential = credential
+        self._close_credential = close_credential
         self._block_threshold = block_threshold
         self._http_client: Any = None  # lazy-initialised
 
-    def _get_headers(self) -> dict[str, str]:
+        if not self._api_key and self._credential is None:
+            raise ValueError(
+                "Content Safety needs an API key or an Azure credential"
+            )
+
+    async def _get_headers(self) -> dict[str, str]:
         headers = {"Content-Type": "application/json"}
+
         if self._api_key:
             headers["Ocp-Apim-Subscription-Key"] = self._api_key
+            return headers
+
+        if self._credential is None:  # pragma: no cover - constructor guard
+            raise RuntimeError("Content Safety credential is not configured")
+
+        try:
+            getter = self._credential.get_token
+
+            if inspect.iscoroutinefunction(getter):
+                token = await getter("https://cognitiveservices.azure.com/.default")
+            else:
+                token = await asyncio.to_thread(
+                    getter,
+                    "https://cognitiveservices.azure.com/.default",
+                )
+        except Exception as exc:
+            raise RuntimeError(
+                "Could not acquire a Content Safety access token: "
+                f"{type(exc).__name__}"
+            ) from exc
+
+        access_token = getattr(token, "token", None)
+
+        if not access_token:
+            raise RuntimeError(
+                "Content Safety credential returned an empty access token"
+            )
+
+        headers["Authorization"] = f"Bearer {access_token}"
         return headers
 
     async def check(self, text: str, *, context: str = "") -> SafetyResult:
@@ -141,7 +182,7 @@ class ContentSafetyClient:
             self._http_client = httpx.AsyncClient()
 
         response = await self._http_client.post(
-            url, json=payload, headers=self._get_headers()
+            url, json=payload, headers=await self._get_headers()
         )
 
         if response.status_code != 200:
@@ -171,6 +212,27 @@ class ContentSafetyClient:
                 return result
 
         return Allowed(text=text)
+
+    async def aclose(self) -> None:
+        """Close the HTTP client and the managed-identity credential."""
+        if self._http_client is not None:
+            try:
+                await self._http_client.aclose()
+            except Exception:  # pragma: no cover - shutdown best effort
+                pass
+            self._http_client = None
+
+        if self._close_credential and self._credential is not None:
+            closer = getattr(self._credential, "close", None)
+            if not callable(closer):
+                closer = getattr(self._credential, "aclose", None)
+
+            if callable(closer):
+                result = closer()
+                if inspect.isawaitable(result):
+                    await result
+
+            self._credential = None
 
 
 # ---------------------------------------------------------------------------

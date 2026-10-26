@@ -117,6 +117,35 @@ class WebSocketManager:
             except Exception:
                 await self.disconnect(sid)
 
+    async def broadcast_message(
+        self,
+        payload: dict[str, Any],
+        *,
+        match_id: str | None = None,
+        session_id: str | None = None,
+        profile_key: str | None = None,
+    ) -> None:
+        """Send a pre-shaped payload to matching connections.
+
+        Used for messages such as ``audio_update`` that are not wrapped in a
+        card or clock envelope by the gateway.
+        """
+        async with self._lock:
+            conns = list(self._connections.items())
+        for sid, entry in conns:
+            if not self._matches_target(
+                entry,
+                session_id=session_id,
+                profile_key=profile_key,
+                match_id=match_id,
+            ):
+                continue
+            ws = entry.get("ws")
+            try:
+                await ws.send_text(json.dumps(payload))
+            except Exception:
+                await self.disconnect(sid)
+
     async def broadcast_clock(self, clock_payload: dict[str, Any], *, match_id: str | None = None, profile_key: str | None = None) -> None:
         payload = {"type": "clock_update", "clock": clock_payload}
         async with self._lock:

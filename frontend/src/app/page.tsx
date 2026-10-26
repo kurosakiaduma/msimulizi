@@ -11,11 +11,13 @@ import type {
 import { useSessionClock } from "@/hooks/useSessionClock";
 import { useMatchSocket } from "@/hooks/useMatchSocket";
 import {
+  applyAudioUrl,
   createSchedulerState,
   enqueueCard,
   tick,
 } from "@/lib/scheduler";
 import type { SchedulerState } from "@/lib/scheduler";
+import { loadRuntimeConfig } from "@/lib/runtimeConfig";
 
 import { MatchClock } from "@/components/MatchClock";
 import { ScoreBar } from "@/components/ScoreBar";
@@ -78,16 +80,6 @@ const DEFAULT_PROFILE: ViewerProfile = {
   audio_enabled: true,
   audio_only: false,
 };
-
-function getApiBase(): string {
-  if (typeof window === "undefined") return "";
-  return (process.env.NEXT_PUBLIC_BACKEND_URL ?? `http://${window.location.hostname}:8000`).replace(/\/$/, "");
-}
-
-function getWsBase(): string {
-  if (typeof window === "undefined") return "";
-  return (process.env.NEXT_PUBLIC_WS_URL ?? `${getApiBase().replace(/^http/, "ws")}/ws`).replace(/\/$/, "");
-}
 
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -260,6 +252,11 @@ export default function Home() {
               c.card_id === msg.card_id ? { ...c, audio_url: msg.audio_url } : c
             )
           );
+          // Audio is synthesized after the caption. Patch the scheduler copy
+          // too so audio-only mode can start playback when the URL arrives.
+          setScheduler((s) =>
+            applyAudioUrl(s, msg.card_id, msg.audio_url ?? null)
+          );
           break;
 
         default:
@@ -288,9 +285,10 @@ export default function Home() {
     setMatchState({ ...DEFAULT_MATCH_STATE });
     clock.updateAnchor(Date.now(), 0, 1);
 
+    const config = await loadRuntimeConfig();
+
     try {
-      const apiBase = getApiBase();
-      const resp = await fetch(`${apiBase}/v1/sessions`, {
+      const resp = await fetch(`${config.backendUrl}/v1/sessions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -305,10 +303,10 @@ export default function Home() {
       const data = await resp.json();
       const sid: string = data.session_id;
       const mid: string = data.match_id;
-      setWsUrl(`${getWsBase()}?session_id=${sid}&match_id=${mid}`);
+      setWsUrl(`${config.wsUrl}?session_id=${sid}&match_id=${mid}`);
     } catch {
       const sid = `demo-${Date.now()}`;
-      setWsUrl(`${getWsBase()}?session_id=${sid}&storyline=${storylineId}`);
+      setWsUrl(`${config.wsUrl}?session_id=${sid}&storyline=${storylineId}`);
     }
     setHasStarted(true);
   }

@@ -18,7 +18,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -108,18 +108,71 @@ def _build_foundry_client() -> Any | None:
         return None
 
 
-def _build_speech_client() -> Any | None:
-    """Construct a real TTS client from env vars, or None when unconfigured."""
-    endpoint = os.getenv("SPEECH_ENDPOINT", "").strip()
-    api_key = os.getenv("SPEECH_API_KEY", "").strip() or None
+async def _build_content_safety() -> Any | None:
+    """Construct the Content Safety client (key locally, managed identity in Azure)."""
+    endpoint = (
+        os.getenv("CONTENT_SAFETY_ENDPOINT", "").strip()
+        or os.getenv("AZURE_CONTENT_SAFETY_ENDPOINT", "").strip()
+    )
+
     if not endpoint:
-        logger.info("[startup] SPEECH_ENDPOINT not set — TTS skipped")
+        logger.info("[startup] CONTENT_SAFETY_ENDPOINT not set — safety checks skipped")
         return None
+
+    key = (
+        os.getenv("CONTENT_SAFETY_API_KEY", "").strip()
+        or os.getenv("AZURE_CONTENT_SAFETY_KEY", "").strip()
+        or None
+    )
+
     try:
-        from renderer.tts import TTSClient
-        return TTSClient(endpoint=endpoint, api_key=api_key)
-    except Exception as exc:  # pragma: no cover
-        logger.info("[startup] TTSClient unavailable: %s", exc)
+        from shared.content_safety import ContentSafetyClient
+
+        credential = None
+        if key is None:
+            from azure.identity.aio import DefaultAzureCredential
+
+            credential = DefaultAzureCredential()
+
+        return ContentSafetyClient(
+            endpoint,
+            key,
+            credential=credential,
+            close_credential=credential is not None,
+        )
+    except Exception as exc:
+        logger.warning("[startup] Content Safety unavailable: %s", exc)
+        return None
+
+
+async def _build_audio_service() -> Any | None:
+    """Construct the production audio service, or None when unconfigured.
+
+    Uses a Speech key locally, or the Container App managed identity in Azure.
+    Voice-catalogue verification runs at startup so a bad voice name fails
+    early instead of producing silent cards during the demo.
+    """
+    if not (
+        os.getenv("SPEECH_ENDPOINT", "").strip()
+        or os.getenv("AZURE_SPEECH_ENDPOINT", "").strip()
+        or os.getenv("AZURE_SPEECH_REGION", "").strip()
+    ):
+        logger.info("[startup] no Speech endpoint/region set — TTS disabled")
+        return None
+
+    try:
+        from renderer.audio.config import AudioSettings, build_audio_service
+
+        settings = AudioSettings.from_env()
+        service = await build_audio_service(settings)
+        logger.info(
+            "[startup] audio service ready (managed_identity=%s, blob=%s)",
+            settings.use_managed_identity,
+            bool(settings.blob_account_url),
+        )
+        return service
+    except Exception as exc:
+        logger.warning("[startup] audio service unavailable: %s", exc)
         return None
 
 
@@ -141,11 +194,10 @@ def create_app(
     if orchestrator is None:
         orchestrator = Orchestrator()
 
-    # Build real Azure clients at startup (gracefully None when unconfigured).
+    # Build the Foundry client now; the audio service is async and is created
+    # inside the lifespan. Both degrade to None when unconfigured.
     foundry_client = _build_foundry_client()
-    speech_client = _build_speech_client()
     app_foundry = foundry_client
-    app_speech = speech_client
 
     @asynccontextmanager
     async def lifespan(_: Any):
@@ -153,11 +205,16 @@ def create_app(
         # Expose clients on app.state so request handlers and the pipeline runner
         # can reach them without re-constructing on every request.
         app.state.foundry_client = app_foundry
-        app.state.speech_client = app_speech
+        audio_service = await _build_audio_service()
+        app.state.audio_service = audio_service
+        app.state.speech_client = audio_service
+        safety_client = await _build_content_safety()
+        app.state.content_safety = safety_client
         logger.info(
-            "[startup] foundry=%s speech=%s",
+            "[startup] foundry=%s audio=%s content_safety=%s",
             "live" if app_foundry else "none",
-            "live" if app_speech else "none",
+            "live" if audio_service else "none",
+            "live" if safety_client else "none",
         )
 
         # Seed the narration cache from the pre-generated bundle so that
@@ -175,6 +232,25 @@ def create_app(
             app.state.bundle_cards = {}
 
         yield
+
+        if audio_service is not None:
+            try:
+                await audio_service.aclose()
+            except Exception as exc:  # pragma: no cover - shutdown best effort
+                logger.warning("[shutdown] audio service close failed: %s", exc)
+
+        if app_foundry is not None and hasattr(app_foundry, "aclose"):
+            try:
+                await app_foundry.aclose()
+            except Exception as exc:  # pragma: no cover - shutdown best effort
+                logger.warning("[shutdown] foundry client close failed: %s", exc)
+
+        if safety_client is not None:
+            try:
+                await safety_client.aclose()
+            except Exception as exc:  # pragma: no cover - shutdown best effort
+                logger.warning("[shutdown] content safety close failed: %s", exc)
+
         session_manager.cleanup()
 
     app = FastAPI(title="Msimulizi", version="0.1.0", lifespan=lifespan)
@@ -246,7 +322,7 @@ def create_app(
                     mode=mode,
                     ws_manager=ws_mgr,
                     foundry_client=fc,
-                    tts_client=sc,
+                    audio_service=sc,
                     content_safety=cs,
                     narration_cache=nc,
                     bundle_cards=bc,

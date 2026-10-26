@@ -328,10 +328,15 @@ Each LLM-backed agent targets a named Foundry deployment. Deployment names are i
 
 | Agent | Model deployment | Notes |
 |---|---|---|
-| Explainer | `gpt-4o-mini` | Structured output; low token count (reason = 1 sentence) |
-| Narrator (sw) | `gpt-4o` | Best multilingual; Swahili quality validated early |
-| Narrator (en/fr) | `gpt-4o-mini` | Sufficient for English/French |
-| Verifier LLM check | `gpt-4o-mini` | Short grounding check |
+| Explainer | `gpt-5.4-mini` | Structured output; low token count (reason = 1 sentence) |
+| Narrator (sw) | `gpt-5.4` | Best multilingual; Swahili quality validated early |
+| Narrator (en/fr) | `gpt-5.4-mini` | Sufficient for English/French |
+| Verifier LLM check | `gpt-5.4-mini` | Short grounding check |
+
+> Deployment note (Oct 2026): the original `gpt-4o` / `gpt-4o-mini` versions
+> are deprecated for new subscriptions, so the template uses GA `gpt-5.4` and
+> `gpt-5.4-mini` through the unversioned Foundry v1 API. Confirm regional
+> availability and quota before provisioning.
 
 **Model comparison harness** (`scripts/compare_swahili_models.py`): generates 10 fixed Key Moments with seed 42, calls each candidate model deployment, writes outputs to `evals/swahili_comparison.json` for native-speaker review. Run this before committing to a Swahili model deployment.
 

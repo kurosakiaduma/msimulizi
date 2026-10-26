@@ -133,15 +133,15 @@ npm run dev
 azd auth login
 
 # Pick your environment and region
-azd env set AZURE_ENV_NAME dev
-azd env set AZURE_LOCATION eastus   # confirmed to offer sw-KE / sw-TZ Speech voices
+azd env new msimulizi-demo
+azd env set AZURE_LOCATION eastus   # verify sw-KE / sw-TZ Speech voices and model quota
 
 # Provision infrastructure and deploy backend + frontend (builds the two
 # Docker images per azure.yaml and deploys to Container Apps).
 azd up
 
-# After deployment, set frontend/.env.local NEXT_PUBLIC_WS_URL to the
-# deployed backend WebSocket endpoint (wss://<app>.azurecontainerapps.io/ws).
+# No frontend rebuild is needed: the runtime /api/config route reads BACKEND_URL
+# and WS_URL from the frontend Container App environment.
 ```
 
 The backend is deployed with **minimum 1 replica and scale-to-zero disabled**
@@ -152,6 +152,7 @@ that the Foundry model retirement dates cover the judging window through
 
 For the complete production checklist, frontend build-argument requirements,
 post-deployment smoke test, rollback procedure, and known deployment gaps, see
+[`docs/azure-resources-and-env.md`](docs/azure-resources-and-env.md) and
 [`docs/azure-production-guide.md`](docs/azure-production-guide.md).
 
 ### Running the checks

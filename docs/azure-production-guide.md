@@ -4,6 +4,11 @@ This guide covers a controlled production deployment of Msimulizi to Azure
 Container Apps using Azure Developer CLI (`azd`). It is intentionally explicit
 about the checks that must be completed before making the demo public.
 
+> **Current resource/env matrix:** see
+> [`azure-resources-and-env.md`](azure-resources-and-env.md) for the exact
+> resources, roles, environment variables, model versions, and preflight
+> commands. This guide covers the operating procedure around that matrix.
+
 ## Deployment topology
 
 `azd up` provisions and deploys:
@@ -15,10 +20,10 @@ about the checks that must be completed before making the demo public.
   Azure AI Speech, Azure AI Content Safety, and the managed identity defined in
   [`infra/main.bicep`](../infra/main.bicep).
 
-The frontend is a browser application. Its `NEXT_PUBLIC_*` values are embedded
-into the JavaScript bundle during `npm run build`; changing a Container App
-runtime environment variable after the image is built does not change those
-values in an already-built client bundle.
+The frontend is a browser application. It reads `BACKEND_URL` and `WS_URL`
+from the server-side `/api/config` route at runtime, so the image does not need
+to be rebuilt when the backend hostname changes. `NEXT_PUBLIC_*` values remain
+only as local-development fallbacks.
 
 ## Before deployment
 
@@ -95,8 +100,8 @@ At minimum, verify these production concerns:
 - `SPEECH_ENDPOINT` has the intended `sw-KE` or `sw-TZ` voice.
 - `CONTENT_SAFETY_ENDPOINT` is configured for generated text moderation.
 - `COSMOS_ENDPOINT` and `COSMOS_DATABASE` point to the production account.
-- `STORAGE_ACCOUNT_URL` and `AUDIO_CONTAINER` are configured if audio is
-  enabled.
+- `STORAGE_ACCOUNT_URL` / `AUDIO_BLOB_ACCOUNT_URL` and
+  `AUDIO_BLOB_CONTAINER` are configured if audio is enabled.
 - `APPLICATIONINSIGHTS_CONNECTION_STRING` is configured.
 - `MSIMULIZI_REVIEWER_KEY` is a long, randomly generated secret.
 - `MSIMULIZI_ALLOWED_ORIGINS` contains only the deployed frontend origin.
@@ -107,36 +112,33 @@ Storage credentials as `NEXT_PUBLIC_*` variables.
 
 ## Frontend URL configuration
 
-The browser needs all three values:
+The browser fetches connection settings from the frontend's runtime
+`/api/config` route handler. That handler reads the Container App environment
+variables `BACKEND_URL` and `WS_URL` (set by `infra/main.bicep`) and returns:
 
-```text
-NEXT_PUBLIC_BACKEND_URL=https://<backend-fqdn>
-NEXT_PUBLIC_WS_URL=wss://<backend-fqdn>/ws
-NEXT_PUBLIC_API_BASE=https://<backend-fqdn>
+```json
+{"backendUrl": "https://<backend-fqdn>", "wsUrl": "wss://<backend-fqdn>/ws"}
 ```
 
-These values must be supplied while the frontend image is built. The current
-frontend Dockerfile provides build arguments with local defaults, while the
-current Bicep template injects only `NEXT_PUBLIC_BACKEND_URL` as a Container App
-runtime variable. That runtime variable cannot repair a client bundle that was
-already built with `localhost` or another default.
+Because the values are read at request time, the frontend image is no longer
+environment-specific. `NEXT_PUBLIC_*` build arguments remain only as
+local-development fallbacks and must not be relied on for production.
 
-Before production deployment, choose one of these safe approaches:
+After deployment, verify the route from the public frontend URL:
 
-1. Update the `azd`/CI image build to pass all three build arguments from the
-   resolved backend FQDN, then run `azd up`.
-2. Build and push the frontend image manually with the three arguments, set
-   `FRONTEND_IMAGE_TAG` to that immutable tag, and deploy the Bicep template
-   with that tag.
+```bash
+curl --fail --show-error "$FRONTEND_URL/api/config"
+```
 
-Never accept the Dockerfile defaults for a public deployment. After deployment,
-inspect the built application in a browser and confirm that the browser
-connects to the backend FQDN over `wss://`, not to `localhost`, the frontend
-hostname, or an old environment.
+If a custom domain is added, update `BACKEND_URL`, `WS_URL`, and
+`MSIMULIZI_ALLOWED_ORIGINS` on the Container Apps, then create a new backend
+revision. The backend CORS policy only allows the default frontend origin
+computed by the template.
 
 ## Provision and deploy
 
-After the frontend build-argument wiring has been verified:
+After the preflight checks in
+[`azure-resources-and-env.md`](azure-resources-and-env.md) pass:
 
 ```bash
 azd provision
@@ -240,15 +242,16 @@ resources for the environment.
 The following items are not fully proven by local tests and must be closed or
 explicitly accepted:
 
-- **Frontend image configuration:** pass
-  `NEXT_PUBLIC_BACKEND_URL`, `NEXT_PUBLIC_WS_URL`, and `NEXT_PUBLIC_API_BASE`
-  at image build time. The existing Bicep runtime variable is insufficient.
+- **Frontend runtime routing:** verify `/api/config` returns the deployed
+  backend and `wss://` URLs after provisioning; the image no longer needs
+  build-time `NEXT_PUBLIC_*` values.
 - **Live Azure integration:** local validation uses fallback narration because
   Foundry, Speech, and Content Safety endpoints are unset. Run one authenticated
   staging smoke test.
 - **Review security policy:** confirm the reviewer key is stored in Key Vault,
   rotated, and never exposed in browser logs or URLs.
-- **CORS:** replace local origins with the exact deployed frontend origin.
+- **CORS:** the template computes `MSIMULIZI_ALLOWED_ORIGINS` from the default
+  frontend Container App domain; update it if a custom domain is used.
 - **Audio delivery:** verify Blob permissions, URL expiry/access policy, and
   browser playback over HTTPS.
 - **Persistence:** verify whether cards, audit entries, and corrections are

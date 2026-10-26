@@ -18,7 +18,7 @@ import re
 from xml.sax.saxutils import escape, quoteattr
 
 from .contract import AudioRequest
-from .emotion import build_style_map, clamp01, prosody_for
+from .emotion import clamp01, prosody_for
 from .speech_text import prepare_tts_text
 
 

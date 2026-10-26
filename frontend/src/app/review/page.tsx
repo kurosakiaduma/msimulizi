@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { loadRuntimeConfig } from "@/lib/runtimeConfig";
 
 interface Correction {
   id: string;
@@ -26,10 +27,8 @@ interface ReviewData {
   rating_queue_size: number;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
-
-async function fetchReviewData(apiKey: string): Promise<ReviewData> {
-  const res = await fetch(`${API_BASE}/v1/review`, {
+async function fetchReviewData(apiBase: string, apiKey: string): Promise<ReviewData> {
+  const res = await fetch(`${apiBase}/v1/review`, {
     headers: { "X-API-Key": apiKey },
   });
   if (res.status === 401 || res.status === 403) {
@@ -39,16 +38,16 @@ async function fetchReviewData(apiKey: string): Promise<ReviewData> {
   return res.json() as Promise<ReviewData>;
 }
 
-async function approveCorrection(apiKey: string, id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/v1/corrections/${id}/approve`, {
+async function approveCorrection(apiBase: string, apiKey: string, id: string): Promise<void> {
+  const res = await fetch(`${apiBase}/v1/corrections/${id}/approve`, {
     method: "POST",
     headers: { "X-API-Key": apiKey },
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
-async function rejectCorrection(apiKey: string, id: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/v1/corrections/${id}/reject`, {
+async function rejectCorrection(apiBase: string, apiKey: string, id: string): Promise<void> {
+  const res = await fetch(`${apiBase}/v1/corrections/${id}/reject`, {
     method: "POST",
     headers: { "X-API-Key": apiKey },
   });
@@ -73,6 +72,7 @@ function LatencyBar({ p50, p95, max }: { p50: number; p95: number; max: number }
 }
 
 export default function ReviewPage() {
+  const [apiBase, setApiBase] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [inputKey, setInputKey] = useState("");
   const [data, setData] = useState<ReviewData | null>(null);
@@ -80,11 +80,26 @@ export default function ReviewPage() {
   const [loading, setLoading] = useState(false);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
 
+  useEffect(() => {
+    let active = true;
+    loadRuntimeConfig().then((config) => {
+      if (active) setApiBase(config.backendUrl);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const load = useCallback(async (key: string) => {
+    if (!apiBase) {
+      setError("Still loading connection settings; try again.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const result = await fetchReviewData(key);
+      const result = await fetchReviewData(apiBase, key);
       setData(result);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
@@ -92,7 +107,7 @@ export default function ReviewPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiBase]);
 
   function handleUnlock(e: React.FormEvent) {
     e.preventDefault();
@@ -104,7 +119,7 @@ export default function ReviewPage() {
 
   async function handleApprove(id: string) {
     try {
-      await approveCorrection(apiKey, id);
+      await approveCorrection(apiBase, apiKey, id);
       setActionMsg("Correction approved");
       load(apiKey);
     } catch {
@@ -114,7 +129,7 @@ export default function ReviewPage() {
 
   async function handleReject(id: string) {
     try {
-      await rejectCorrection(apiKey, id);
+      await rejectCorrection(apiBase, apiKey, id);
       setActionMsg("Correction rejected");
       load(apiKey);
     } catch {

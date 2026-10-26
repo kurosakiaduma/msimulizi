@@ -11,10 +11,14 @@ Production audio storage:
 Development storage:
     LocalDirStore
 
-Required environment variables:
-    AZURE_SPEECH_KEY
+Authentication:
+    AZURE_SPEECH_KEY / SPEECH_API_KEY for local development
+    SPEECH_USE_MANAGED_IDENTITY=true for DefaultAzureCredential
+        (the default when no key is present)
+
+Endpoint:
     AZURE_SPEECH_REGION
-        or AZURE_SPEECH_ENDPOINT for a configured custom endpoint
+        or AZURE_SPEECH_ENDPOINT / SPEECH_ENDPOINT for a custom endpoint
 
 Recommended production environment variable:
     AUDIO_BLOB_ACCOUNT_URL
@@ -268,7 +272,10 @@ def _configured_voice_defaults() -> tuple[dict[str, str], str]:
 class AudioSettings:
     """Validated runtime settings for the audio service."""
 
-    speech_key: str
+    # Local development uses a Speech key. Production uses the container's
+    # managed identity, which already has the Cognitive Services User role.
+    speech_key: str | None = None
+    use_managed_identity: bool = False
 
     # Supply a standard Azure region or a custom speech endpoint.
     speech_region: str | None = None
@@ -311,8 +318,22 @@ class AudioSettings:
 
     def __post_init__(self) -> None:
         """Validate values even when the settings are created directly."""
-        if not self.speech_key or not self.speech_key.strip():
-            raise ValueError("Azure Speech key is required")
+        has_key = bool(self.speech_key and self.speech_key.strip())
+
+        if not has_key and not self.use_managed_identity:
+            raise ValueError(
+                "An Azure Speech key or managed-identity authentication "
+                "is required"
+            )
+
+        if self.use_managed_identity:
+            # Managed identity and a static key are mutually exclusive. If a
+            # key is present locally it is the more explicit choice.
+            object.__setattr__(
+                self,
+                "use_managed_identity",
+                not has_key,
+            )
 
         if not (
             (self.speech_region and self.speech_region.strip())
@@ -377,23 +398,44 @@ class AudioSettings:
 
         Passing `env` explicitly makes configuration easy to unit-test.
 
-        Required:
-            AZURE_SPEECH_KEY
-            AZURE_SPEECH_REGION or AZURE_SPEECH_ENDPOINT
+        Authentication:
+            AZURE_SPEECH_KEY or SPEECH_API_KEY for local development.
+            Otherwise set SPEECH_USE_MANAGED_IDENTITY=true (the default when
+            no key is present) to authenticate through DefaultAzureCredential.
+
+        Endpoint:
+            AZURE_SPEECH_REGION or AZURE_SPEECH_ENDPOINT/SPEECH_ENDPOINT.
         """
         if env is None:
             env = os.environ
 
-        speech_key = _optional_env(env, "AZURE_SPEECH_KEY")
-        if not speech_key:
-            raise RuntimeError("AZURE_SPEECH_KEY is not set")
+        speech_key = (
+            _optional_env(env, "AZURE_SPEECH_KEY")
+            or _optional_env(env, "SPEECH_API_KEY")
+        )
 
         speech_region = _optional_env(env, "AZURE_SPEECH_REGION")
-        speech_endpoint = _optional_env(env, "AZURE_SPEECH_ENDPOINT")
+        speech_endpoint = (
+            _optional_env(env, "AZURE_SPEECH_ENDPOINT")
+            or _optional_env(env, "SPEECH_ENDPOINT")
+        )
 
         if not speech_region and not speech_endpoint:
             raise RuntimeError(
-                "Set AZURE_SPEECH_REGION or AZURE_SPEECH_ENDPOINT"
+                "Set AZURE_SPEECH_REGION or AZURE_SPEECH_ENDPOINT "
+                "(SPEECH_ENDPOINT is also accepted)"
+            )
+
+        use_managed_identity = _read_bool(
+            env,
+            "SPEECH_USE_MANAGED_IDENTITY",
+            not bool(speech_key),
+        )
+
+        if not speech_key and not use_managed_identity:
+            raise RuntimeError(
+                "Azure Speech needs AZURE_SPEECH_KEY or "
+                "SPEECH_USE_MANAGED_IDENTITY=true"
             )
 
         yaml_voices, sw_tz_voice = _configured_voice_defaults()
@@ -419,11 +461,17 @@ class AudioSettings:
 
         return cls(
             speech_key=speech_key,
+            use_managed_identity=use_managed_identity,
             speech_region=speech_region,
             speech_endpoint=speech_endpoint,
-            blob_account_url=_optional_env(env, "AUDIO_BLOB_ACCOUNT_URL"),
+            blob_account_url=(
+                _optional_env(env, "AUDIO_BLOB_ACCOUNT_URL")
+                or _optional_env(env, "STORAGE_ACCOUNT_URL")
+            ),
             blob_container=(
-                _optional_env(env, "AUDIO_BLOB_CONTAINER") or "audio"
+                _optional_env(env, "AUDIO_BLOB_CONTAINER")
+                or _optional_env(env, "AUDIO_CONTAINER")
+                or "audio"
             ),
             local_dir=(
                 _optional_env(env, "AUDIO_LOCAL_DIR") or ".audio_cache"
@@ -605,8 +653,24 @@ async def build_audio_service(
 
     Resource clients are cleaned up if initialization fails.
     """
+    credential = None
+    if settings.use_managed_identity:
+        # Production Container Apps authenticate with the user-assigned
+        # managed identity through AZURE_CLIENT_ID. DefaultAzureCredential
+        # also supports developer credentials locally.
+        try:
+            from azure.identity import DefaultAzureCredential
+        except ImportError as exc:
+            raise RuntimeError(
+                "azure-identity is required for managed-identity Speech"
+            ) from exc
+
+        credential = DefaultAzureCredential()
+
     engine = AzureTtsEngine(
         key=settings.speech_key,
+        credential=credential,
+        close_credential=credential is not None,
         region=settings.speech_region,
         base_url=settings.speech_endpoint,
         request_timeout_s=settings.request_timeout_s,
@@ -673,6 +737,7 @@ async def build_audio_service(
             budget=budget,
             metrics=default_metrics(),
             memo_size=settings.memo_size,
+            voice_for=settings.voice_for,
         )
 
         logger.info(

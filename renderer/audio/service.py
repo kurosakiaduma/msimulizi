@@ -114,6 +114,7 @@ class AudioService:
         budget: BudgetGuard | None = None,
         metrics: Any | None = None,
         memo_size: int = 512,
+        voice_for: Callable[[str], str] | None = None,
         now: Callable[[], float] = time.monotonic,
     ) -> None:
         if timeout_s <= 0:
@@ -143,6 +144,7 @@ class AudioService:
 
         self.budget = budget
         self.metrics = metrics if metrics is not None else NullMetrics()
+        self._voice_for = voice_for
         self._now = now
 
         self._sem = asyncio.Semaphore(max_concurrency)
@@ -165,6 +167,15 @@ class AudioService:
     # -----------------------------------------------------------------------
     # Public API
     # -----------------------------------------------------------------------
+
+    def resolve_voice(self, language: str) -> str:
+        """Return the configured Azure voice for a language/locale."""
+        if self._voice_for is None:
+            raise ValueError(
+                "This AudioService was created without a voice resolver"
+            )
+
+        return self._voice_for(language)
 
     async def render(self, req: AudioRequest) -> AudioResult:
         """

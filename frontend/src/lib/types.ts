@@ -102,7 +102,8 @@ export interface ClockUpdate {
 export interface AudioUpdate {
   type: "audio_update";
   card_id: string;
-  audio_url: string;
+  audio_url: string | null;
+  duration_ms?: number | null;
   match_seconds: number;
 }
 
