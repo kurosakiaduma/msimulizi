@@ -552,8 +552,10 @@ class AudioService:
                 return None, "budget", f"budget exceeded: {exc}"
 
         try:
-            async with self._sem:
-                async with asyncio.timeout(self.timeout_s):
+            # The timeout wraps the semaphore too, so time spent queueing for a
+            # synthesis slot counts against the overall budget.
+            async with asyncio.timeout(self.timeout_s):
+                async with self._sem:
                     audio = await self._synthesize_with_retry(req)
 
         except asyncio.CancelledError:
