@@ -302,7 +302,7 @@ items are either operational hardening or human deliverables:
 | --- | --- |
 | `azd` environment | `msimulizi-demo2` |
 | Region / resource group | `eastus2` / `rg-msimulizi-demo2` |
-| Backend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/backend-msimulizi-demo2:azd-deploy-1793053582` |
+| Backend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/backend-msimulizi-demo2:azd-deploy-1793054810` |
 | Frontend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/frontend-msimulizi-demo2:azd-deploy-1793052909` |
 | Frontend URL | <https://msim-msimulizi-demo2-frontend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io> |
 | Backend URL | <https://msim-msimulizi-demo2-backend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io> |

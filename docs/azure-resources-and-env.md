@@ -15,10 +15,10 @@ ready.
 > | Frontend | <https://msim-msimulizi-demo2-frontend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io> |
 > | Backend | <https://msim-msimulizi-demo2-backend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io> |
 > | WebSocket | `wss://msim-msimulizi-demo2-backend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io/ws` |
-> | Backend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/backend-msimulizi-demo2:azd-deploy-1793053582` |
+> | Backend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/backend-msimulizi-demo2:azd-deploy-1793054810` |
 > | Frontend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/frontend-msimulizi-demo2:azd-deploy-1793052909` |
 > | Cost budget | `msim-msimulizi-demo2-monthly` — USD 100/month, 50/80/100% actual + 100% forecast alerts |
-> | Git commit deployed | The latest `main` release commit (see `git log -1`) |
+> | Git commit deployed | `1c2a727` (`main` HEAD at deployment) |
 >
 > The first attempt in `eastus` failed because Cosmos DB reported regional
 > capacity exhaustion. That resource group was deleted; the clean deployment is
