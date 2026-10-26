@@ -7,4 +7,4 @@ default:
     body: "{player} guide l'élan du match en ce moment."
   sw:
     headline: "Mwangaza: {player}"
-    body: "{player} anawasimamia wanafunzi wa mechi kwa sasa."
+    body: "{player} ndiye anayeongoza kasi kwa sasa."
