@@ -5,7 +5,7 @@ is actually running, which values `azd` injects, which secrets have been
 rotated, and what still has to happen before the demo is treated as production
 ready.
 
-> **Live deployment snapshot — 26 Oct 2026**
+> **Live deployment snapshot — 27 Oct 2026**
 >
 > | Item | Value |
 > | --- | --- |
@@ -15,9 +15,10 @@ ready.
 > | Frontend | <https://msim-msimulizi-demo2-frontend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io> |
 > | Backend | <https://msim-msimulizi-demo2-backend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io> |
 > | WebSocket | `wss://msim-msimulizi-demo2-backend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io/ws` |
-> | Backend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/backend-msimulizi-demo2:azd-deploy-1793050519` |
-> | Frontend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/frontend-msimulizi-demo2:azd-deploy-1793050822` |
-> | Git commit deployed | `795a1ab` plus the deployment fixes in the release commit (see `git log -1`) |
+> | Backend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/backend-msimulizi-demo2:azd-deploy-1793053582` |
+> | Frontend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/frontend-msimulizi-demo2:azd-deploy-1793052909` |
+> | Cost budget | `msim-msimulizi-demo2-monthly` — USD 100/month, 50/80/100% actual + 100% forecast alerts |
+> | Git commit deployed | The latest `main` release commit (see `git log -1`) |
 >
 > The first attempt in `eastus` failed because Cosmos DB reported regional
 > capacity exhaustion. That resource group was deleted; the clean deployment is
@@ -48,6 +49,7 @@ ready.
 | Container Apps environment | `msim-msimulizi-demo2-acaenv` | — | Hosts both apps |
 | Backend Container App | `msim-msimulizi-demo2-backend` | 0.5 CPU / 1 Gi, **min 1**, max 3 | FastAPI + WebSocket |
 | Frontend Container App | `msim-msimulizi-demo2-frontend` | 0.25 CPU / 0.5 Gi, min 1, max 3 | Next.js viewer UI |
+| Cost budget | `msim-msimulizi-demo2-monthly` | USD 100/month | Cost alerting at 50/80/100% actual and 100% forecast |
 
 ### Identity roles granted by `infra/main.bicep`
 
@@ -131,7 +133,7 @@ parameters. Images are now selected by `azd deploy`, not by a template tag.
 | `SPEECH_USE_MANAGED_IDENTITY` | `false` with a key, `true` with `az login` |
 | `FOUNDRY_API_KEY` | Optional; omit to use `az login` |
 | `CONTENT_SAFETY_API_KEY` | Optional; omit to use `az login` |
-| `MCP_API_KEY` | Optional locally; the separate MCP server allows all requests when unset |
+| `MCP_API_KEY` | Optional locally; `/mcp` allows all requests when unset, and requires a Bearer token whenever it is set |
 | `MSIMULIZI_REVIEWER_KEY` | Needed for `/review` and correction endpoints |
 
 The backend starts with audio/LLM/safety disabled when their endpoints are
@@ -174,11 +176,21 @@ az containerapp update -g rg-msimulizi-demo2 -n msim-msimulizi-demo2-backend \
   --set-env-vars KEY_ROTATED_AT="$(date +%s)"
 ```
 
-The current `mcp-api-key` is provisioned into the backend environment, but the
-in-app `/mcp` mount in `api/main.py` uses stub tools and does not enforce it.
-The fuller `mcp_server/server.py` has Bearer validation but is not the server
-mounted by the demo API. Treat MCP auth as an open hardening item; reviewer
-auth is enforced and verified.
+The live `/mcp` mount now runs the full `mcp_server/server.py` implementation.
+`BearerAuthMiddleware` validates `MCP_API_KEY` at the HTTP boundary before any
+MCP protocol handling, and the per-tool check remains as defence in depth.
+Verified on 27 Oct 2026:
+
+```text
+no Authorization header       -> HTTP 401
+Authorization: Bearer wrong   -> HTTP 401
+Authorization: Bearer <key>   -> HTTP 200; initialize, tools/list, tools/call all work
+```
+
+The registered tools are `get_match_state`, `list_key_moments`, and
+`get_player_stats`. `MCP_ALLOWED_HOSTS` / `MCP_ALLOWED_ORIGINS` can be set to
+opt into MCP SDK DNS-rebinding checks; the default mount relies on Bearer auth
+because the Container Apps hostname is assigned after provisioning.
 
 ---
 
@@ -286,6 +298,27 @@ AUDIO_UPDATE  https://msimmsimulizidemo2stor.blob.core.windows.net/audio/....mp3
 AUDIO_FETCH   200 audio/mpeg  53,424 bytes  duration 8,904 ms
 ```
 
+A real Chrome run against the public frontend then confirmed the normal viewer
+mode renders the commentary player and advances playback:
+
+```text
+audio currentSrc  .../audio/....mp3
+paused            false
+currentTime       0.52 s
+duration          6.50 s
+readyState        4
+error             null
+```
+
+The player is visible under the momentum bar even when the card itself is
+retired, and a manual "Play commentary" button appears if the browser blocks
+autoplay. Cosmos-backed verification after the same replay:
+
+```text
+GET /v1/matches/comeback-from-two-down-42/state  -> snapshot present
+MCP get_match_state(match_id, no session)        -> source = "snapshot"
+```
+
 The first frontend request after a new revision can take longer than the 60 s
 smoke-test timeout while Next.js starts; a retry returned HTTP 200. This is a
 cold-start characteristic of the frontend, not a backend failure.
@@ -303,49 +336,56 @@ The demo is free to viewers, but Azure resources are billable:
 - Speech, Foundry, and Content Safety are pay-as-you-go.
 - The public-read `audio` container has no lifecycle deletion policy yet.
 
-**No budget alert has been created.** Create one before sharing the URL widely:
+**Budget alert created on 27 Oct 2026:**
 
-```bash
-az consumption budget create \
-  --budget-name msimulizi-demo \
-  --amount 50 \
-  --category cost \
-  --time-grain monthly \
-  --start-date "$(date -u +%Y-%m-01)" \
-  --end-date 2026-12-31
+```text
+name        msim-msimulizi-demo2-monthly
+scope       rg-msimulizi-demo2
+amount      USD 100 / month
+alerts      50% actual, 80% actual, 100% actual, 100% forecast
+recipients  lukoritomelvin@gmail.com + subscription Owners
 ```
 
-Adjust the amount to the subscription's comfort level. `azd down` removes the
-resource group and stops the spend.
+It is codified in [`infra/budget.bicep`](../infra/budget.bicep) and can be
+redeployed or adjusted without touching the application stack:
+
+```bash
+az deployment group create \
+  -g rg-msimulizi-demo2 \
+  -f infra/budget.bicep \
+  -p budgetName=msim-msimulizi-demo2-monthly \
+     amount=100 \
+     contactEmails='["operator@example.com"]'
+```
+
+`azd down` removes the resource group and stops the spend; delete the budget
+first if you want to keep the subscription clean.
 
 ---
 
 ## 7. Remaining production gaps
 
-1. **MCP authentication:** the demo API's `/mcp` mount uses stub tools and does
-   not validate `MCP_API_KEY`; the fuller `mcp_server` implementation is not
-   wired in. Reviewer auth is enforced.
-2. **Persistence:** sessions, corrections, and audit entries are still largely
-   in process memory even though Cosmos is provisioned. Confirm whether that is
-   acceptable for the demo or persist them before calling the backend
-   stateless/scale-ready.
-3. **Custom domain and CORS:** the template uses the default Container Apps
+1. **Custom domain and CORS:** the template uses the default Container Apps
    domain. Adding a custom domain requires updating `MSIMULIZI_ALLOWED_ORIGINS`,
    `BACKEND_URL`, and `WS_URL`.
-4. **MCP/reviewer key distribution:** both secrets are rotated, but the team
+2. **MCP/reviewer key distribution:** both secrets are rotated, but the team
    still needs a safe handoff path (password manager or Key Vault access) for
    the reviewer key.
-5. **Budget and teardown:** decide the monthly cap and who runs `azd down`
-   after 10 Nov 2026.
-6. **CI deployment gate:** `.github/workflows/ci.yml` still deploys on every
+3. **Teardown ownership:** decide who runs `azd down` after 10 Nov 2026 and
+   removes the cost budget.
+4. **Cross-replica sessions:** Cosmos persistence is wired, but active replay
+   sessions and the WebSocket manager are still in-process. Keep the backend at
+   one replica, or add a shared WebSocket backplane/session router, before
+   scaling beyond one. `maxReplicas` is 3 today.
+5. **CI deployment gate:** `.github/workflows/ci.yml` still deploys on every
    push to `main`. Add environment approval or a protected production branch.
    The verifier is currently best-effort in CI; make it a release gate with
    endpoints supplied from the environment.
-7. **Capacity/load:** no load test has covered WebSockets, Speech concurrency,
+6. **Capacity/load:** no load test has covered WebSockets, Speech concurrency,
    Foundry rate limits, or Blob egress at the intended audience size.
-8. **Accessibility cleanup:** five pre-existing frontend lint warnings remain
+7. **Accessibility cleanup:** five pre-existing frontend lint warnings remain
    (tests, home-page dependencies, metric ARIA attributes).
-9. **Native-speaker review, video, pitch, and submission:** tasks 33–34 remain
+8. **Native-speaker review, video, pitch, and submission:** tasks 33–34 remain
    human deliverables. The hard deadline is 27 Oct 2026 23:59 PT.
 
 ---
@@ -356,10 +396,13 @@ resource group and stops the spend.
 tests. The production audio path, managed-identity auth, runtime frontend
 configuration, and container builds have now been exercised against live Azure:
 Speech voices exist, all four Foundry deployments answer, a replay produced a
-public MP3, and reviewer auth rejects the old placeholder.
+public MP3, Chrome advanced playback in the normal viewer, MCP rejects
+missing/invalid keys and serves authenticated tools, Cosmos persists match
+snapshots/moments/cards/audit/corrections, and reviewer auth rejects the old
+placeholder.
 
-**Not yet proven:** load behavior, custom-domain/TLS setup, the unauthenticated
-in-app MCP mount, and the human quality review. These are operational or
+**Not yet proven:** load behavior, cross-replica session routing,
+custom-domain/TLS setup, and the human quality review. These are operational or
 review gaps, not missing application code.
 
 **What can still block the demo:** the submission deadline is the hard

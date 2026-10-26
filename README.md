@@ -123,7 +123,7 @@ uvicorn api.main:app --reload --port 8000
 # 7. Start the frontend (in another terminal)
 cd frontend
 npm run dev
-# Open http://localhost:3000 — the page defaults to the bundle replay.
+# Open http://localhost:3000 and click Start to launch the bundle replay.
 ```
 
 ### Deploy to Azure

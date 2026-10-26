@@ -17,11 +17,15 @@ Requirements: 11.1 – 11.4
 
 from __future__ import annotations
 
+import contextvars
+import hmac
 import os
 from typing import Annotated, Any
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from pydantic import BaseModel, Field
+from starlette.responses import JSONResponse
 
 from shared.cosmos import CosmosRepositories
 from shared.pubsub import PubSub
@@ -60,20 +64,104 @@ def _get_bus() -> PubSub:
 
 _MCP_API_KEY = os.environ.get("MCP_API_KEY", "")
 
+# Set by the HTTP middleware after it validates the request's Bearer token.
+# Tool calls from the mounted MCP transport therefore do not have to repeat the
+# secret as a tool argument, while direct in-process calls still must.
+_http_authenticated: contextvars.ContextVar[bool] = contextvars.ContextVar(
+    "mcp_http_authenticated", default=False
+)
+
+
+def mcp_auth_enabled() -> bool:
+    """Return True when a bearer token is required for the MCP endpoint."""
+    return bool(_MCP_API_KEY)
+
+
+def _header_is_authorized(authorization: str | None) -> bool:
+    if not _MCP_API_KEY:
+        return True
+    if not authorization:
+        return False
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        return False
+    return hmac.compare_digest(token, _MCP_API_KEY)
+
 
 def _validate_key(authorization: str | None) -> None:
     """
     Raise PermissionError when the Bearer token is missing or wrong.
 
-    The key is not configured in dev/CI mode — all requests are allowed.
+    The key is not configured in dev/CI mode — all requests are allowed. A
+    request that already passed the HTTP Bearer middleware is also allowed.
     """
-    if not _MCP_API_KEY:
+    if not _MCP_API_KEY or _http_authenticated.get():
         return
     if not authorization:
         raise PermissionError("Missing Authorization header")
-    scheme, _, token = authorization.partition(" ")
-    if scheme.lower() != "bearer" or token != _MCP_API_KEY:
+    if not _header_is_authorized(authorization):
         raise PermissionError("Invalid API key")
+
+
+class BearerAuthMiddleware:
+    """ASGI middleware enforcing a Bearer token on the mounted MCP endpoint."""
+
+    def __init__(self, app: Any) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+
+        headers = {
+            key.decode("latin-1").lower(): value.decode("latin-1")
+            for key, value in scope.get("headers", [])
+        }
+        if not _header_is_authorized(headers.get("authorization")):
+            response = JSONResponse(
+                {
+                    "error": "Unauthorized",
+                    "detail": "A valid Bearer token is required for /mcp",
+                },
+                status_code=401,
+                headers={"WWW-Authenticate": 'Bearer realm="msimulizi-mcp"'},
+            )
+            await response(scope, receive, send)
+            return
+
+        token = _http_authenticated.set(True)
+        try:
+            await self.app(scope, receive, send)
+        finally:
+            _http_authenticated.reset(token)
+
+
+def _transport_security() -> TransportSecuritySettings:
+    """Allow deployments to opt into Host/Origin validation explicitly.
+
+    The MCP SDK auto-enables localhost-only DNS-rebinding protection when it is
+    constructed with its default host. That would reject the Azure Container
+    Apps hostname, so the production mount defaults to Bearer auth only unless
+    MCP_ALLOWED_HOSTS is supplied.
+    """
+    hosts = [
+        value.strip()
+        for value in os.getenv("MCP_ALLOWED_HOSTS", "").split(",")
+        if value.strip()
+    ]
+    if not hosts:
+        return TransportSecuritySettings(enable_dns_rebinding_protection=False)
+    origins = [
+        value.strip()
+        for value in os.getenv("MCP_ALLOWED_ORIGINS", "").split(",")
+        if value.strip()
+    ]
+    return TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=hosts,
+        allowed_origins=origins,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -138,24 +226,9 @@ class ErrorResult(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# FastMCP app
-# ---------------------------------------------------------------------------
-
-mcp_app = FastMCP(
-    name="msimulizi-mcp",
-    instructions=(
-        "Msimulizi MCP server. Provides real-time and historical football "
-        "match intelligence: match state, key moments, and player stats. "
-        "All tools require a valid Bearer token in the Authorization header."
-    ),
-)
-
-
-# ---------------------------------------------------------------------------
 # Tool: get_match_state
 # ---------------------------------------------------------------------------
 
-@mcp_app.tool()
 async def get_match_state(
     match_id: Annotated[str, Field(description="The match identifier")],
     session_id: Annotated[
@@ -192,13 +265,8 @@ async def get_match_state(
             source = "live"
 
     if state is None:
-        docs = await repos.match_state_snapshots.query(
-            "SELECT * FROM c WHERE c.match_id = @match_id",
-            parameters=[{"name": "@match_id", "value": match_id}],
-            partition_key=match_id,
-        )
-        if docs:
-            state = docs[-1]
+        state = await repos.match_state_snapshots.get_latest_snapshot(match_id)
+        if state is not None:
             source = "snapshot"
 
     if state is None:
@@ -234,7 +302,6 @@ async def get_match_state(
 # Tool: list_key_moments
 # ---------------------------------------------------------------------------
 
-@mcp_app.tool()
 async def list_key_moments(
     match_id: Annotated[str, Field(description="The match identifier")],
     trigger_tags: Annotated[
@@ -289,7 +356,6 @@ async def list_key_moments(
 # Tool: get_player_stats
 # ---------------------------------------------------------------------------
 
-@mcp_app.tool()
 async def get_player_stats(
     match_id: Annotated[str, Field(description="The match identifier")],
     player_name: Annotated[str, Field(description="Exact player name as used in events")],
@@ -330,18 +396,13 @@ async def get_player_stats(
                 source = "live"
 
     if player_stats is None:
-        docs = await repos.match_state_snapshots.query(
-            "SELECT * FROM c WHERE c.match_id = @match_id",
-            parameters=[{"name": "@match_id", "value": match_id}],
-            partition_key=match_id,
-        )
-        for doc in reversed(docs):
-            stats_map = doc.get("player_stats", {})
+        latest = await repos.match_state_snapshots.get_latest_snapshot(match_id)
+        if latest is not None:
+            stats_map = latest.get("player_stats", {})
             if player_name in stats_map:
                 raw = stats_map[player_name]
                 player_stats = raw if isinstance(raw, dict) else vars(raw)
                 source = "snapshot"
-                break
 
     if player_stats is None:
         return ErrorResult(
@@ -370,3 +431,36 @@ async def get_player_stats(
         cards=player_stats.get("cards", 0),
         source=source,
     )
+
+
+# ---------------------------------------------------------------------------
+# FastMCP app factory
+# ---------------------------------------------------------------------------
+
+def create_mcp_app() -> FastMCP:
+    """Build a fresh MCP server instance for one FastAPI application.
+
+    A fresh instance is important for tests and workers: the Streamable HTTP
+    session manager can only be started once per FastMCP instance.
+    """
+    app = FastMCP(
+        name="msimulizi-mcp",
+        instructions=(
+            "Msimulizi MCP server. Provides real-time and historical football "
+            "match intelligence: match state, key moments, and player stats. "
+            "All tools require a valid Bearer token in the Authorization header."
+        ),
+        # Mounted at /mcp by the FastAPI app, so the inner route is the root.
+        streamable_http_path="/",
+        stateless_http=True,
+        host="0.0.0.0",
+        transport_security=_transport_security(),
+    )
+    app.tool()(get_match_state)
+    app.tool()(list_key_moments)
+    app.tool()(get_player_stats)
+    return app
+
+
+# Convenience instance for standalone use (e.g. `python -m mcp_server.server`).
+mcp_app = create_mcp_app()

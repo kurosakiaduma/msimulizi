@@ -149,6 +149,8 @@ async def run_pipeline_session(
     content_safety: Any | None = None,
     narration_cache: dict[str, Any] | None = None,
     bundle_cards: dict[str, Any] | None = None,
+    cosmos_repos: Any | None = None,
+    pubsub: Any | None = None,
 ) -> None:
     """Drive a synthetic match session through the full pipeline.
 
@@ -221,6 +223,27 @@ async def run_pipeline_session(
     # ------------------------------------------------------------------
     cards_emitted = 0
     audio_tasks: set[asyncio.Task[Any]] = set()
+    persistence_tasks: set[asyncio.Task[Any]] = set()
+
+    def _persistence_done(task: asyncio.Task[Any]) -> None:
+        persistence_tasks.discard(task)
+        try:
+            task.result()
+        except asyncio.CancelledError:
+            pass
+        except Exception as exc:  # noqa: BLE001
+            # Repositories already buffer failed writes; this is only for
+            # unexpected serialisation/permission errors.
+            logger.debug("[cosmos] background write failed: %s", exc)
+
+    def persist(operation: Any, *args: Any) -> None:
+        """Fire-and-forget a Cosmos write so live captions never wait on it."""
+        if cosmos_repos is None:
+            return
+        task = asyncio.create_task(operation(*args), name=f"cosmos-{session_id}")
+        persistence_tasks.add(task)
+        task.add_done_callback(_persistence_done)
+
     recent_events: list[Any] = []
     # Use one epoch anchor for the whole replay so the browser can derive the
     # same continuously advancing match clock between event notifications.
@@ -280,6 +303,16 @@ async def run_pipeline_session(
                 }
                 await ws_manager.broadcast_clock(event_dot, match_id=match_id)
 
+            # Publish the live state for MCP (sub-second) and persist a
+            # restart-safe snapshot. The Cosmos write is fire-and-forget.
+            if pubsub is not None:
+                await pubsub.publish(
+                    f"match_state:{session_id}",
+                    dataclasses.asdict(state),
+                )
+            if cosmos_repos is not None:
+                persist(cosmos_repos.match_state_snapshots.upsert_snapshot, state)
+
             # ----------------------------------------------------------
             # 3. Moment — detect key moments
             # ----------------------------------------------------------
@@ -336,6 +369,9 @@ async def run_pipeline_session(
             except Exception as exc:  # pragma: no cover
                 logger.warning("[explainer] failed: %s", exc)
                 explanation = None
+
+            if cosmos_repos is not None:
+                persist(cosmos_repos.key_moments.upsert_moment, key_moment)
 
             # ----------------------------------------------------------
             # 6. Narrator — generate narration
@@ -443,6 +479,11 @@ async def run_pipeline_session(
                         match_state=state,
                     )
                     if result.verdict == "pass" and result.response is not None:
+                        if cosmos_repos is not None:
+                            persist(
+                                cosmos_repos.narration_cache.upsert_response,
+                                result.response,
+                            )
                         card_type = "goal" if "goal" in key_moment.trigger_tags else "key_moment"
                         card = render_narration_card(
                             response=result.response,
@@ -538,6 +579,24 @@ async def run_pipeline_session(
                 )
                 logger.info("[ws] broadcast card #%d card_id=%s", cards_emitted, card.card_id)
 
+                if cosmos_repos is not None:
+                    persist(cosmos_repos.overlay_cards.upsert_card, card)
+                    persist(
+                        cosmos_repos.audit_log.create_entry,
+                        {
+                            "id": f"{session_id}:{card.card_id}",
+                            "match_id": match_id,
+                            "session_id": session_id,
+                            "event": "card_rendered",
+                            "card_id": card.card_id,
+                            "profile_key": card.profile_key,
+                            "card_type": card.card_type,
+                            "language": language,
+                            "verdict": "pass",
+                            "created_at": time.time(),
+                        },
+                    )
+
                 # Speech runs after the caption. Bundle cards already carry a
                 # pre-generated URL, so only synthesize when audio is missing.
                 if audio_service is not None and not card.audio_url:
@@ -556,12 +615,12 @@ async def run_pipeline_session(
                     task.add_done_callback(audio_tasks.discard)
 
     except asyncio.CancelledError:
-        for task in list(audio_tasks):
+        for task in list(audio_tasks | persistence_tasks):
             task.cancel()
         logger.info("[pipeline] session=%s cancelled after %d cards", session_id, cards_emitted)
         return
     except Exception as exc:
-        for task in list(audio_tasks):
+        for task in list(audio_tasks | persistence_tasks):
             task.cancel()
         logger.exception("[pipeline] session=%s fatal error: %s", session_id, exc)
         return
@@ -576,6 +635,18 @@ async def run_pipeline_session(
         if still_running:
             logger.warning(
                 "[audio] session=%s cancelled %d audio task(s) after timeout",
+                session_id,
+                len(still_running),
+            )
+
+    if persistence_tasks:
+        pending = list(persistence_tasks)
+        _, still_running = await asyncio.wait(pending, timeout=10.0)
+        for task in still_running:
+            task.cancel()
+        if still_running:
+            logger.warning(
+                "[cosmos] session=%s cancelled %d persistence task(s) after timeout",
                 session_id,
                 len(still_running),
             )

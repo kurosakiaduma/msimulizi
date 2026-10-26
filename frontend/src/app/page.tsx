@@ -24,6 +24,7 @@ import { ScoreBar } from "@/components/ScoreBar";
 import { PitchVisual } from "@/components/PitchVisual";
 import { MetricHUD } from "@/components/MetricHUD";
 import { CardFeed } from "@/components/CardFeed";
+import { CommentaryAudio } from "@/components/CommentaryAudio";
 import { PersonalisationPanel } from "@/components/PersonalisationPanel";
 import { ReplayPanel, STORYLINES } from "@/components/ReplayPanel";
 
@@ -89,6 +90,7 @@ export default function Home() {
   const [events, setEvents] = useState<EventDot[]>([]);
   const [latestEvent, setLatestEvent] = useState<EventDot | null>(null);
   const [cardHistory, setCardHistory] = useState<OverlayCard[]>([]);
+  const [audioTrack, setAudioTrack] = useState<{ url: string; cardId: string } | null>(null);
   const [scheduler, setScheduler] = useState<SchedulerState>(createSchedulerState());
   const [selectedStoryline, setSelectedStoryline] = useState(STORYLINES[0].id);
   const [isConnected, setIsConnected] = useState(false);
@@ -243,6 +245,13 @@ export default function Home() {
             )
           );
           setCardHistory((h) => [...h, card]);
+          // Bundle cards can carry a pre-generated URL. For freshly narrated
+          // cards the URL arrives later via audio_update.
+          setAudioTrack(
+            card.audio_url
+              ? { url: card.audio_url, cardId: card.card_id }
+              : null
+          );
           break;
         }
 
@@ -253,10 +262,14 @@ export default function Home() {
             )
           );
           // Audio is synthesized after the caption. Patch the scheduler copy
-          // too so audio-only mode can start playback when the URL arrives.
+          // too so the card view and audio-only mode stay in sync.
           setScheduler((s) =>
             applyAudioUrl(s, msg.card_id, msg.audio_url ?? null)
           );
+          setAudioTrack((track) => {
+            if (msg.audio_url) return { url: msg.audio_url, cardId: msg.card_id };
+            return track?.cardId === msg.card_id ? null : track;
+          });
           break;
 
         default:
@@ -279,6 +292,7 @@ export default function Home() {
     setIsFinished(false);
     setHasStarted(false);
     setCardHistory([]);
+    setAudioTrack(null);
     setEvents([]);
     setLatestEvent(null);
     setScheduler(createSchedulerState());
@@ -391,18 +405,12 @@ export default function Home() {
           scoreHome={matchState.score_home}
           scoreAway={matchState.score_away}
         />
-        {/* Audio player for current card */}
-        {scheduler.current?.audio_url && (
-          <audio
-            controls
-            autoPlay
-            src={scheduler.current.audio_url}
-            className="w-full max-w-sm"
-            aria-label="Audio commentary"
-          >
-            <track kind="captions" />
-          </audio>
-        )}
+        {/* Audio-only mode is itself an explicit request for commentary. */}
+        <CommentaryAudio
+          src={audioTrack?.url ?? null}
+          enabled
+          variant="full"
+        />
         <button
           onClick={() => handleProfileChange({ ...profile, audio_only: false })}
           className="text-xs text-[--text-muted] hover:text-[--text-primary] transition-colors
@@ -524,6 +532,12 @@ export default function Home() {
               </span>
             </div>
           )}
+
+          {/* Commentary audio — captions remain the primary surface. */}
+          <CommentaryAudio
+            src={audioTrack?.url ?? null}
+            enabled={profile.audio_enabled}
+          />
 
           {/* Card feed — lives under the pitch */}
           <div className="flex-1 min-h-0">

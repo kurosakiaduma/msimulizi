@@ -24,8 +24,11 @@ from fastapi.staticfiles import StaticFiles
 
 from mcp.server.fastmcp import FastMCP
 
+from generator.generate import make_match_id
 from pipeline.orchestrator import Orchestrator
 from scripts.generate_bundle import load_bundle_narrations, seed_narration_cache
+from shared.cosmos import CosmosRepositories, build_cosmos_repositories, get_write_buffer
+from shared.pubsub import PubSub
 
 
 logger = logging.getLogger(__name__)
@@ -176,6 +179,46 @@ async def _build_audio_service() -> Any | None:
         return None
 
 
+async def _build_cosmos_repositories() -> tuple[Any | None, Any | None, Any | None]:
+    """Construct live Cosmos repositories with managed identity, if configured.
+
+    Returns ``(repositories, client, credential)``. The caller owns the client
+    and credential and must close them during shutdown. A failure degrades to
+    the in-memory repositories instead of taking the demo offline.
+    """
+    endpoint = os.getenv("COSMOS_ENDPOINT", "").strip()
+    if not endpoint:
+        logger.info("[startup] COSMOS_ENDPOINT not set — Cosmos persistence disabled")
+        return None, None, None
+
+    database_name = os.getenv("COSMOS_DATABASE", "msimulizi").strip() or "msimulizi"
+    credential = None
+    try:
+        from azure.identity.aio import DefaultAzureCredential
+
+        # AZURE_CLIENT_ID selects the user-assigned managed identity in Azure.
+        credential = DefaultAzureCredential()
+        repositories, client = await build_cosmos_repositories(
+            endpoint,
+            database_name,
+            credential,
+        )
+        logger.info(
+            "[startup] Cosmos repositories ready (database=%s, endpoint=%s)",
+            database_name,
+            endpoint,
+        )
+        return repositories, client, credential
+    except Exception as exc:  # pragma: no cover - depends on live Azure
+        logger.warning("[startup] Cosmos unavailable — using in-memory fallback: %s", exc)
+        if credential is not None:
+            try:
+                await credential.close()
+            except Exception:
+                pass
+        return None, None, None
+
+
 def create_app(
     *,
     orchestrator: Orchestrator | None = None,
@@ -199,6 +242,27 @@ def create_app(
     foundry_client = _build_foundry_client()
     app_foundry = foundry_client
 
+    # Build a fresh MCP instance per FastAPI app. The Streamable HTTP session
+    # manager may only be started once per FastMCP instance.
+    mcp_instance = None
+    mcp_asgi = None
+    set_mcp_dependencies = None
+    if FastMCP is not None:
+        from mcp_server.server import (
+            BearerAuthMiddleware,
+            create_mcp_app,
+            mcp_auth_enabled,
+            set_dependencies as _set_mcp_dependencies,
+        )
+
+        mcp_instance = create_mcp_app()
+        mcp_asgi = mcp_instance.streamable_http_app()
+        set_mcp_dependencies = _set_mcp_dependencies
+        logger.info(
+            "[startup] MCP server ready at /mcp (bearer_auth=%s)",
+            "required" if mcp_auth_enabled() else "disabled",
+        )
+
     @asynccontextmanager
     async def lifespan(_: Any):
         session_manager.cleanup()
@@ -210,11 +274,27 @@ def create_app(
         app.state.speech_client = audio_service
         safety_client = await _build_content_safety()
         app.state.content_safety = safety_client
+
+        cosmos_repos, cosmos_client, cosmos_credential = await _build_cosmos_repositories()
+        if cosmos_repos is not None:
+            app.state.cosmos_repos = cosmos_repos
+            app.state.cosmos_client = cosmos_client
+            app.state.cosmos_credential = cosmos_credential
+            app.state.cosmos_live = True
+            get_write_buffer().start()
+        else:
+            app.state.cosmos_live = False
+
+        if set_mcp_dependencies is not None:
+            set_mcp_dependencies(app.state.cosmos_repos, app.state.pubsub)
+
         logger.info(
-            "[startup] foundry=%s audio=%s content_safety=%s",
+            "[startup] foundry=%s audio=%s content_safety=%s cosmos=%s mcp=%s",
             "live" if app_foundry else "none",
             "live" if audio_service else "none",
             "live" if safety_client else "none",
+            "live" if app.state.cosmos_live else "memory",
+            "live" if mcp_instance is not None else "none",
         )
 
         # Seed the narration cache from the pre-generated bundle so that
@@ -231,27 +311,48 @@ def create_app(
             logger.warning("[startup] bundle seeding failed: %s", exc)
             app.state.bundle_cards = {}
 
-        yield
+        try:
+            if mcp_instance is not None:
+                async with mcp_instance.session_manager.run():
+                    yield
+            else:
+                yield
+        finally:
+            if audio_service is not None:
+                try:
+                    await audio_service.aclose()
+                except Exception as exc:  # pragma: no cover - shutdown best effort
+                    logger.warning("[shutdown] audio service close failed: %s", exc)
 
-        if audio_service is not None:
-            try:
-                await audio_service.aclose()
-            except Exception as exc:  # pragma: no cover - shutdown best effort
-                logger.warning("[shutdown] audio service close failed: %s", exc)
+            if app_foundry is not None and hasattr(app_foundry, "aclose"):
+                try:
+                    await app_foundry.aclose()
+                except Exception as exc:  # pragma: no cover - shutdown best effort
+                    logger.warning("[shutdown] foundry client close failed: %s", exc)
 
-        if app_foundry is not None and hasattr(app_foundry, "aclose"):
-            try:
-                await app_foundry.aclose()
-            except Exception as exc:  # pragma: no cover - shutdown best effort
-                logger.warning("[shutdown] foundry client close failed: %s", exc)
+            if safety_client is not None:
+                try:
+                    await safety_client.aclose()
+                except Exception as exc:  # pragma: no cover - shutdown best effort
+                    logger.warning("[shutdown] content safety close failed: %s", exc)
 
-        if safety_client is not None:
-            try:
-                await safety_client.aclose()
-            except Exception as exc:  # pragma: no cover - shutdown best effort
-                logger.warning("[shutdown] content safety close failed: %s", exc)
+            get_write_buffer().stop()
 
-        session_manager.cleanup()
+            cosmos_client = getattr(app.state, "cosmos_client", None)
+            if cosmos_client is not None:
+                try:
+                    await cosmos_client.close()
+                except Exception as exc:  # pragma: no cover - shutdown best effort
+                    logger.warning("[shutdown] Cosmos client close failed: %s", exc)
+
+            cosmos_credential = getattr(app.state, "cosmos_credential", None)
+            if cosmos_credential is not None:
+                try:
+                    await cosmos_credential.close()
+                except Exception as exc:  # pragma: no cover - shutdown best effort
+                    logger.warning("[shutdown] Cosmos credential close failed: %s", exc)
+
+            session_manager.cleanup()
 
     app = FastAPI(title="Msimulizi", version="0.1.0", lifespan=lifespan)
     app.state.orchestrator = orchestrator
@@ -264,6 +365,13 @@ def create_app(
     app.state.content_safety = None
     app.state.websocket_manager = None
     app.state.ip_buckets = {}
+    # Offline/tests use the in-memory fake until the lifespan replaces it with
+    # live Cosmos repositories.
+    app.state.cosmos_repos = CosmosRepositories()
+    app.state.cosmos_client = None
+    app.state.cosmos_credential = None
+    app.state.cosmos_live = False
+    app.state.pubsub = PubSub()
 
     allowed_origins = os.getenv("MSIMULIZI_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
     if CORSMiddleware is not None:
@@ -277,7 +385,12 @@ def create_app(
 
     @app.get("/health")
     async def health() -> dict[str, Any]:
-        return {"ok": True, "active_sessions": len(session_manager.active)}
+        return {
+            "ok": True,
+            "active_sessions": len(session_manager.active),
+            "cosmos": "live" if getattr(app.state, "cosmos_live", False) else "memory",
+            "mcp": "live" if mcp_instance is not None else "disabled",
+        }
 
     @app.post("/v1/sessions")
     async def create_session_endpoint(payload: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -292,7 +405,13 @@ def create_app(
         speed = float(metadata.get("speed", 1.0))
         language = str(metadata.get("language", "en"))
         mode = str(metadata.get("mode", "casual"))
-        resolved_match_id = str(metadata.get("match_id") or f"{storyline}-{seed}")
+        # Use the generator's canonical slug (hyphens, not underscores) so the
+        # session, events, cards, snapshots, and MCP lookups all agree.
+        resolved_match_id = str(metadata.get("match_id") or make_match_id(storyline, seed))
+        record.metadata["match_id"] = resolved_match_id
+        record.metadata["storyline"] = storyline
+        record.metadata["language"] = language
+        record.metadata["mode"] = mode
 
         app.state.orchestrator.create_session(
             session_id=record.session_id,
@@ -310,6 +429,8 @@ def create_app(
             cs = getattr(app.state, "content_safety", None)
             nc = getattr(app.state, "narration_cache", None)
             bc = getattr(app.state, "bundle_cards", None)
+            repos = getattr(app.state, "cosmos_repos", None)
+            bus = getattr(app.state, "pubsub", None)
 
             task = asyncio.create_task(
                 run_pipeline_session(
@@ -326,6 +447,8 @@ def create_app(
                     content_safety=cs,
                     narration_cache=nc,
                     bundle_cards=bc,
+                    cosmos_repos=repos,
+                    pubsub=bus,
                 ),
                 name=f"pipeline-{record.session_id}",
             )
@@ -363,7 +486,12 @@ def create_app(
         app.state.websocket_manager = ws_mgr
 
         async def websocket_route(websocket: WebSocket) -> None:
-            await websocket_endpoint(websocket, ws_mgr, session_manager)
+            await websocket_endpoint(
+                websocket,
+                ws_mgr,
+                session_manager,
+                app_state=app.state,
+            )
 
         app.websocket("/ws")(websocket_route)
     except Exception:
@@ -376,28 +504,8 @@ def create_app(
         app.mount("/static", StaticFiles(directory=str(_frontend_dir), html=True), name="static")
         logger.info("[startup] serving frontend from %s at /static", _frontend_dir)
 
-    if FastMCP is not None:
-        mcp = FastMCP("msimulizi", mount_path="/mcp")
-
-        @mcp.tool(name="get_match_state")
-        def get_match_state_tool(match_id: str, session_id: str | None = None) -> dict[str, Any]:
-            return {"match_id": match_id, "session_id": session_id, "state": {}}
-
-        @mcp.tool(name="list_key_moments")
-        def list_key_moments_tool(match_id: str, trigger_tags: list[str] | None = None, min_priority: int | None = None, limit: int = 20) -> dict[str, Any]:
-            return {
-                "match_id": match_id,
-                "trigger_tags": trigger_tags or [],
-                "min_priority": min_priority,
-                "limit": limit,
-                "moments": [],
-            }
-
-        @mcp.tool(name="get_player_stats")
-        def get_player_stats_tool(match_id: str, player_name: str, session_id: str | None = None) -> dict[str, Any]:
-            return {"match_id": match_id, "player_name": player_name, "session_id": session_id, "stats": {}}
-
-        app.mount("/mcp", mcp.streamable_http_app())
+    if mcp_asgi is not None:
+        app.mount("/mcp", BearerAuthMiddleware(mcp_asgi))
 
     return app
 

@@ -261,14 +261,19 @@ items are either operational hardening or human deliverables:
 - **Verified live:** `/api/config` returns deployed backend/`wss://` URLs;
   Speech has both Swahili voices; all four Foundry deployments answer chat
   requests; a live Swahili session produced an `audio_update` and a public
-  `audio/mpeg` blob; rotated reviewer key returns 200 and the old placeholder
-  returns 401.
+  `audio/mpeg` blob; a real Chrome session rendered the commentary player and
+  advanced playback; rotated reviewer key returns 200 and the old placeholder
+  returns 401; `/mcp` returns 401 for missing/invalid Bearer tokens and serves
+  authenticated tool calls for a valid `MCP_API_KEY`; Cosmos state snapshots
+  are readable through `/v1/matches/{id}/state` and MCP snapshot fallback.
 - **CORS / custom domain:** the template computes
   `MSIMULIZI_ALLOWED_ORIGINS` from the default frontend Container App domain.
   Adding a custom domain requires updating it plus `BACKEND_URL` and `WS_URL`.
-- **Persistence:** cards, corrections, and audit entries remain in process
-  memory; confirm whether that is acceptable or persist them to Cosmos before
-  treating the backend as stateless/scale-ready.
+- **Persistence and sessions:** match snapshots, key moments, narration cache,
+  overlay cards, audit entries, and viewer corrections are written to Cosmos;
+  the in-memory fake remains for offline tests. Active replay sessions and the
+  WebSocket manager are still in-process, so keep the backend at one replica
+  until a shared session/WebSocket backplane is added.
 - **CI deployment gate:** the workflow deploys on every push to `main`. Add
   environment approval, staging promotion, or a protected production branch
   before using it for a public production environment.
@@ -279,9 +284,10 @@ items are either operational hardening or human deliverables:
   tests, the home page dependency list, and metric ARIA attributes should be
   cleaned up before a final accessibility review.
 - **Capacity and cost:** load-test WebSockets, model calls, Speech, Cosmos, and
-  Blob usage with the intended replica and rate-limit settings; configure
-  Azure budgets and alerts. No budget alert was created during the initial
-  deployment.
+  Blob usage with the intended replica and rate-limit settings. The live demo
+  has a USD 100/month budget (`msim-msimulizi-demo2-monthly`, defined in
+  `infra/budget.bicep`) with 50/80/100% actual and 100% forecast alerts; adjust
+  the amount after the load test if needed.
 - **Public demo resilience:** test a full replay with model quota exhausted and
   confirm the bundle/fallback path remains grounded, translated, and visibly
   labelled.
@@ -289,6 +295,26 @@ items are either operational hardening or human deliverables:
   submission remain open (tasks 33–34); hard deadline 27 Oct 2026 23:59 PT.
 
 ## Release record
+
+### 27 Oct 2026 — audio, MCP auth, Cosmos persistence, budget
+
+| Field | Value |
+| --- | --- |
+| `azd` environment | `msimulizi-demo2` |
+| Region / resource group | `eastus2` / `rg-msimulizi-demo2` |
+| Backend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/backend-msimulizi-demo2:azd-deploy-1793053582` |
+| Frontend image | `msimmsimulizidemo2acrtt6h7mdhmoucs.azurecr.io/msimulizi/frontend-msimulizi-demo2:azd-deploy-1793052909` |
+| Frontend URL | <https://msim-msimulizi-demo2-frontend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io> |
+| Backend URL | <https://msim-msimulizi-demo2-backend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io> |
+| WebSocket URL | `wss://msim-msimulizi-demo2-backend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io/ws` |
+| Cost budget | `msim-msimulizi-demo2-monthly`, USD 100/month, 50/80/100% actual + 100% forecast |
+| Tests | 269 backend tests, 42 frontend tests, frontend build, Bicep build, repo hygiene |
+| Smoke test | 27 Oct 2026 UTC: health 200 with `cosmos: live` / `mcp: live`; MCP missing/invalid 401 and valid 200; Swahili card + English gloss; public MP3 200 `audio/mpeg`; Chrome normal-view playback advanced; Cosmos snapshot and MCP snapshot fallback verified |
+| Rollback | Set the previous image on each Container App with `az containerapp update --image <previous-tag>`, then recheck `/health` |
+
+The canonical session ID fix is included: `comeback_from_two_down` now resolves
+to `comeback-from-two-down-42` everywhere (session response, events, cards,
+Cosmos partitions, and MCP lookups).
 
 ### 26 Oct 2026 — demo deployment
 

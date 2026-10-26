@@ -141,6 +141,22 @@ class TestMatchStateSnapshotRepository:
         result = run(repo.get_snapshot("match01", 99))
         assert result is None
 
+    def test_latest_snapshot_uses_highest_sequence(self):
+        repo = MatchStateSnapshotRepository(FakeCosmosContainer())
+        run(repo.upsert_snapshot(_make_state(sequence_number=2)))
+        run(repo.upsert_snapshot(_make_state(sequence_number=9)))
+        run(repo.upsert_snapshot(_make_state(sequence_number=4)))
+        latest = run(repo.get_latest_snapshot("match01"))
+        assert latest is not None
+        assert latest["sequence_number"] == 9
+
+    def test_datetimes_are_serialised_for_cosmos(self):
+        repo = MatchStateSnapshotRepository(FakeCosmosContainer())
+        run(repo.upsert_snapshot(_make_state(sequence_number=1)))
+        doc = run(repo.get_snapshot("match01", 1))
+        assert isinstance(doc["updated_at"], str)
+        assert doc["updated_at"].startswith("2026-10-01T12:00:00")
+
 
 # ---------------------------------------------------------------------------
 # Write buffer — buffering after simulated failure
@@ -284,6 +300,32 @@ class TestNarrationCacheRepository:
         repo = NarrationCacheRepository(FakeCosmosContainer())
         result = run(repo.get_response("no.key.here.x", "m-0001"))
         assert result is None
+
+
+# ---------------------------------------------------------------------------
+# CorrectionsRepository — cross-partition reviewer access
+# ---------------------------------------------------------------------------
+
+class TestCorrectionsRepository:
+    def test_get_and_update_by_id_without_partition(self):
+        repo = CosmosRepositories().corrections
+        entry = {
+            "id": "corr-1",
+            "match_id": "match01",
+            "profile_key": "match01.sw.casual.neutral",
+            "status": "pending",
+            "created_at": 1.0,
+        }
+        run(repo.create_correction(entry))
+
+        fetched = run(repo.get_correction("corr-1"))
+        assert fetched is not None
+        assert fetched["match_id"] == "match01"
+
+        updated = run(repo.update_correction_by_id("corr-1", {"status": "approved"}))
+        assert updated is not None
+        assert updated["status"] == "approved"
+        assert run(repo.get_correction("corr-1"))["status"] == "approved"
 
 
 # ---------------------------------------------------------------------------

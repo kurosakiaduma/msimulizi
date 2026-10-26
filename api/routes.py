@@ -12,6 +12,7 @@ import os
 import pathlib
 import time
 import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -25,7 +26,11 @@ router = APIRouter(prefix="/v1")
 
 class CorrectionIn(BaseModel):
     profile_key: str
-    moment_id: str
+    moment_id: str = ""
+    match_id: str | None = None
+    card_id: str | None = None
+    card_type: str | None = None
+    original_sw: str | None = None
     proposed_headline: str | None = None
     proposed_body: str | None = None
     note: str | None = None
@@ -33,6 +38,40 @@ class CorrectionIn(BaseModel):
 
 def _get_client_state(request: Request) -> Any:
     return request.app.state
+
+
+def _repos(state: Any) -> Any | None:
+    return getattr(state, "cosmos_repos", None)
+
+
+def _correction_match_id(payload: CorrectionIn) -> str:
+    if payload.match_id:
+        return payload.match_id
+    # Profile keys are "match_id.language.mode.perspective".
+    return payload.profile_key.split(".", 1)[0] or "unknown"
+
+
+def _correction_view(entry: dict[str, Any]) -> dict[str, Any]:
+    """Add the field names the review UI renders while preserving the store shape."""
+    view = dict(entry)
+    view.setdefault("card_id", entry.get("card_id", ""))
+    view.setdefault("card_type", entry.get("card_type", ""))
+    view.setdefault("original_sw", entry.get("original_sw", ""))
+    view.setdefault(
+        "suggested_sw",
+        entry.get("suggested_sw")
+        or entry.get("proposed_body")
+        or entry.get("proposed_headline")
+        or "",
+    )
+    view.setdefault(
+        "submitted_at",
+        entry.get("submitted_at")
+        or datetime.fromtimestamp(
+            float(entry.get("created_at", time.time())), tz=timezone.utc
+        ).isoformat(),
+    )
+    return view
 
 
 # Simple per-IP rate limiter dependency
@@ -74,15 +113,31 @@ async def submit_correction(payload: CorrectionIn, request: Request, state: Any 
 
     entry = {
         "id": correction_id,
+        "match_id": _correction_match_id(payload),
         "profile_key": payload.profile_key,
         "moment_id": payload.moment_id,
+        "card_id": payload.card_id or "",
+        "card_type": payload.card_type or "",
+        "original_sw": payload.original_sw or "",
+        "suggested_sw": payload.proposed_body or payload.proposed_headline or "",
         "proposed_headline": payload.proposed_headline,
         "proposed_body": payload.proposed_body,
         "note": payload.note,
         "status": "pending",
         "created_at": time.time(),
+        "submitted_at": datetime.now(timezone.utc).isoformat(),
+        "source": "api",
     }
     store[correction_id] = entry
+
+    repos = _repos(state)
+    if repos is not None and entry["match_id"] != "unknown":
+        try:
+            await repos.corrections.create_correction(entry)
+        except Exception:
+            # Keep the in-memory mirror; the reviewer can still act on it.
+            pass
+
     return {"id": correction_id, "status": "pending"}
 
 
@@ -93,7 +148,19 @@ async def get_corrections_queue(request: Request, state: Any = Depends(_get_clie
     if reviewer_key is None or header != reviewer_key:
         raise HTTPException(status_code=401, detail="Reviewer key required")
     store: dict = state.__dict__.setdefault("corrections_store", {})
-    pending = [v for v in store.values() if v.get("status") == "pending"]
+    pending_by_id = {
+        entry["id"]: entry
+        for entry in store.values()
+        if entry.get("status") == "pending"
+    }
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            for entry in await repos.corrections.list_all_corrections(status="pending"):
+                pending_by_id.setdefault(entry["id"], entry)
+        except Exception:
+            pass
+    pending = [_correction_view(entry) for entry in pending_by_id.values()]
     return {"count": len(pending), "items": pending}
 
 
@@ -105,17 +172,31 @@ async def patch_correction(correction_id: str, payload: dict[str, Any], request:
     if reviewer_key is None or header != reviewer_key:
         raise HTTPException(status_code=401, detail="Reviewer key required")
     store: dict = state.__dict__.setdefault("corrections_store", {})
-    if correction_id not in store:
-        raise HTTPException(status_code=404, detail="Correction not found")
-    entry = store[correction_id]
-    # allow status and notes updates
+    patch: dict[str, Any] = {}
     status = payload.get("status")
     if status is not None:
-        entry["status"] = str(status)
+        patch["status"] = str(status)
     editor_note = payload.get("editor_note")
     if editor_note is not None:
-        entry["editor_note"] = str(editor_note)
+        patch["editor_note"] = str(editor_note)
+
+    entry = store.get(correction_id)
+    repos = _repos(state)
+    if entry is None and repos is not None:
+        try:
+            entry = await repos.corrections.get_correction(correction_id)
+        except Exception:
+            entry = None
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Correction not found")
+
+    entry.update(patch)
     store[correction_id] = entry
+    if repos is not None:
+        try:
+            await repos.corrections.update_correction_by_id(correction_id, patch)
+        except Exception:
+            pass
     return entry
 
 
@@ -130,12 +211,24 @@ async def _set_correction_status(
     if reviewer_key is None or header != reviewer_key:
         raise HTTPException(status_code=401, detail="Reviewer key required")
     store: dict = state.__dict__.setdefault("corrections_store", {})
-    if correction_id not in store:
+    entry = store.get(correction_id)
+    repos = _repos(state)
+    if entry is None and repos is not None:
+        try:
+            entry = await repos.corrections.get_correction(correction_id)
+        except Exception:
+            entry = None
+    if entry is None:
         raise HTTPException(status_code=404, detail="Correction not found")
-    entry = store[correction_id]
-    entry["status"] = status
-    entry["reviewed_at"] = time.time()
+
+    patch = {"status": status, "reviewed_at": time.time()}
+    entry.update(patch)
     store[correction_id] = entry
+    if repos is not None:
+        try:
+            await repos.corrections.update_correction_by_id(correction_id, patch)
+        except Exception:
+            pass
     return entry
 
 
@@ -160,18 +253,52 @@ async def reject_correction(
 @router.get("/matches/{match_id}/cards")
 async def get_match_cards(match_id: str, request: Request, state: Any = Depends(_get_client_state), _rl=Depends(rate_limit)) -> dict[str, Any]:
     cards_store: dict = state.__dict__.setdefault("cards_store", {})
-    return {"match_id": match_id, "cards": cards_store.get(match_id, [])}
+    cards = list(cards_store.get(match_id, []))
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            persisted = await repos.overlay_cards.list_cards(match_id)
+            seen = {card.get("card_id") or card.get("id") for card in cards}
+            cards.extend(
+                card for card in persisted
+                if (card.get("card_id") or card.get("id")) not in seen
+            )
+        except Exception:
+            pass
+    return {"match_id": match_id, "cards": cards}
 
 
 @router.get("/matches/{match_id}/state")
 async def get_match_state(match_id: str, request: Request, state: Any = Depends(_get_client_state), _rl=Depends(rate_limit)) -> dict[str, Any]:
-    # Return a lightweight state snapshot from the orchestrator when available
+    # Return the latest persisted snapshot plus active session IDs. The live
+    # MCP surface is the sub-second path; this endpoint is the restart-safe
+    # fallback.
     orchestrator = getattr(request.app.state, "orchestrator", None)
-    if orchestrator is None:
+    sessions = (
+        [s.session_id for s in orchestrator.session_store.values() if s.match_id == match_id]
+        if orchestrator is not None
+        else []
+    )
+
+    snapshot = None
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            snapshot = await repos.match_state_snapshots.get_latest_snapshot(match_id)
+        except Exception:
+            snapshot = None
+
+    if snapshot is None and not sessions:
         return {"match_id": match_id, "state": {"status": "unavailable"}}
-    # Try to find a session for the match
-    sessions = [s for s in orchestrator.session_store.values() if s.match_id == match_id]
-    return {"match_id": match_id, "state": {"match_id": match_id, "sessions": [s.session_id for s in sessions]}}
+
+    return {
+        "match_id": match_id,
+        "state": {
+            "match_id": match_id,
+            "sessions": sessions,
+            "snapshot": snapshot,
+        },
+    }
 
 
 @router.post("/matches/{match_id}/cards")
@@ -179,6 +306,14 @@ async def post_match_card(match_id: str, payload: dict[str, Any], request: Reque
     """Allow pushing a card into the in-memory feed (useful for integration tests)."""
     cards_store: dict = state.__dict__.setdefault("cards_store", {})
     cards_store.setdefault(match_id, []).append(payload)
+
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            await repos.overlay_cards.upsert_dict({**payload, "match_id": match_id})
+        except Exception:
+            pass
+
     # notify websocket manager if present
     ws_mgr = getattr(state, "websocket_manager", None)
     if ws_mgr is not None:
@@ -197,7 +332,16 @@ async def get_audit_log(match_id: str, request: Request, state: Any = Depends(_g
     if reviewer_key is None or header != reviewer_key:
         raise HTTPException(status_code=401, detail="Reviewer key required")
     audit = state.__dict__.setdefault("audit_store", {})
-    return {"match_id": match_id, "log": audit.get(match_id, [])}
+    log = list(audit.get(match_id, []))
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            persisted = await repos.audit_log.list_entries(match_id)
+            seen = {entry.get("id") for entry in log}
+            log.extend(entry for entry in persisted if entry.get("id") not in seen)
+        except Exception:
+            pass
+    return {"match_id": match_id, "log": log}
 
 
 def _load_groundedness_result() -> float | None:
@@ -227,7 +371,19 @@ async def get_review_dashboard(request: Request, state: Any = Depends(_get_clien
 
     groundedness_score = _load_groundedness_result()
     corrections_store: dict = state.__dict__.setdefault("corrections_store", {})
-    pending = [v for v in corrections_store.values() if v.get("status") == "pending"]
+    corrections_by_id = dict(corrections_store)
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            for entry in await repos.corrections.list_all_corrections():
+                corrections_by_id.setdefault(entry["id"], entry)
+        except Exception:
+            pass
+    pending = [
+        entry for entry in corrections_by_id.values()
+        if entry.get("status") == "pending"
+    ]
+    corrections = [_correction_view(entry) for entry in corrections_by_id.values()]
 
     return {
         "latency": snap["latency"],
@@ -237,5 +393,5 @@ async def get_review_dashboard(request: Request, state: Any = Depends(_get_clien
         "quota_exceeded_count": snap["quota_exceeded_count"],
         "groundedness_score": groundedness_score if groundedness_score is not None else 0.0,
         "rating_queue_size": len(pending),
-        "corrections": list(corrections_store.values()),
+        "corrections": corrections,
     }

@@ -10,6 +10,8 @@ from __future__ import annotations
 import asyncio
 import json
 import time
+import uuid
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 from fastapi import WebSocket
@@ -176,8 +178,56 @@ class WebSocketManager:
             return
 
 
+async def _persist_viewer_correction(
+    app_state: Any,
+    *,
+    session_id: str,
+    match_id: str | None,
+    profile_key: str | None,
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Persist a viewer thumbs-up/down/edit for the reviewer queue."""
+    correction_id = str(uuid.uuid4())
+    created_at = time.time()
+    entry = {
+        "id": correction_id,
+        "match_id": match_id or "unknown",
+        "session_id": session_id,
+        "profile_key": profile_key or "",
+        "card_id": payload.get("card_id", ""),
+        "card_type": payload.get("card_type", ""),
+        "rating": payload.get("rating"),
+        "original_sw": payload.get("original_sw") or payload.get("text") or "",
+        "suggested_sw": payload.get("text") or "",
+        "status": "pending" if payload.get("rating") in {"down", "edit"} else "recorded",
+        "created_at": created_at,
+        "submitted_at": datetime.now(timezone.utc).isoformat(),
+        "source": "viewer",
+    }
+
+    if app_state is not None:
+        store = app_state.__dict__.setdefault("corrections_store", {})
+        store[correction_id] = entry
+        repos = getattr(app_state, "cosmos_repos", None)
+        if repos is not None and entry["match_id"] != "unknown":
+            try:
+                await repos.corrections.create_correction(entry)
+            except Exception:
+                # The in-memory mirror still exposes the correction to the
+                # reviewer during a transient Cosmos outage.
+                pass
+
+    return entry
+
+
 # Helper websocket endpoint function for FastAPI wiring
-async def websocket_endpoint(websocket: WebSocket, manager: WebSocketManager, session_manager: Any) -> None:
+async def websocket_endpoint(
+    websocket: WebSocket,
+    manager: WebSocketManager,
+    session_manager: Any,
+    *,
+    app_state: Any = None,
+) -> None:
     # Accept and register the connection. If client supplied session_id it will be in query params
     session_id = websocket.query_params.get("session_id")
     profile_key = websocket.query_params.get("profile_key")
@@ -201,12 +251,17 @@ async def websocket_endpoint(websocket: WebSocket, manager: WebSocketManager, se
                 continue
             if cmd == "profile_update":
                 # update session metadata when present
-                meta = data.get("payload") or {}
+                meta = data.get("payload") or data
                 if session_manager is not None and getattr(session_manager, "get", None):
                     rec = session_manager.get(sid)
                     if rec is not None:
-                        rec.metadata.update(meta)
+                        rec.metadata.update({
+                            key: value
+                            for key, value in meta.items()
+                            if key != "type"
+                        })
                         session_manager.touch(sid)
+                        match_id = rec.metadata.get("match_id") or match_id
                 profile_key = meta.get("profile_key") or profile_key
                 match_id = meta.get("match_id") or match_id
                 async with manager._lock:
@@ -215,6 +270,16 @@ async def websocket_endpoint(websocket: WebSocket, manager: WebSocketManager, se
                         manager._connections[sid]["match_id"] = match_id
                         manager._connections[sid]["session_id"] = sid
                 await websocket.send_text(json.dumps({"type": "ack", "cmd": "profile_update"}))
+                continue
+            if cmd == "correction":
+                await _persist_viewer_correction(
+                    app_state,
+                    session_id=sid,
+                    match_id=match_id,
+                    profile_key=profile_key,
+                    payload=data,
+                )
+                await websocket.send_text(json.dumps({"type": "ack", "cmd": "correction"}))
                 continue
             if cmd == "speed":
                 # client requests a speed change
