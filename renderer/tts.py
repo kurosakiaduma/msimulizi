@@ -9,19 +9,18 @@ streaming audio status without re-rendering the card object.
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import inspect
 import logging
 import time
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Protocol, runtime_checkable, cast
+from typing import Any, Awaitable, Protocol, runtime_checkable, cast
 
 import yaml
 
-logger = logging.getLogger(__name__)
-
 from shared.observability import metrics as _metrics
+
+logger = logging.getLogger(__name__)
 
 
 @runtime_checkable

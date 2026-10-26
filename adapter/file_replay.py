@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 from typing import Any, AsyncIterator, Iterable
 
-from adapter.base import EventSourceAdapter, _event_to_seconds
+from adapter.base import _event_to_seconds
 from shared.models import Event, EventType
 
 

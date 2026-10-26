@@ -24,7 +24,6 @@ import pytest
 import shared.cosmos as cosmos_mod
 from shared.cosmos import (
     AuditLogRepository,
-    ConflictError,
     CosmosRepositories,
     FakeCosmosContainer,
     MatchStateSnapshotRepository,
@@ -34,7 +33,6 @@ from shared.cosmos import (
     _TTL_SPOTLIGHT_SECONDS,
 )
 from shared.models import (
-    KeyMoment,
     MatchState,
     NarratorResponse,
     OverlayCard,

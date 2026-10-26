@@ -16,7 +16,6 @@ Exit code 1 = one or more violations found (details on stderr).
 
 from __future__ import annotations
 
-import os
 import re
 import subprocess
 import sys

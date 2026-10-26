@@ -21,6 +21,12 @@ dependencies = [
 [dependency-groups]
 dev = ["pytest>=9.1"]
 
+[tool.ruff.lint]
+# Keep CI deterministic across Ruff releases. These are Ruff's historical
+# default pyflakes/pycodestyle rules; the repository has not adopted the newer
+# BLE/S/UP/TRY rule families wholesale.
+select = ["E4", "E7", "E9", "F"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [

@@ -308,7 +308,7 @@ items are either operational hardening or human deliverables:
 | Backend URL | <https://msim-msimulizi-demo2-backend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io> |
 | WebSocket URL | `wss://msim-msimulizi-demo2-backend.blackflower-72b7c0e4.eastus2.azurecontainerapps.io/ws` |
 | Cost budget | `msim-msimulizi-demo2-monthly`, USD 100/month, 50/80/100% actual + 100% forecast |
-| Tests | 269 backend tests, 42 frontend tests, frontend build, Bicep build, repo hygiene |
+| Tests | 269 backend tests, 42 frontend tests, frontend build, Ruff lint, Bicep build, repo hygiene |
 | Smoke test | 27 Oct 2026 UTC: health 200 with `cosmos: live` / `mcp: live`; MCP missing/invalid 401 and valid 200; Swahili card + English gloss; public MP3 200 `audio/mpeg`; Chrome normal-view playback advanced; Cosmos snapshot and MCP snapshot fallback verified |
 | Rollback | Set the previous image on each Container App with `az containerapp update --image <previous-tag>`, then recheck `/health` |
 

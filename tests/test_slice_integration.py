@@ -13,18 +13,14 @@ services so it runs offline without real credentials. It confirms that:
 
 from __future__ import annotations
 
-import asyncio
 import json
-import threading
 import time
 from typing import Any
-from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 
-from api.main import SessionManager, create_app
-from api.websocket import WebSocketManager
+from api.main import create_app
 from shared.foundry_client import MockFoundryClient
 
 

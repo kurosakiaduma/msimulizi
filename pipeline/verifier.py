@@ -16,13 +16,12 @@ from __future__ import annotations
 import asyncio
 import inspect
 import json
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Awaitable, Callable, Iterable, cast
+from dataclasses import dataclass
+from typing import Any, Awaitable, Callable, cast
 
 from renderer.fallback import build_fallback_line
 from shared.content_safety import Allowed, Blocked, ContentSafetyClientProtocol
-from shared.models import Claim, GlossEn, NarrationRequest, NarratorResponse
+from shared.models import Claim, NarrationRequest, NarratorResponse
 from shared.numbers import NUMBER_RE
 from shared.observability import metrics as _metrics
 
@@ -139,7 +138,6 @@ class VerifierAgent:
         if explanation is not None:
             evidence_values = {entry.display_value for entry in explanation.numeric_evidence}
 
-        names = self._extract_names(request, response)
         combined_text = "\n".join((response.headline, response.body))
         if request.language.lower() == "sw" and response.gloss_en is not None:
             combined_text += "\n" + response.gloss_en.headline + "\n" + response.gloss_en.body

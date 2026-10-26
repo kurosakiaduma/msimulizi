@@ -29,12 +29,10 @@ The aggregates written are:
 
 from __future__ import annotations
 
-import io
 import json
 import math
 import os
 import shutil
-import sys
 import urllib.request
 import zipfile
 from collections import defaultdict

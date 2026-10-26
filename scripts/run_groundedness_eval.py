@@ -114,9 +114,7 @@ def _try_azure_eval(
     """Attempt LLM-based groundedness scoring via azure-ai-evaluation SDK."""
     try:
         from azure.ai.evaluation import GroundednessEvaluator  # type: ignore[import]
-        from azure.identity import DefaultAzureCredential  # type: ignore[import]
 
-        credential = DefaultAzureCredential() if not api_key else None
         evaluator = GroundednessEvaluator(
             model_config={
                 "azure_endpoint": endpoint,
@@ -158,8 +156,6 @@ def _generate_mock_response(entry: dict[str, Any]) -> dict[str, Any]:
     player = inp.get("player")
     team = inp.get("team", "")
     evidence = inp.get("numeric_evidence", [])
-    trigger_tags = inp.get("trigger_tags", [])
-
     ev_str = ", ".join(e["display_value"] for e in evidence if "display_value" in e)
     claims: list[dict[str, Any]] = [
         {"claim_type": "minute", "value": str(minute)},
@@ -169,8 +165,6 @@ def _generate_mock_response(entry: dict[str, Any]) -> dict[str, Any]:
         claims.append({"claim_type": "metric", "value": ev.get("display_value", ""), "metric": ev.get("metric", "")})
     if player:
         claims.append({"claim_type": "player", "value": player})
-
-    tag = trigger_tags[0] if trigger_tags else "update"
 
     if language == "sw":
         subj = player or team

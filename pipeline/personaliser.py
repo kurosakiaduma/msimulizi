@@ -11,7 +11,7 @@ moments.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Iterable
 
 from shared.models import Event, EventType, KeyMoment, NarrationRequest
@@ -256,13 +256,10 @@ class PersonaliserAgent:
             if event_type not in notable and event_type != EventType.pass_:
                 return None
         if event_type == EventType.tackle and str(event.outcome or "").lower() == "success" and event.player == player_name:
-            eligible = True
             reason = "tackle_won"
         elif event_type == EventType.goal and self._assist_for_player(player_name, event, recent):
-            eligible = True
             reason = "assist"
         elif event_type in notable and event.player == player_name:
-            eligible = True
             reason = event_type.value
         else:
             return None
