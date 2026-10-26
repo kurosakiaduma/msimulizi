@@ -244,9 +244,13 @@ def _schedule_card_audio(
     )
 
     async def publish_audio_update(payload: dict[str, Any]) -> None:
-        # The tts.py facade emits exactly the legacy audio_update fields:
-        # type, card_id, audio_url and match_seconds. match_id is routing data.
-        await ws_manager.broadcast_clock(payload, match_id=match_id)
+        # Send the four-field audio_update as a top-level WebSocket message.
+        # broadcast_clock() wraps payloads in clock_update and is not valid here.
+        await ws_manager.broadcast_audio_update(
+            payload,
+            session_id=session_id,
+            match_id=match_id,
+        )
 
     async def render_audio() -> None:
         try:
