@@ -79,7 +79,7 @@ The review loop is part of the product, not a claim in a slide:
 1. Run the app and open `/review`.
 2. Enter the reviewer key configured for the environment.
 3. Review Swahili lines with their English gloss, score fluency, idiom, and faithfulness from 1–5, and optionally submit a corrected version.
-4. Approved corrections are persisted through the same corrections store used by the viewer feedback loop.
+4. Submitted scores and corrections are persisted through the same Cosmos-backed store used by the viewer feedback loop. A submitted line is marked reviewed, not automatically approved; edited lines stay out of the export until a second reviewer confirms them.
 
 The review queue is built from the bundled Swahili cards and the Swahili calibration corpus; viewer corrections are handled separately in the correction queue. The workflow, rubric, and sign-off procedure are documented in [`docs/native-speaker-review.md`](docs/native-speaker-review.md). A rating is only published after a named reviewer signs it off; until then the README makes no quality claim.
 

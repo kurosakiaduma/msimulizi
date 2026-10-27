@@ -40,7 +40,7 @@ A line with a blocking issue cannot be approved even if its style score is high.
 2. For each Swahili line, read the line and its English gloss.
 3. Enter the three scores, an optional note, and a corrected version when needed.
 4. Submit. The review is stored with the reviewer name and timestamp.
-5. A second reviewer must confirm any line that is approved with a correction.
+5. A second reviewer must confirm any line that is approved with a correction. The dashboard records `requires_second_review` on edited lines and the export holds them out until that confirmation is recorded; the current demo does not automate the second-review handoff.
 6. Export the signed-off set before quoting a score:
 
 ```bash
