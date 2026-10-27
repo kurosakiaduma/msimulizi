@@ -33,14 +33,14 @@ group Pipeline [Intelligence Pipeline] {
   MomentAgent [icon: zap, label: "Moment\nAgent", color: violet]
   Personaliser [icon: user, label: "Personaliser\nAgent", color: violet]
   Explainer [icon: book-open, label: "Explainer\nAgent", color: violet]
-  Narrator [icon: message-square, label: "Narrator\nAgent\n(GPT-4o)", color: violet]
-  Verifier [icon: check-circle, label: "Verifier\nAgent\n(GPT-4o)", color: violet]
+  Narrator [icon: message-square, label: "Narrator\nAgent\n(gpt-5.4)", color: violet]
+  Verifier [icon: check-circle, label: "Verifier\nAgent\n(gpt-5.4-mini)", color: violet]
 }
 
 // ── Azure AI Services ──────────────────────────────────────────
 group AIServices [Azure AI Services] {
   color: violet
-  Foundry [icon: azure-openai, label: "Azure AI\nFoundry\n(GPT-4o)", color: violet]
+  Foundry [icon: azure-openai, label: "Azure AI\nFoundry\n(gpt-5.4 / 5.4-mini)", color: violet]
   Speech [icon: azure-cognitive-services, label: "Azure AI\nSpeech\n(sw-KE · sw-TZ)", color: violet]
   ContentSafety [icon: shield, label: "Azure AI\nContent Safety", color: violet]
 }
@@ -119,6 +119,11 @@ WebSocket --> ReviewDash
 ContentSafety --> Verifier
 ContentSafety --> Renderer
 ```
+
+The spoken-script adapter is not a seventh agent. It reuses the mini
+deployment after the caption is rendered, and it is deliberately outside the
+verified card path: the caption stays authoritative, and audio falls back to
+the caption if the rewrite is rejected.
 
 ---
 

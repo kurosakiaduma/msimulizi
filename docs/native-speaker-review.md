@@ -61,6 +61,21 @@ A line is **approved** only when:
 
 Until then the status is **pending**, and the README must not quote a rating.
 
+## Audio-only rewrites
+
+The spoken script is a separate surface from the reviewed caption. With
+`AUDIO_SCRIPT_ENHANCE=true` (the default), Foundry turns an approved caption
+into a short spoken line for TTS. The rewrite is constrained by a no-new-facts
+prompt and a validator; if it fails, the approved caption is spoken verbatim.
+The caption shown on screen never changes.
+
+The 56-line queue reviews caption cards. It does not separately score every
+audio rewrite. A Swahili audio rewrite still carries an English gloss in the
+audio update (`spoken_gloss_en`), and a reviewer who hears a bad rewrite should
+record a blocking issue or correction and ask the operator to set
+`AUDIO_SCRIPT_ENHANCE=false` until it is fixed. Do not describe the audio
+rewrite as native-speaker-approved unless it has actually been reviewed.
+
 ## Data handling
 
 - Do not put reviewer keys or personal data in the repository.
