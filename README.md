@@ -78,7 +78,7 @@ npm run build
 cd ..
 ```
 
-CI runs these checks only. It does **not** log in to Azure, create an `azd` environment, provision infrastructure, or deploy. Those remain explicit operator actions.
+CI runs tests and static checks only. It does **not** log in to Azure, create an `azd` environment, provision infrastructure, or deploy. Those remain explicit operator actions.
 
 ## Native-speaker review
 

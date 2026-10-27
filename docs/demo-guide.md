@@ -72,8 +72,8 @@ The story is simple:
 |---|---|---|
 | 0:00 | Start on the viewer, storyline **Comeback from 2–0**, 30× | Score bar, pitch, replay controls |
 | 0:05 | Press **Start** | Clock starts, event dots populate the pitch |
-| 0:24 | First key-moment card arrives | Swahili headline, body, English gloss, source chips |
-| 0:28 | Let the audio play | Short spoken commentary; captions remain on screen |
+| 0:29 | First key-moment card arrives | Swahili headline, body, English gloss, source chips |
+| 0:33 | Let the audio play | Short spoken commentary; captions remain on screen |
 | 0:40 | Switch **Mode** to **Analyst** | Heatmap, possession, field tilt, xG, tempo, event-derived team stats |
 | 0:55 | Wait for the next card or point at the live table | Analyst card and live match metrics |
 | 1:05 | Cut to `/review` | Queue size, 0/56, groundedness 1.0, no published average |
@@ -132,8 +132,9 @@ The pipeline watches goals, chances, red cards, and momentum shifts.”
 
 ### 0:30–0:47 — Caption first, audio second
 
-**Screen:** First card. Hold on the Swahili headline and the English gloss. Let
-the audio play for two or three seconds.
+**Screen:** Time-lapse the remaining wait, then the first card. Hold on the
+Swahili headline and the English gloss. Let the audio play for two or three
+seconds.
 
 **Voiceover:** “The caption is the primary surface. Every Swahili line has an
 English gloss. The audio is an enhancement: a grounded spoken rewrite, not a
