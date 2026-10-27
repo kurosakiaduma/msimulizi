@@ -436,21 +436,10 @@ export default function ReviewPage() {
                 </div>
                 <div
                   className="rounded-lg bg-[--bg-elevated] border border-[--border-subtle] p-3"
-                  aria-label={`Rating queue size: ${data.rating_queue_size} items`}
-                >
-                  <p className="text-[9px] uppercase tracking-widest text-[--text-muted] mb-1">
-                    Rating Queue
-                  </p>
-                  <p className="text-2xl font-bold text-[--text-primary] tabular-nums">
-                    {data.rating_queue_size}
-                  </p>
-                </div>
-                <div
-                  className="rounded-lg bg-[--bg-elevated] border border-[--border-subtle] p-3"
                   aria-label={`Pending corrections: ${pendingCorrections.length}`}
                 >
                   <p className="text-[9px] uppercase tracking-widest text-[--text-muted] mb-1">
-                    Pending
+                    Corrections Pending
                   </p>
                   <p className="text-2xl font-bold text-amber-400 tabular-nums">
                     {pendingCorrections.length}
