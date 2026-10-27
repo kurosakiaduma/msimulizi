@@ -95,17 +95,25 @@ def build_audio_request(
     perspective: str = "neutral",
     late_game: bool | None = None,
     emotion_event: str | None = None,
+    spoken_text: str | None = None,
+    spoken_gloss_en: str | None = None,
 ) -> AudioRequest | None:
     """
     Build an ``AudioRequest`` from an approved card.
 
+    ``spoken_text`` is an optional grounded rewrite used only for synthesis.
+    The approved caption stays in ``source_text`` and is never replaced in the
+    overlay. Passing no rewrite preserves the previous verbatim behaviour.
+
     Returns ``None`` when the card has no speakable text, so callers can skip
     synthesis without treating it as a failure.
     """
-    text = card_text_for_language(card, language)
+    source_text = card_text_for_language(card, language)
 
-    if not text:
+    if not source_text:
         return None
+
+    text = (spoken_text or "").strip() or source_text
 
     card_type = str(_card_field(card, "card_type", "key_moment") or "key_moment")
     match_seconds = float(_card_field(card, "match_seconds", 0.0) or 0.0)
@@ -128,6 +136,8 @@ def build_audio_request(
         voice_id=voice_id,
         match_minute=match_minute,
         priority=int(_card_field(card, "priority", 1) or 1),
+        source_text=source_text,
+        gloss_en=(spoken_gloss_en or "").strip() or None,
     )
 
 
@@ -141,6 +151,8 @@ async def synthesize_card_audio(
     perspective: str = "neutral",
     existing_audio_url: str | None = None,
     emotion_event: str | None = None,
+    spoken_text: str | None = None,
+    spoken_gloss_en: str | None = None,
 ) -> AudioResult | None:
     """
     Render one card's audio through an ``AudioService`` and publish the update.
@@ -150,7 +162,9 @@ async def synthesize_card_audio(
     storage; this function only maps fields.
 
     ``voice_id`` defaults to the service's configured voice resolver, which is
-    populated from ``AudioSettings`` by ``build_audio_service``.
+    populated from ``AudioSettings`` by ``build_audio_service``. Optional
+    ``spoken_text``/``spoken_gloss_en`` are a grounded audio-only rewrite; the
+    card caption remains untouched.
     """
     if voice_id is None:
         resolver = getattr(service, "resolve_voice", None)
@@ -168,6 +182,8 @@ async def synthesize_card_audio(
         voice_id=voice_id,
         perspective=perspective,
         emotion_event=emotion_event,
+        spoken_text=spoken_text,
+        spoken_gloss_en=spoken_gloss_en,
     )
 
     if request is None:

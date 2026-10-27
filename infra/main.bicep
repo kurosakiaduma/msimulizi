@@ -664,6 +664,10 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
               value: 'none'
             }
             {
+              name: 'AUDIO_SCRIPT_ENHANCE'
+              value: 'true'
+            }
+            {
               name: 'MSIMULIZI_ALLOWED_ORIGINS'
               value: 'https://${prefix}-frontend.${acaEnv.properties.defaultDomain}'
             }

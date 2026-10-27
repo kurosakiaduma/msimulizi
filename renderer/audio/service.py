@@ -277,6 +277,19 @@ class AudioService:
             "match_seconds": match_seconds,
         }
 
+        # Only expose the spoken rewrite when it differs from the approved
+        # caption. This keeps the normal payload stable while making the
+        # audio-only script auditable and its Swahili gloss available.
+        if (
+            req.source_text
+            and req.source_text.strip()
+            and req.source_text.strip() != req.text.strip()
+        ):
+            payload["source_text"] = req.source_text
+            payload["spoken_text"] = req.text
+            if req.gloss_en:
+                payload["spoken_gloss_en"] = req.gloss_en
+
         try:
             await _maybe_await(publish(payload))
         except Exception:

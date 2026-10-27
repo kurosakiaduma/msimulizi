@@ -34,6 +34,7 @@ from pipeline.moment import MomentAgent
 from pipeline.narrator import NarratorAgent
 from pipeline.personaliser import PersonaliserAgent
 from pipeline.verifier import VerifierAgent
+from renderer.audio.script import SpokenScriptEnhancer
 from renderer.fallback import build_fallback_line
 from renderer.renderer import render_fallback_card, render_narration_card
 from shared.foundry_client import QuotaExceeded
@@ -117,16 +118,35 @@ async def _render_card_audio(
     existing_audio_url: str | None = None,
     perspective: str = "neutral",
     emotion_event: str | None = None,
+    script_enhancer: Any | None = None,
+    score_home: int | None = None,
+    score_away: int | None = None,
+    minute: int | None = None,
 ) -> None:
     """Synthesize one card's audio and broadcast ``audio_update``.
 
     Runs after the caption has already been sent, so a slow speech call never
     delays the viewer. Failures are contained inside ``AudioService`` and
     produce ``audio_url=null`` instead of breaking the pipeline.
+
+    ``script_enhancer`` is optional and only changes the audio script. The
+    approved caption is already broadcast and is never rewritten here.
     """
     from renderer.audio.bridge import synthesize_card_audio
 
     started = time.monotonic()
+
+    spoken = None
+    if script_enhancer is not None and not existing_audio_url:
+        spoken = await script_enhancer.enhance(
+            card=card,
+            language=language,
+            perspective=perspective,
+            event=emotion_event or "momentum_swing",
+            score_home=score_home,
+            score_away=score_away,
+            minute=minute,
+        )
 
     async def publish(payload: dict[str, Any]) -> None:
         await ws_manager.broadcast_message(
@@ -144,6 +164,8 @@ async def _render_card_audio(
             existing_audio_url=existing_audio_url,
             perspective=perspective,
             emotion_event=emotion_event,
+            spoken_text=spoken.text if spoken is not None else None,
+            spoken_gloss_en=spoken.gloss_en if spoken is not None else None,
         )
     except Exception as exc:  # pragma: no cover - service already contains most
         logger.warning("[audio] card %s failed: %s", getattr(card, "card_id", "?"), exc)
@@ -192,6 +214,7 @@ async def run_pipeline_session(
     mode: str = "casual",
     ws_manager: Any | None = None,
     foundry_client: Any | None = None,
+    audio_script_client: Any | None = None,
     audio_service: Any | None = None,
     tts_client: Any | None = None,
     content_safety: Any | None = None,
@@ -222,6 +245,11 @@ async def run_pipeline_session(
         The WebSocketManager instance for broadcasting cards.
     foundry_client:
         A FoundryClient (or MockFoundryClient) for LLM calls.
+    audio_script_client:
+        Optional structured-output client for grounded spoken rewrites. When
+        omitted, audio uses the approved card text verbatim. This is separate
+        from ``foundry_client`` so tests and offline runs never make an extra
+        LLM call by accident.
     audio_service:
         Optional production AudioService (renderer.audio). Audio is rendered
         in the background after each caption and published as audio_update.
@@ -254,6 +282,11 @@ async def run_pipeline_session(
         client=foundry_client,
         narrator=narrator,
         content_safety=content_safety,
+    )
+    script_enhancer = (
+        SpokenScriptEnhancer(audio_script_client)
+        if audio_script_client is not None
+        else None
     )
 
     # ------------------------------------------------------------------
@@ -680,6 +713,10 @@ async def run_pipeline_session(
                                 key_moment.trigger_tags,
                                 card,
                             ),
+                            script_enhancer=script_enhancer,
+                            score_home=state.score_home,
+                            score_away=state.score_away,
+                            minute=event.minute,
                         ),
                         name=f"audio-{card.card_id}",
                     )

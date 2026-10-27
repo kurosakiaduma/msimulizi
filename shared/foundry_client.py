@@ -170,6 +170,8 @@ class FoundryClient:
         agent_key: str,
         messages: list[dict[str, str]],
         response_schema: dict[str, Any],
+        *,
+        timeout_s: float | None = None,
     ) -> dict[str, Any]:
         """
         Call the deployment for *agent_key* with structured output.
@@ -182,6 +184,10 @@ class FoundryClient:
             OpenAI-style messages list.
         response_schema:
             JSON Schema for the expected response object.
+        timeout_s:
+            Optional per-call timeout. Defaults to the shared 3-second
+            contract. Background audio improvements use a slightly longer
+            budget because they never delay the caption.
 
         Returns
         -------
@@ -193,8 +199,13 @@ class FoundryClient:
         QuotaExceeded
             On HTTP 429.
         FoundryTimeoutError
-            When the call exceeds ``_CALL_TIMEOUT_SECONDS``.
+            When the call exceeds the effective timeout.
         """
+        effective_timeout = (
+            _CALL_TIMEOUT_SECONDS if timeout_s is None else float(timeout_s)
+        )
+        if effective_timeout <= 0:
+            raise ValueError("timeout_s must be greater than zero")
         deployment = get_deployment(agent_key)
         deployment_name = deployment["deployment_name"]
 
@@ -247,10 +258,10 @@ class FoundryClient:
             return json.loads(content)
 
         try:
-            return await asyncio.wait_for(_call(), timeout=_CALL_TIMEOUT_SECONDS)
+            return await asyncio.wait_for(_call(), timeout=effective_timeout)
         except asyncio.TimeoutError as exc:
             raise FoundryTimeoutError(
-                f"Foundry call for {agent_key!r} timed out after {_CALL_TIMEOUT_SECONDS}s"
+                f"Foundry call for {agent_key!r} timed out after {effective_timeout:g}s"
             ) from exc
 
 
@@ -295,7 +306,10 @@ class MockFoundryClient:
         agent_key: str,
         messages: list[dict[str, str]],
         response_schema: dict[str, Any],
+        *,
+        timeout_s: float | None = None,
     ) -> dict[str, Any]:
+        _ = timeout_s
         self.calls.append({"agent_key": agent_key, "messages": messages})
 
         # Check for queued exceptions first.

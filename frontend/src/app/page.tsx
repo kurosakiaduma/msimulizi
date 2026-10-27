@@ -93,6 +93,7 @@ export default function Home() {
   const [audioTrack, setAudioTrack] = useState<{ url: string; cardId: string } | null>(null);
   const [scheduler, setScheduler] = useState<SchedulerState>(createSchedulerState());
   const [selectedStoryline, setSelectedStoryline] = useState(STORYLINES[0].id);
+  const [replaySpeed, setReplaySpeed] = useState(1.0);
   const [isConnected, setIsConnected] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
@@ -300,6 +301,9 @@ export default function Home() {
     setScheduler(createSchedulerState());
     setMatchState({ ...DEFAULT_MATCH_STATE });
     clock.reset();
+    // Seed the clock at the chosen replay speed. The first authoritative
+    // backend clock update re-anchors it without ever moving backwards.
+    clock.updateAnchor(Date.now(), 0, replaySpeed);
 
     const config = await loadRuntimeConfig();
 
@@ -310,7 +314,7 @@ export default function Home() {
         body: JSON.stringify({
           storyline: storylineId,
           seed: 42,
-          speed: 1.0,
+          speed: replaySpeed,
           language: profile.language,
           mode: profile.mode,
         }),
@@ -574,7 +578,9 @@ export default function Home() {
             isConnected={isConnected}
             hasStarted={hasStarted}
             isFinished={isFinished}
+            speed={replaySpeed}
             onSelectStoryline={handleSelectStoryline}
+            onSelectSpeed={setReplaySpeed}
             onStart={handleRestart}
           />
         </div>

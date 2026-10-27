@@ -28,6 +28,7 @@ from renderer.audio.contract import (
     StoredAudio,
     SynthesizedAudio,
 )
+from renderer.audio.script import SpokenScriptEnhancer
 from renderer.audio.service import AudioService
 from renderer.audio.ssml import build_ssml
 
@@ -117,6 +118,33 @@ class FakeHTTPClient:
 
     async def get(self, url: str, **kwargs: Any) -> FakeHTTPResponse:
         return FakeHTTPResponse()
+
+
+class FakeScriptClient:
+    def __init__(self, response: Any = None, error: Exception | None = None) -> None:
+        self.response = response
+        self.error = error
+        self.calls: list[dict[str, Any]] = []
+
+    async def structured_output(
+        self,
+        agent_key: str,
+        messages: list[dict[str, str]],
+        response_schema: dict[str, Any],
+        *,
+        timeout_s: float | None = None,
+    ) -> Any:
+        self.calls.append(
+            {
+                "agent_key": agent_key,
+                "messages": messages,
+                "schema": response_schema,
+                "timeout_s": timeout_s,
+            }
+        )
+        if self.error is not None:
+            raise self.error
+        return self.response
 
 
 def make_request(text: str = "Goal for Nyota FC") -> AudioRequest:
@@ -307,6 +335,137 @@ def test_card_without_text_is_not_synthesized() -> None:
     assert build_audio_request(card, language="en", voice_id="en-US-AriaNeural") is None
 
 
+def _spoken_card() -> SimpleNamespace:
+    return SimpleNamespace(
+        card_id="card-goal-1",
+        card_type="goal",
+        priority=1,
+        match_seconds=31 * 60,
+        text={
+            "sw": {
+                "headline": "Gool! Asha Njeri anafunga",
+                "body": "Dakika ya 31, Asha Njeri anafunga kwa 0-2.",
+            }
+        },
+        gloss_en={
+            "headline": "Goal! Asha Njeri scores",
+            "body": "In the 31st minute, Asha Njeri scores for 0-2.",
+        },
+    )
+
+
+def test_spoken_script_enhancer_accepts_grounded_swahili_rewrite() -> None:
+    client = FakeScriptClient(
+        {
+            "spoken_text": "Goli! Asha Njeri! Wanaongoza kwa 0-2 sasa.",
+            "gloss_en": "Goal! Asha Njeri! They lead 0-2 now.",
+        }
+    )
+    script = asyncio.run(
+        SpokenScriptEnhancer(client).enhance(
+            card=_spoken_card(),
+            language="sw",
+            event="goal",
+            score_home=0,
+            score_away=2,
+            minute=31,
+        )
+    )
+
+    assert script is not None
+    assert script.text == "Goli! Asha Njeri! Wanaongoza kwa 0-2 sasa."
+    assert script.gloss_en == "Goal! Asha Njeri! They lead 0-2 now."
+    assert client.calls[0]["agent_key"] == "spoken_script_sw"
+
+
+def test_spoken_script_enhancer_rejects_new_numbers_and_reversed_score() -> None:
+    common = dict(
+        card=_spoken_card(),
+        language="sw",
+        event="goal",
+        score_home=0,
+        score_away=2,
+        minute=31,
+    )
+    new_number = FakeScriptClient(
+        {
+            "spoken_text": "Goli! Sasa ni 0-3 kwa Asha Njeri.",
+            "gloss_en": "Goal! It is now 0-3 for Asha Njeri.",
+        }
+    )
+    reversed_score = FakeScriptClient(
+        {
+            "spoken_text": "Goli! Asha Njeri! Wanaongoza kwa 2-0 sasa.",
+            "gloss_en": "Goal! Asha Njeri! They lead 2-0 now.",
+        }
+    )
+
+    assert asyncio.run(SpokenScriptEnhancer(new_number).enhance(**common)) is None
+    assert asyncio.run(SpokenScriptEnhancer(reversed_score).enhance(**common)) is None
+
+
+def test_spoken_script_enhancer_rejects_verbatim_caption_and_missing_gloss() -> None:
+    verbatim = FakeScriptClient(
+        {
+            "spoken_text": (
+                "Gool! Asha Njeri anafunga. "
+                "Dakika ya 31, Asha Njeri anafunga kwa 0-2."
+            ),
+            "gloss_en": "Goal! Asha Njeri scores. In the 31st minute, 0-2.",
+        }
+    )
+    no_gloss = FakeScriptClient(
+        {
+            "spoken_text": "Goli! Asha Njeri! Wanaongoza kwa 0-2 sasa.",
+            "gloss_en": "",
+        }
+    )
+
+    common = dict(
+        card=_spoken_card(),
+        language="sw",
+        event="goal",
+        score_home=0,
+        score_away=2,
+        minute=31,
+    )
+    assert asyncio.run(SpokenScriptEnhancer(verbatim).enhance(**common)) is None
+    assert asyncio.run(SpokenScriptEnhancer(no_gloss).enhance(**common)) is None
+
+
+def test_spoken_script_enhancer_falls_back_on_client_error() -> None:
+    client = FakeScriptClient(error=RuntimeError("quota or timeout"))
+    script = asyncio.run(
+        SpokenScriptEnhancer(client).enhance(
+            card=_spoken_card(),
+            language="sw",
+            event="goal",
+            score_home=0,
+            score_away=2,
+            minute=31,
+        )
+    )
+
+    assert script is None
+
+
+def test_build_audio_request_keeps_approved_caption_as_source() -> None:
+    request = build_audio_request(
+        _spoken_card(),
+        language="sw",
+        voice_id="sw-KE-ZuriNeural",
+        spoken_text="Goli! Asha Njeri! Wanaongoza kwa 0-2 sasa.",
+        spoken_gloss_en="Goal! Asha Njeri! They lead 0-2 now.",
+    )
+
+    assert request is not None
+    assert request.text == "Goli! Asha Njeri! Wanaongoza kwa 0-2 sasa."
+    assert request.source_text == (
+        "Gool! Asha Njeri anafunga Dakika ya 31, Asha Njeri anafunga kwa 0-2."
+    )
+    assert request.gloss_en == "Goal! Asha Njeri! They lead 0-2 now."
+
+
 # ---------------------------------------------------------------------------
 # Audio service behaviour
 # ---------------------------------------------------------------------------
@@ -405,6 +564,43 @@ def test_render_and_publish_emits_frontend_audio_update() -> None:
     ]
 
 
+def test_render_and_publish_exposes_spoken_rewrite_for_audit() -> None:
+    service = AudioService(
+        FakeEngine(),
+        FakeStore(),
+        voice_for=lambda language: "sw-KE-ZuriNeural",
+    )
+    published: list[dict[str, Any]] = []
+    base = make_request("Gool! Asha Njeri anafunga")
+    request = AudioRequest(
+        **{
+            **base.__dict__,
+            "language": "sw",
+            "voice_id": "sw-KE-ZuriNeural",
+            "text": "Goli! Asha Njeri! Wanaongoza kwa 0-2 sasa.",
+            "source_text": "Gool! Asha Njeri anafunga",
+            "gloss_en": "Goal! Asha Njeri! They lead 0-2 now.",
+        }
+    )
+
+    async def publish(payload: dict[str, Any]) -> None:
+        published.append(payload)
+
+    result = asyncio.run(
+        service.render_and_publish(
+            request,
+            card_id="card-spoken",
+            match_seconds=1860.0,
+            publish=publish,
+        )
+    )
+
+    assert result.success is True
+    assert published[0]["spoken_text"] == request.text
+    assert published[0]["source_text"] == request.source_text
+    assert published[0]["spoken_gloss_en"] == request.gloss_en
+
+
 def test_render_and_publish_skips_existing_bundle_audio() -> None:
     engine = FakeEngine()
     service = AudioService(engine, FakeStore())
@@ -483,6 +679,7 @@ def test_broadcast_message_targets_the_right_session() -> None:
 class FakeAudioService:
     def __init__(self) -> None:
         self.rendered: list[str] = []
+        self.requests: list[AudioRequest] = []
 
     def resolve_voice(self, language: str) -> str:
         return "en-US-AriaNeural"
@@ -497,6 +694,7 @@ class FakeAudioService:
         existing_audio_url: str | None = None,
     ) -> Any:
         self.rendered.append(card_id)
+        self.requests.append(request)
         payload = {
             "type": "audio_update",
             "card_id": card_id,
@@ -566,6 +764,12 @@ def test_pipeline_broadcasts_caption_then_audio_update() -> None:
         narration_cache[cache_key] = dict(bundle_entry, moment_id=moment_id)
 
     audio_service = FakeAudioService()
+    script_client = FakeScriptClient(
+        {
+            "spoken_text": "The moment: Test bundle card.",
+            "gloss_en": "",
+        }
+    )
 
     async def run() -> None:
         await run_pipeline_session(
@@ -578,6 +782,7 @@ def test_pipeline_broadcasts_caption_then_audio_update() -> None:
             mode="casual",
             ws_manager=ws_manager,
             foundry_client=mock_foundry,
+            audio_script_client=script_client,
             audio_service=audio_service,
             narration_cache=narration_cache,
         )
@@ -587,6 +792,13 @@ def test_pipeline_broadcasts_caption_then_audio_update() -> None:
     assert cards, "the pipeline should emit at least one card"
     assert audio_service.rendered, "audio should be requested for emitted cards"
     assert audio_updates, "audio_update should reach the WebSocket gateway"
+    assert script_client.calls, "the audio-script client should be used"
+    assert any(
+        request.source_text
+        and request.source_text != request.text
+        and request.text == "The moment: Test bundle card."
+        for request in audio_service.requests
+    ), "the approved caption should remain in source_text while audio uses the rewrite"
 
     card_ids = {card["card_id"] for card in cards}
     for update in audio_updates:

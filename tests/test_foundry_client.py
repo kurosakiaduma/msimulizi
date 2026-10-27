@@ -165,7 +165,14 @@ class TestGetDeployment:
         assert dep["api_version"] == "v1"
 
     def test_all_configured_agents(self):
-        for key in ("explainer", "narrator_sw", "narrator_en_fr", "verifier"):
+        for key in (
+            "explainer",
+            "narrator_sw",
+            "narrator_en_fr",
+            "verifier",
+            "spoken_script_sw",
+            "spoken_script_en_fr",
+        ):
             dep = get_deployment(key)
             assert "deployment_name" in dep
 

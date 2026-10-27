@@ -8,6 +8,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { MetricHUD } from "@/components/MetricHUD";
 import { OverlayCardView } from "@/components/OverlayCardView";
 import { PersonalisationPanel } from "@/components/PersonalisationPanel";
+import { ReplayPanel } from "@/components/ReplayPanel";
 import type { EventDot, MatchState, OverlayCard, ViewerProfile } from "@/lib/types";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -351,5 +352,46 @@ describe("MetricHUD — analyst team stats", () => {
     const rows = screen.getAllByRole("row").map((row) => row.textContent);
     expect(rows).toContain("Nyota FC0010");
     expect(rows).toContain("Jua United1100");
+  });
+});
+
+describe("ReplayPanel — demo speed", () => {
+  it("lets the operator select a faster replay before start", () => {
+    const onSelectSpeed = vi.fn();
+    render(
+      <ReplayPanel
+        selectedStoryline="comeback_from_two_down"
+        isConnected={true}
+        hasStarted={false}
+        isFinished={false}
+        speed={1}
+        onSelectStoryline={vi.fn()}
+        onSelectSpeed={onSelectSpeed}
+        onStart={vi.fn()}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("Replay speed"), {
+      target: { value: "30" },
+    });
+
+    expect(onSelectSpeed).toHaveBeenCalledWith(30);
+  });
+
+  it("locks the speed once a session is running", () => {
+    render(
+      <ReplayPanel
+        selectedStoryline="comeback_from_two_down"
+        isConnected={true}
+        hasStarted={true}
+        isFinished={false}
+        speed={30}
+        onSelectStoryline={vi.fn()}
+        onSelectSpeed={vi.fn()}
+        onStart={vi.fn()}
+      />
+    );
+
+    expect(screen.getByLabelText("Replay speed")).toBeDisabled();
   });
 });

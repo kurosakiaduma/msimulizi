@@ -96,6 +96,12 @@ def _load_session_limits() -> tuple[int, float]:
     return max_sessions, idle_timeout
 
 
+def _audio_script_enabled() -> bool:
+    """Return whether approved cards may be rewritten for audio only."""
+    raw = os.getenv("AUDIO_SCRIPT_ENHANCE", "true").strip().lower()
+    return raw not in {"0", "false", "no", "off"}
+
+
 def _build_foundry_client() -> Any | None:
     """Construct a real FoundryClient from env vars, or None when unconfigured."""
     endpoint = os.getenv("FOUNDRY_ENDPOINT", "").strip()
@@ -431,6 +437,7 @@ def create_app(
             bc = getattr(app.state, "bundle_cards", None)
             repos = getattr(app.state, "cosmos_repos", None)
             bus = getattr(app.state, "pubsub", None)
+            script_client = fc if _audio_script_enabled() else None
 
             task = asyncio.create_task(
                 run_pipeline_session(
@@ -443,6 +450,7 @@ def create_app(
                     mode=mode,
                     ws_manager=ws_mgr,
                     foundry_client=fc,
+                    audio_script_client=script_client,
                     audio_service=sc,
                     content_safety=cs,
                     narration_cache=nc,

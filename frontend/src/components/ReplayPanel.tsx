@@ -9,12 +9,16 @@ export const STORYLINES = [
   { id: "dominant_side_loses", label: "Dominant Side Loses" },
 ];
 
+export const REPLAY_SPEEDS = [1, 10, 30, 60] as const;
+
 interface Props {
   selectedStoryline: string;
   isConnected: boolean;
   hasStarted: boolean;
   isFinished: boolean;
+  speed: number;
   onSelectStoryline: (id: string) => void;
+  onSelectSpeed: (speed: number) => void;
   onStart: () => void;
 }
 
@@ -23,7 +27,9 @@ export function ReplayPanel({
   isConnected,
   hasStarted,
   isFinished,
+  speed,
   onSelectStoryline,
+  onSelectSpeed,
   onStart,
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -93,6 +99,38 @@ export function ReplayPanel({
             ))}
           </ul>
         )}
+      </div>
+
+      {/* Replay speed — fixed at session start because the adapter is paced
+          when the session is created. A faster replay makes a short demo
+          possible without waiting the full 90 match minutes. */}
+      <div className="flex flex-col gap-1.5">
+        <label
+          htmlFor="replay-speed"
+          className="text-[9px] font-semibold uppercase tracking-widest text-[--text-muted]"
+        >
+          Replay speed
+        </label>
+        <select
+          id="replay-speed"
+          aria-label="Replay speed"
+          value={speed}
+          onChange={(event) => onSelectSpeed(Number(event.target.value))}
+          disabled={hasStarted && !isFinished}
+          className="w-full rounded-lg bg-[--bg-inset] border border-[--border-subtle]
+                     px-3 py-2 text-xs text-[--text-secondary]
+                     hover:border-[--border-default] transition-colors
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {REPLAY_SPEEDS.map((value) => (
+            <option key={value} value={value}>
+              {value}× {value === 1 ? "(live pace)" : ""}
+            </option>
+          ))}
+        </select>
+        <p className="text-[9px] leading-relaxed text-[--text-muted]">
+          Set before Start. 30× reaches the first key moment in about 24 seconds.
+        </p>
       </div>
 
       {/* Start / Restart button */}
