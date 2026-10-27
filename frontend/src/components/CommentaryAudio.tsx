@@ -5,8 +5,14 @@ import { useEffect, useRef, useState } from "react";
 interface Props {
   /** Public MP3 URL for the current commentary clip, if it has arrived. */
   src: string | null;
+  /** Stable identity for the clip; allows the same cached URL to replay. */
+  trackId?: string | null;
   /** Viewer preference. When false the clip is paused and the player hidden. */
   enabled: boolean;
+  /** Called when the current clip finishes so the page can promote the next. */
+  onEnded?: () => void;
+  /** Called when the current clip cannot be loaded so the queue does not stall. */
+  onFailed?: () => void;
   variant?: "compact" | "full";
 }
 
@@ -18,9 +24,16 @@ interface Props {
  * (for example after a long period without a user gesture), so the component
  * exposes a visible "Play commentary" fallback instead of failing silently.
  */
-export function CommentaryAudio({ src, enabled, variant = "compact" }: Props) {
+export function CommentaryAudio({
+  src,
+  trackId = null,
+  enabled,
+  onEnded,
+  onFailed,
+  variant = "compact",
+}: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const loadedSrc = useRef<string | null>(null);
+  const loadedKey = useRef<string | null>(null);
   const [blocked, setBlocked] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -30,12 +43,13 @@ export function CommentaryAudio({ src, enabled, variant = "compact" }: Props) {
 
     if (!enabled || !src) {
       audio.pause();
-      if (!src) loadedSrc.current = null;
+      if (!src) loadedKey.current = null;
       return;
     }
 
-    if (loadedSrc.current !== src || !audio.getAttribute("src")) {
-      loadedSrc.current = src;
+    const key = `${trackId ?? ""}:${src}`;
+    if (loadedKey.current !== key || !audio.getAttribute("src")) {
+      loadedKey.current = key;
       setBlocked(false);
       setFailed(false);
       audio.src = src;
@@ -58,7 +72,7 @@ export function CommentaryAudio({ src, enabled, variant = "compact" }: Props) {
       // Older browsers can throw synchronously instead of returning a promise.
       queueMicrotask(() => setBlocked(true));
     }
-  }, [src, enabled]);
+  }, [src, trackId, enabled]);
 
   function handleManualPlay() {
     const audio = audioRef.current;
@@ -114,7 +128,14 @@ export function CommentaryAudio({ src, enabled, variant = "compact" }: Props) {
           setBlocked(false);
           setFailed(false);
         }}
-        onError={() => setFailed(true)}
+        onEnded={() => {
+          setFailed(false);
+          onEnded?.();
+        }}
+        onError={() => {
+          setFailed(true);
+          onFailed?.();
+        }}
       >
         <track kind="captions" />
       </audio>

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Mock } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { CommentaryAudio } from "@/components/CommentaryAudio";
 
@@ -54,6 +54,70 @@ describe("CommentaryAudio", () => {
     expect(
       await screen.findByRole("button", { name: /play commentary/i })
     ).toBeInTheDocument();
+  });
+
+  it("keeps the current clip playing when a later caption has no audio yet", async () => {
+    const { rerender } = render(
+      <CommentaryAudio
+        src="https://example.test/first.mp3"
+        trackId="card-1"
+        enabled={true}
+      />
+    );
+
+    await waitFor(() => expect(playMock).toHaveBeenCalledTimes(1));
+    pauseMock.mockClear();
+
+    rerender(
+      <CommentaryAudio
+        src="https://example.test/first.mp3"
+        trackId="card-1"
+        enabled={true}
+      />
+    );
+
+    expect(pauseMock).not.toHaveBeenCalled();
+    expect(playMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("reloads a cached URL when the next card reuses it", async () => {
+    const { rerender } = render(
+      <CommentaryAudio
+        src="https://example.test/shared.mp3"
+        trackId="card-1"
+        enabled={true}
+      />
+    );
+
+    await waitFor(() => expect(loadMock).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <CommentaryAudio
+        src="https://example.test/shared.mp3"
+        trackId="card-2"
+        enabled={true}
+      />
+    );
+
+    await waitFor(() => expect(loadMock).toHaveBeenCalledTimes(2));
+    expect(playMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("notifies the page when the current clip ends", async () => {
+    const onEnded = vi.fn();
+    render(
+      <CommentaryAudio
+        src="https://example.test/commentary.mp3"
+        trackId="card-1"
+        enabled={true}
+        onEnded={onEnded}
+      />
+    );
+
+    await waitFor(() => expect(playMock).toHaveBeenCalledTimes(1));
+    fireEvent.ended(screen.getByTestId("commentary-audio"));
+
+    expect(onEnded).toHaveBeenCalledTimes(1);
   });
 
   it("does not render or play when audio commentary is disabled", () => {

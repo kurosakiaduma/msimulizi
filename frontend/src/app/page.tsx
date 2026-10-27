@@ -17,6 +17,13 @@ import {
   tick,
 } from "@/lib/scheduler";
 import type { SchedulerState } from "@/lib/scheduler";
+import {
+  clearAudioQueue,
+  createAudioQueueState,
+  enqueueAudio,
+  finishCurrentAudio,
+} from "@/lib/audioQueue";
+import type { AudioQueueState } from "@/lib/audioQueue";
 import { loadRuntimeConfig } from "@/lib/runtimeConfig";
 
 import { MatchClock } from "@/components/MatchClock";
@@ -90,7 +97,7 @@ export default function Home() {
   const [events, setEvents] = useState<EventDot[]>([]);
   const [latestEvent, setLatestEvent] = useState<EventDot | null>(null);
   const [cardHistory, setCardHistory] = useState<OverlayCard[]>([]);
-  const [audioTrack, setAudioTrack] = useState<{ url: string; cardId: string } | null>(null);
+  const [audioQueue, setAudioQueue] = useState<AudioQueueState>(createAudioQueueState);
   const [scheduler, setScheduler] = useState<SchedulerState>(createSchedulerState());
   const [selectedStoryline, setSelectedStoryline] = useState(STORYLINES[0].id);
   const [replaySpeed, setReplaySpeed] = useState(1.0);
@@ -249,12 +256,13 @@ export default function Home() {
           );
           setCardHistory((h) => [...h, card]);
           // Bundle cards can carry a pre-generated URL. For freshly narrated
-          // cards the URL arrives later via audio_update.
-          setAudioTrack(
-            card.audio_url
-              ? { url: card.audio_url, cardId: card.card_id }
-              : null
-          );
+          // cards the URL arrives later via audio_update. Never clear the
+          // current clip just because a newer caption has no audio yet.
+          if ((profile.audio_enabled || profile.audio_only) && card.audio_url) {
+            setAudioQueue((q) =>
+              enqueueAudio(q, { url: card.audio_url!, cardId: card.card_id })
+            );
+          }
           break;
         }
 
@@ -269,17 +277,20 @@ export default function Home() {
           setScheduler((s) =>
             applyAudioUrl(s, msg.card_id, msg.audio_url ?? null)
           );
-          setAudioTrack((track) => {
-            if (msg.audio_url) return { url: msg.audio_url, cardId: msg.card_id };
-            return track?.cardId === msg.card_id ? null : track;
-          });
+          // A new clip waits behind the current one. A null update means this
+          // card has no audio; it must not stop audio that is already playing.
+          if ((profile.audio_enabled || profile.audio_only) && msg.audio_url) {
+            setAudioQueue((q) =>
+              enqueueAudio(q, { url: msg.audio_url!, cardId: msg.card_id })
+            );
+          }
           break;
 
         default:
           break;
       }
     },
-    [clock]
+    [clock, profile.audio_enabled, profile.audio_only]
   );
 
   const { send } = useMatchSocket({
@@ -295,7 +306,7 @@ export default function Home() {
     setIsFinished(false);
     setHasStarted(false);
     setCardHistory([]);
-    setAudioTrack(null);
+    setAudioQueue(createAudioQueueState());
     setEvents([]);
     setLatestEvent(null);
     setScheduler(createSchedulerState());
@@ -344,6 +355,9 @@ export default function Home() {
 
   function handleProfileChange(p: ViewerProfile) {
     setProfile(p);
+    if (!p.audio_enabled && !p.audio_only) {
+      setAudioQueue(clearAudioQueue());
+    }
     send({
       type: "profile_update",
       language: p.language,
@@ -413,8 +427,11 @@ export default function Home() {
         />
         {/* Audio-only mode is itself an explicit request for commentary. */}
         <CommentaryAudio
-          src={audioTrack?.url ?? null}
+          src={audioQueue.current?.url ?? null}
+          trackId={audioQueue.current?.cardId ?? null}
           enabled
+          onEnded={() => setAudioQueue(finishCurrentAudio)}
+          onFailed={() => setAudioQueue(finishCurrentAudio)}
           variant="full"
         />
         <button
@@ -541,8 +558,11 @@ export default function Home() {
 
           {/* Commentary audio — captions remain the primary surface. */}
           <CommentaryAudio
-            src={audioTrack?.url ?? null}
+            src={audioQueue.current?.url ?? null}
+            trackId={audioQueue.current?.cardId ?? null}
             enabled={profile.audio_enabled}
+            onEnded={() => setAudioQueue(finishCurrentAudio)}
+            onFailed={() => setAudioQueue(finishCurrentAudio)}
           />
 
           {/* Card feed — lives under the pitch */}
