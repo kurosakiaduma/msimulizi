@@ -25,7 +25,10 @@ function teamStats(events: EventDot[], homeTeam: string, awayTeam: string) {
   const away = emptyStatLine();
 
   for (const event of events) {
-    const line = event.team === homeTeam ? home : event.team === awayTeam ? away : null;
+    const side =
+      event.team_side ||
+      (event.team === homeTeam ? "home" : event.team === awayTeam ? "away" : "");
+    const line = side === "home" ? home : side === "away" ? away : null;
     if (!line) continue;
 
     switch (event.event_type) {

@@ -338,7 +338,18 @@ async def run_pipeline_session(
                     clock_payload,
                     match_id=match_id,
                 )
-                # Also broadcast a raw event dot for the pitch visualiser
+                # Also broadcast a raw event dot for the pitch visualiser.
+                # The display teams are fictional overlays, so send the side
+                # explicitly instead of making the browser guess from raw names.
+                home_team = getattr(interpreter, "home_team", None)
+                away_team = getattr(interpreter, "away_team", None)
+                event_side = (
+                    "home"
+                    if event.team == home_team
+                    else "away"
+                    if event.team == away_team
+                    else ""
+                )
                 event_dot = {
                     "type": "event",
                     "event_id": event.event_id,
@@ -346,6 +357,7 @@ async def run_pipeline_session(
                     "y": event.y_start,
                     "event_type": event.event_type.value,
                     "team": event.team,
+                    "team_side": event_side,
                     "player": event.player,
                     "minute": event.minute,
                     "outcome": event.outcome,

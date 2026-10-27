@@ -142,6 +142,17 @@ def test_slice_pipeline_emits_cards_over_websocket() -> None:
         f"Received message types: {[m.get('type') for m in received]}"
     )
 
+    # Event dots include a server-resolved side. The raw generated team labels
+    # (Kisumu City / Mombasa United) differ from the fictional display overlay,
+    # so the browser must not infer sides from those names.
+    event_dots = [
+        msg["clock"]
+        for msg in clock_msgs
+        if isinstance(msg.get("clock"), dict) and msg["clock"].get("event_id")
+    ]
+    assert event_dots, "Expected at least one event dot on the clock channel"
+    assert any(dot.get("team_side") in {"home", "away"} for dot in event_dots)
+
     # Validate card structure
     card = card_msgs[0]["card"]
     assert "card_id" in card, "card missing card_id"

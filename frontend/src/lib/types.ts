@@ -66,6 +66,8 @@ export interface EventDot {
   y: number;
   event_type: string;
   team: string;
+  /** Server-resolved side; display names are a fictional overlay. */
+  team_side?: "home" | "away" | "";
   player: string;
   minute: number;
   outcome: string | null;
