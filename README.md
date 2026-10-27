@@ -19,19 +19,46 @@ Every match is synthetic. The clubs and players are fictional. Every Swahili car
 ## Architecture
 
 ```mermaid
-graph LR
-    GEN["Synthetic event generator"] --> ADAPTER["Event adapter"]
-    ADAPTER --> PIPE["Interpreter → Moment → Personaliser → Explainer → Narrator → Verifier"]
-    PIPE --> RENDER["Overlay renderer"]
-    RENDER --> WS["WebSocket gateway"]
-    RENDER --> SPEECH["Azure AI Speech"]
-    RENDER --> COSMOS["Cosmos DB"]
-    WS --> UI["Next.js viewer"]
-    COSMOS --> API["REST API + MCP"]
-    API --> UI
+flowchart LR
+    subgraph Browser["Browser"]
+        UI["Next.js viewer<br/>/ , /about , /review"]
+    end
+
+    subgraph Backend["FastAPI backend<br/>one replica"]
+        API["REST /v1 + /health"]
+        WS["WebSocket /ws"]
+        MCP["MCP /mcp/ with auth"]
+        PIPE["Six-stage pipeline<br/>+ audio branch"]
+    end
+
+    Foundry["Microsoft Foundry<br/>gpt-5.4 / gpt-5.4-mini"]
+    Speech["Azure AI Speech"]
+    Safety["Azure AI Content Safety"]
+    Cosmos["Cosmos DB"]
+    Blob["Blob Storage<br/>audio"]
+    KV["Key Vault"]
+    AI["Application Insights"]
+    LAW["Log Analytics"]
+    MCPClient["MCP client<br/>bearer auth"]
+
+    UI --> API
+    UI <--> WS
+    MCPClient --> MCP
+    API --> PIPE
+    PIPE --> Foundry
+    PIPE --> Speech
+    PIPE --> Safety
+    PIPE --> Cosmos
+    PIPE --> Blob
+    MCP --> Cosmos
+    KV --> Backend
+    Backend --> AI
+    AI --> LAW
 ```
 
-The backend is deliberately layered: the generator and adapters are swappable, the six pipeline stages are separately testable, and the renderer owns card shape and persistence. The frontend consumes cards, clock updates, and audio updates over one WebSocket.
+The backend is deliberately layered: the generator and adapters are swappable, the six pipeline stages are separately testable, and the renderer owns card shape and persistence. The frontend consumes cards, clock updates, and audio updates over one WebSocket. Captions are sent before audio; the audio path is fail-open and never changes the card.
+
+The full diagram set — system context, backend pipeline and fallback paths, frontend component flow, persistence, Azure infrastructure, observability, live sequence, deployment, and current constraints — is in [`docs/architecture.md`](docs/architecture.md).
 
 ## Quick start (offline)
 
@@ -115,7 +142,8 @@ All match data is synthetic and generated within the hackathon window. Cards and
 - [`docs/glossary.md`](docs/glossary.md) — project vocabulary, file map, and how-to index.
 - [`docs/demo-guide.md`](docs/demo-guide.md) — current video script, pitch outline, screenshots, and submission checklist.
 - [`docs/native-speaker-review.md`](docs/native-speaker-review.md) — review rubric and sign-off.
-- [`docs/architecture-eraser-spec.md`](docs/architecture-eraser-spec.md) — architecture diagram notes.
+- [`docs/architecture.md`](docs/architecture.md) — full architecture and runtime diagrams.
+- [`docs/architecture-eraser-spec.md`](docs/architecture-eraser-spec.md) — pitch-deck export notes.
 
 The older `docs/pitch-deck-guide.md` and `docs/video-script-guide.md` are kept as historical visual references; the demo guide is the current source of truth.
 

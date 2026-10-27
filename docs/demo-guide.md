@@ -150,7 +150,7 @@ The pitch, the heatmap, and the team stats come from the same event stream.”
 
 ### 1:02–1:15 — How it works
 
-**Screen:** Architecture slide or the README Mermaid diagram, dark theme.
+**Screen:** Architecture slide from [`architecture.md`](architecture.md) or the README Mermaid diagram, dark theme.
 
 **Voiceover:** “Foundry agents interpret, select, explain, narrate, and verify.
 Azure AI Speech voices the result. Cosmos DB persists the match, cards, audits,

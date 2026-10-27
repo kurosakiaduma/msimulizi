@@ -4,7 +4,8 @@ This is the working vocabulary for the repository. It is written for someone
 who needs to run the demo, review a card, change a storyline, or explain the
 architecture without reading every module first.
 
-For the submission plan, see [`demo-guide.md`](demo-guide.md). For the human
+For the submission plan, see [`demo-guide.md`](demo-guide.md). For the component
+and runtime diagrams, see [`architecture.md`](architecture.md). For the human
 review protocol, see [`native-speaker-review.md`](native-speaker-review.md).
 For the product scope, see [`msimulizi-project-brief.md`](msimulizi-project-brief.md).
 
