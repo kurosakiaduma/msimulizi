@@ -1,10 +1,15 @@
 # Msimulizi — Architecture Diagram (Eraser.io Spec)
 
-This is the compact **pitch-deck export** for the live demo. It is kept in sync
-with the full Mermaid diagram set in [`architecture.md`](architecture.md):
-system context, container view, backend pipeline and fallbacks, frontend flow,
-persistence, Azure infrastructure, observability, live sequence, deployment,
-and current constraints.
+This is the compact **pitch-deck export** for the live demo. The complete,
+component-by-component Eraser schema is in
+[`architecture-eraser-schema.md`](architecture-eraser-schema.md); use that for a
+new diagram. This smaller block is kept for existing slide links and quick
+edits.
+
+It is aligned with the full Mermaid diagram set in
+[`architecture.md`](architecture.md): system context, container view, backend
+pipeline and fallbacks, frontend flow, persistence, Azure infrastructure,
+observability, live sequence, deployment, and current constraints.
 
 Paste the block below into [eraser.io](https://app.eraser.io) → New Diagram →
 Cloud Architecture. Recommended theme: **Dark**. Export as PNG at 2× for the
@@ -195,6 +200,7 @@ Operator --> Budget
 |---|---|
 | GitHub README | Mermaid (renders inline, no image needed) |
 | Full engineering review | Mermaid in [`architecture.md`](architecture.md) |
+| Full Eraser schema | [`architecture-eraser-schema.md`](architecture-eraser-schema.md) |
 | Pitch deck slide | Eraser.io PNG export (2× dark) |
 | `/about` page in the UI | Link to the README or this diagram |
 | Innovation Studio submission | Eraser.io PNG attached to the project description |

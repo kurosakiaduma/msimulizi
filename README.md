@@ -1,5 +1,15 @@
 # Msimulizi — AI Match Intelligence
 
+[![CI](https://github.com/kurosakiaduma/msimulizi/actions/workflows/ci.yml/badge.svg?branch=main&style=flat-square)](https://github.com/kurosakiaduma/msimulizi/actions/workflows/ci.yml)
+[![Python 3.13+](https://img.shields.io/badge/Python-3.13%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
+[![Node.js 24](https://img.shields.io/badge/Node.js-24-339933?style=flat-square&logo=nodedotjs&logoColor=white)](frontend/package.json)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs&logoColor=white)](frontend/package.json)
+[![FastAPI 0.115+](https://img.shields.io/badge/FastAPI-0.115%2B-009688?style=flat-square&logo=fastapi&logoColor=white)](pyproject.toml)
+[![Azure Container Apps](https://img.shields.io/badge/Azure-Container%20Apps-0078D4?style=flat-square&logo=microsoftazure&logoColor=white)](infra/main.bicep)
+[![Architecture diagrams](https://img.shields.io/badge/Architecture-diagrams-06b6d4?style=flat-square)](docs/architecture.md)
+[![Eraser schema](https://img.shields.io/badge/Eraser-diagram%20schema-7c3aed?style=flat-square)](docs/architecture-eraser-schema.md)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+
 **Msimulizi** (Swahili for “the narrator”) turns a synthetic football event stream into live, explainable commentary cards in **Swahili, English, and French**. It is built for the Microsoft AI Tour Hackathon (*Inside the Game*) and runs as a FastAPI + WebSocket backend with a Next.js viewer.
 
 Every match is synthetic. The clubs and players are fictional. Every Swahili card carries an English gloss; captions are the primary surface and audio is an enhancement. When the audio uses a spoken rewrite, the audio update carries the derived line and its English gloss without changing the card.
@@ -58,11 +68,11 @@ flowchart LR
 
 The backend is deliberately layered: the generator and adapters are swappable, the six pipeline stages are separately testable, and the renderer owns card shape and persistence. The frontend consumes cards, clock updates, and audio updates over one WebSocket. Captions are sent before audio; the audio path is fail-open and never changes the card.
 
-The full diagram set — system context, backend pipeline and fallback paths, frontend component flow, persistence, Azure infrastructure, observability, live sequence, deployment, and current constraints — is in [`docs/architecture.md`](docs/architecture.md).
+The full diagram set — system context, backend pipeline and fallback paths, frontend component flow, persistence, Azure infrastructure, observability, live sequence, deployment, and current constraints — is in [`docs/architecture.md`](docs/architecture.md). The complete Eraser.io input and generation brief are in [`docs/architecture-eraser-schema.md`](docs/architecture-eraser-schema.md).
 
 ## Quick start (offline)
 
-Prerequisites: Python 3.13+, Node.js 20+.
+Prerequisites: Python 3.13+, Node.js 24+.
 
 ```bash
 cp .env.example .env
@@ -143,7 +153,8 @@ All match data is synthetic and generated within the hackathon window. Cards and
 - [`docs/demo-guide.md`](docs/demo-guide.md) — current video script, pitch outline, screenshots, and submission checklist.
 - [`docs/native-speaker-review.md`](docs/native-speaker-review.md) — review rubric and sign-off.
 - [`docs/architecture.md`](docs/architecture.md) — full architecture and runtime diagrams.
-- [`docs/architecture-eraser-spec.md`](docs/architecture-eraser-spec.md) — pitch-deck export notes.
+- [`docs/architecture-eraser-schema.md`](docs/architecture-eraser-schema.md) — complete Eraser.io diagram schema and generation brief.
+- [`docs/architecture-eraser-spec.md`](docs/architecture-eraser-spec.md) — compact pitch-deck export (kept for slide links).
 
 The older `docs/pitch-deck-guide.md` and `docs/video-script-guide.md` are kept as historical visual references; the demo guide is the current source of truth.
 

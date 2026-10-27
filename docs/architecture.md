@@ -18,8 +18,9 @@ The diagrams are intentionally explicit about the demo's constraints:
   actions with `azd deploy backend` / `azd deploy frontend`.
 
 For the vocabulary, see [`glossary.md`](glossary.md). For the demo sequence,
-see [`demo-guide.md`](demo-guide.md). For the pitch-deck export, see
-[`architecture-eraser-spec.md`](architecture-eraser-spec.md).
+see [`demo-guide.md`](demo-guide.md). For the complete Eraser.io diagram schema,
+see [`architecture-eraser-schema.md`](architecture-eraser-schema.md); the smaller
+pitch-deck block is in [`architecture-eraser-spec.md`](architecture-eraser-spec.md).
 
 ---
 
