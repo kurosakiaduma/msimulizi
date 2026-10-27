@@ -8,6 +8,7 @@ dependencies = [
     "azure-cognitiveservices-speech>=1.52.0",
     "azure-cosmos>=4.9.0",
     "azure-identity>=1.26.0",
+    "azure-monitor-opentelemetry>=1.8.11",
     "azure-storage-blob>=12.31.0",
     "fastapi>=0.115.0",
     "httpx>=0.28.0",

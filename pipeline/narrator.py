@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -35,9 +36,12 @@ _RESPONSE_SCHEMA: dict[str, Any] = {
                 "properties": {
                     "claim_type": {"type": "string"},
                     "value": {"type": "string"},
-                    "metric": {"type": "string"},
+                    "metric": {
+                        "type": "string",
+                        "description": "Metric name for claim_type=metric; empty string otherwise.",
+                    },
                 },
-                "required": ["claim_type", "value"],
+                "required": ["claim_type", "value", "metric"],
                 "additionalProperties": False,
             },
         },
@@ -51,9 +55,24 @@ _RESPONSE_SCHEMA: dict[str, Any] = {
             "additionalProperties": False,
         },
     },
-    "required": ["headline", "body", "claims_list"],
+    "required": ["headline", "body", "claims_list", "gloss_en"],
     "additionalProperties": False,
 }
+
+
+def _response_schema(language: str) -> dict[str, Any]:
+    """Return a strict structured-output schema for the requested language.
+
+    OpenAI strict schemas require every object property to be listed in
+    ``required``. The Swahili schema includes the English gloss; English and
+    French omit that property entirely rather than sending an optional field.
+    """
+    if _normalise_language(language) == "sw":
+        return deepcopy(_RESPONSE_SCHEMA)
+    schema = deepcopy(_RESPONSE_SCHEMA)
+    schema["properties"].pop("gloss_en", None)
+    schema["required"].remove("gloss_en")
+    return schema
 
 
 def _agent_key_for_language(language: str) -> str:
@@ -137,6 +156,7 @@ def _system_prompt(language: str, *, max_headline: int = _DEFAULT_MAX_HEADLINE, 
             f"Headline must be <= {max_headline} characters and body must be <= {max_body} characters. "
             "Write every number as digits; copy each numeric display_value verbatim; use score strings like 2-1; do not invent data. "
             "Return JSON only with headline, body, claims_list, and gloss_en. "
+            "Every claims_list item must include claim_type, value, and metric; use an empty string for metric on non-metric claims. "
             "Include a faithful English gloss for every Swahili response."
         )
     return (
@@ -144,7 +164,8 @@ def _system_prompt(language: str, *, max_headline: int = _DEFAULT_MAX_HEADLINE, 
         "Write in the requested language with compelling radio style, using only the supplied facts. "
         f"Headline must be <= {max_headline} characters and body must be <= {max_body} characters. "
         "Write every number as digits; copy each numeric display_value verbatim; do not invent data. "
-        "Return JSON only with headline, body, and claims_list."
+        "Return JSON only with headline, body, and claims_list. "
+        "Every claims_list item must include claim_type, value, and metric; use an empty string for metric on non-metric claims."
     )
 
 
@@ -345,7 +366,7 @@ class NarratorAgent:
             request,
             examples=_load_few_shots(request.language, path=self.few_shot_path),
         )
-        result = self.client.structured_output(agent_key, messages, _RESPONSE_SCHEMA)
+        result = self.client.structured_output(agent_key, messages, _response_schema(request.language))
         if asyncio.iscoroutine(result):
             result = await result
         if not isinstance(result, dict):

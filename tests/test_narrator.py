@@ -6,7 +6,7 @@ import asyncio
 
 import pytest
 
-from pipeline.narrator import NarratorAgent
+from pipeline.narrator import NarratorAgent, _response_schema
 from pipeline.recap_inputs import build_recap_request
 from shared.foundry_client import MockFoundryClient
 from shared.models import MatchState, NarrationRequest
@@ -60,7 +60,23 @@ def narration_request(match_state: MatchState) -> NarrationRequest:
     )
 
 
+def _assert_strict_object_schema(schema: dict) -> None:
+    """OpenAI structured outputs require every property on a strict object."""
+    if schema.get("type") == "object":
+        properties = schema.get("properties", {})
+        assert set(schema.get("required", [])) == set(properties)
+        for child in properties.values():
+            _assert_strict_object_schema(child)
+    if schema.get("type") == "array":
+        _assert_strict_object_schema(schema.get("items", {}))
+
+
 class TestNarratorAgent:
+    def test_response_schema_is_strict_for_nested_claim_items(self) -> None:
+        _assert_strict_object_schema(_response_schema("sw"))
+        _assert_strict_object_schema(_response_schema("en"))
+        _assert_strict_object_schema(_response_schema("fr"))
+
     def test_generate_validates_and_returns_response(self, narration_request: NarrationRequest) -> None:
         mock = MockFoundryClient()
         mock.add_response(
