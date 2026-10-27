@@ -18,7 +18,6 @@ frontend/coverage
 !.env.example
 *.log
 docs/*.jpeg
-evals
 tests
 .kiro
 infra

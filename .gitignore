@@ -84,4 +84,6 @@ coverage.xml
 
 # Build artefacts
 bundle/audio/
-evals/results/
+# Keep the latest groundedness artifact; the backend image copies it.
+evals/results/*
+!evals/results/groundedness_latest.json

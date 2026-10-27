@@ -678,7 +678,7 @@ async def get_review_dashboard(request: Request, state: Any = Depends(_get_clien
         "verdict_fail": snap["verdict_fail"],
         "fallback_count": snap["fallback_count"],
         "quota_exceeded_count": snap["quota_exceeded_count"],
-        "groundedness_score": groundedness_score if groundedness_score is not None else 0.0,
+        "groundedness_score": groundedness_score,
         "rating_queue_size": len(pending),
         "corrections": corrections,
         "swahili_review": swahili_review,

@@ -176,6 +176,11 @@ def test_native_speaker_review_records_scores_and_publishes_no_premature_average
     assert refreshed["reviewed"] == 1
     assert refreshed["sign_off_required"] is True
 
+    dashboard = client.get("/v1/review", headers=headers)
+    assert dashboard.status_code == 200
+    assert dashboard.json()["groundedness_score"] == 1.0
+    assert dashboard.json()["swahili_review"]["count"] >= 30
+
 
 def test_native_speaker_review_requires_scores_and_gloss(monkeypatch) -> None:
     monkeypatch.setenv("MSIMULIZI_REVIEWER_KEY", "reviewer-secret")

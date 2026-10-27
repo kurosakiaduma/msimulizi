@@ -58,7 +58,7 @@ interface SwahiliReviewPayload {
 interface ReviewData {
   corrections: Correction[];
   latency: LatencyMetric[];
-  groundedness_score: number;
+  groundedness_score: number | null;
   rating_queue_size: number;
   swahili_review: SwahiliReviewPayload;
 }
@@ -416,14 +416,22 @@ export default function ReviewPage() {
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 <div
                   className="rounded-lg bg-[--bg-elevated] border border-[--border-subtle] p-3"
-                  aria-label={`Groundedness score: ${(data.groundedness_score * 100).toFixed(1)}%`}
+                  aria-label={
+                    data.groundedness_score === null
+                      ? "Groundedness score: no eval data"
+                      : `Groundedness score: ${(data.groundedness_score * 100).toFixed(1)}%`
+                  }
                 >
                   <p className="text-[9px] uppercase tracking-widest text-[--text-muted] mb-1">
                     Groundedness
                   </p>
                   <p className="text-2xl font-bold text-[--text-primary] tabular-nums">
-                    {(data.groundedness_score * 100).toFixed(1)}
-                    <span className="text-sm text-[--text-muted] ml-0.5">%</span>
+                    {data.groundedness_score === null
+                      ? "—"
+                      : (data.groundedness_score * 100).toFixed(1)}
+                    {data.groundedness_score !== null && (
+                      <span className="text-sm text-[--text-muted] ml-0.5">%</span>
+                    )}
                   </p>
                 </div>
                 <div

@@ -34,6 +34,9 @@ COPY explainer ./explainer
 COPY config ./config
 COPY bundle ./bundle
 COPY scripts ./scripts
+# Latest groundedness eval is a tiny runtime artifact, not a build dependency.
+# The review dashboard reads it; without it the UI must say "no eval data".
+COPY evals/results/groundedness_latest.json ./evals/results/groundedness_latest.json
 COPY LICENSE README.md DATA_PROVENANCE.md ./
 COPY pyproject.toml uv.lock ./
 
