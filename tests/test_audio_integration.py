@@ -13,6 +13,7 @@ from typing import Any
 
 import pytest
 
+from api.pipeline_runner import _audio_emotion_event, _audio_perspective
 from renderer.audio.bridge import (
     build_audio_request,
     card_text_for_language,
@@ -261,6 +262,18 @@ def test_ssml_adds_broadcast_breath_and_audible_excitement_prosody() -> None:
 # ---------------------------------------------------------------------------
 # Card bridge
 # ---------------------------------------------------------------------------
+
+
+def test_audio_emotion_reads_perspective_and_goal_text() -> None:
+    assert _audio_perspective("home", "Nyota FC", "Nyota FC") == "favourable"
+    assert _audio_perspective("home", "Jua United", "Nyota FC") == "unfavourable"
+    assert _audio_perspective("neutral", "Jua United", "Nyota FC") == "neutral"
+
+    goal_card = SimpleNamespace(text={"sw": {"headline": "Goli! Juma anafunga"}})
+    card_card = SimpleNamespace(text={"sw": {"headline": "Kadi nyekundu"}})
+    assert _audio_emotion_event(["big_chance"], goal_card) == "goal"
+    assert _audio_emotion_event(["red_card"], card_card) == "red_card"
+    assert _audio_emotion_event(["momentum_swing"], goal_card) == "goal"
 
 
 def test_card_text_and_request_mapping_for_swahili() -> None:

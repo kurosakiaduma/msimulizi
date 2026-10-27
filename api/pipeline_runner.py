@@ -77,12 +77,32 @@ def _audio_perspective(
     return "favourable" if favourable else "unfavourable"
 
 
-def _audio_emotion_event(trigger_tags: list[str] | tuple[str, ...] | None) -> str:
+def _audio_emotion_event(
+    trigger_tags: list[str] | tuple[str, ...] | None,
+    card: Any | None = None,
+) -> str:
     """Collapse moment tags into the emotion policy's small event vocabulary."""
+    # Some bundle and cache paths label a goal follow-up as a generic key
+    # moment. Read the approved headline first so a "Goli!" line still gets
+    # goal delivery instead of the calmer big-chance or momentum baseline.
+    headline = ""
+    if card is not None:
+        text = getattr(card, "text", None)
+        if isinstance(text, dict):
+            for value in text.values():
+                if isinstance(value, dict) and value.get("headline"):
+                    headline = str(value["headline"]).strip().lower()
+                    break
+        elif isinstance(text, str):
+            headline = text.strip().lower()
+    if headline.startswith(("goli", "gool", "goal", "but")):
+        return "goal"
+
     tags = {str(tag).strip().lower() for tag in (trigger_tags or [])}
     for candidate in ("equaliser", "goal", "red_card", "big_chance"):
         if candidate in tags:
             return candidate
+
     return "momentum_swing"
 
 
@@ -646,6 +666,7 @@ async def run_pipeline_session(
                             ),
                             emotion_event=_audio_emotion_event(
                                 key_moment.trigger_tags,
+                                card,
                             ),
                         ),
                         name=f"audio-{card.card_id}",
