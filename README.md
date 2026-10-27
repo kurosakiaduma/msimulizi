@@ -76,6 +76,12 @@ The full diagram set — system context, backend pipeline and fallback paths, fr
 
 *Current 2× Eraser.io export of the deployed architecture. The Mermaid diagrams in [`docs/architecture.md`](docs/architecture.md) remain the canonical source for the caption-first ordering, one-replica backend, and the 0/56 native-review gate.*
 
+### Deployed Azure resource graph
+
+[![Azure Resource Visualizer for rg-msimulizi-demo2](docs/azure-resource-visualizer.jpg)](docs/azure-resource-visualizer.jpg)
+
+*Azure Resource Visualizer export for `rg-msimulizi-demo2` on 27 October 2026, showing the live resource names and observed links. `ApplicationInsightsSmartDetection` is an auto-created action group with no alert rules and zero direct cost; it is not provisioned by `infra/main.bicep`. The Mermaid topology in [`docs/architecture.md`](docs/architecture.md#6-azure-infrastructure-topology) is the canonical inventory and records the deliberate gaps.*
+
 ## Quick start (offline)
 
 Prerequisites: Python 3.13+, Node.js 24+.
@@ -160,6 +166,7 @@ All match data is synthetic and generated within the hackathon window. Cards and
 - [`docs/native-speaker-review.md`](docs/native-speaker-review.md) — review rubric and sign-off.
 - [`docs/architecture.md`](docs/architecture.md) — full architecture and runtime diagrams.
 - [`docs/architecture-overview.png`](docs/architecture-overview.png) — rendered full architecture overview (Eraser.io export).
+- [`docs/azure-resource-visualizer.jpg`](docs/azure-resource-visualizer.jpg) — Azure Resource Visualizer export of the live resource group.
 - [`docs/architecture-eraser-schema.md`](docs/architecture-eraser-schema.md) — complete Eraser.io diagram schema and generation brief.
 - [`docs/architecture-eraser-spec.md`](docs/architecture-eraser-spec.md) — compact pitch-deck export (kept for slide links).
 

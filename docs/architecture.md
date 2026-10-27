@@ -28,7 +28,7 @@ pitch-deck block is in [`architecture-eraser-spec.md`](architecture-eraser-spec.
 
 [![Msimulizi architecture overview](architecture-overview.png)](architecture-overview.png)
 
-*Current Eraser.io export of the deployed components and paths. The Mermaid diagrams below remain the canonical engineering source; the image is an export, not a replacement for the review-gate and runtime annotations in this document.*
+*Current Eraser.io export of the deployed components and paths. The Mermaid diagrams below remain the canonical engineering source; the image is an export, not a replacement for the review-gate and runtime annotations in this document. The live resource-group export is in [Section 6](#6-azure-infrastructure-topology).*
 
 ---
 
@@ -495,6 +495,12 @@ flowchart TB
     AI2 -->|"workspace"| LAW
     Budget -.->|"50 / 80 / 100 actual<br/>100 forecast alerts"| Operator["Operator email / Owner role"]
 ```
+
+### Live Azure Resource Visualizer export
+
+[![Azure Resource Visualizer for rg-msimulizi-demo2](azure-resource-visualizer.jpg)](azure-resource-visualizer.jpg)
+
+*Azure Resource Visualizer export for `rg-msimulizi-demo2` on 27 October 2026. It records the deployed resource names and observed links; it is a point-in-time inventory, not a deployment manifest. `ApplicationInsightsSmartDetection` is an auto-created action group with no alert rules and zero direct cost, and is not provisioned by `infra/main.bicep`. The Mermaid topology above remains the canonical inventory and records the deliberate gaps.*
 
 ### Deployments and service choices
 
