@@ -128,72 +128,13 @@ jobs:
         if: steps.validate-check.outputs.exists == 'true'
         run: python generator/validate.py
 
-  # ── Deploy to Azure (task 31) ──────────────────────────────────────────────
-  # Runs on push to main after all test jobs pass.  Authenticates to Azure via
-  # GitHub OIDC (federated identity — no long-lived credentials), then provisions
-  # infrastructure and deploys the backend + frontend services with `azd up`.
-  # The backend is deployed with minReplicas=1 and scale-to-zero disabled
-  # (infra/main.bicep) so the live demo stays warm.
-  deploy:
-    name: Deploy to Azure (azd)
-    needs: [hygiene, lint, backend-tests, frontend-tests, validate-generator]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    env:
-      AZURE_ENV_NAME: dev
-      AZURE_LOCATION: eastus2  # verified for Cosmos, gpt-5.4, and sw-KE / sw-TZ voices
-      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      # ── GitHub OIDC → Azure (federated identity, no client secret) ─────────
-      - name: Azure login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-Oidc: true
-
-      # ── Azure Developer CLI (azd) ──────────────────────────────────────────
-      - name: Install Azure Developer CLI (azd)
-        run: |
-          curl -fsSL https://azd.github.io/install.sh | sh -s -- -d /usr/local/bin
-          echo "$HOME/.azd/bin" >> "$GITHUB_PATH"
-          azd --version
-
-      - name: Configure azd environment
-        run: |
-          azd env select "${AZURE_ENV_NAME}" 2>/dev/null || \
-            azd env new "${AZURE_ENV_NAME}" \
-              --subscription "${AZURE_SUBSCRIPTION_ID}" \
-              --location "${AZURE_LOCATION}" \
-              --no-prompt
-          azd env set AZURE_SUBSCRIPTION_ID "${AZURE_SUBSCRIPTION_ID}"
-          azd env set AZURE_LOCATION "${AZURE_LOCATION}"
-
-      - name: Provision infrastructure and deploy services (azd up)
-        run: |
-          # azd builds and pushes the two container images (Dockerfile.backend
-          # and frontend/Dockerfile per azure.yaml) and deploys them to the
-          # Container Apps environment defined in infra/main.bicep.
-          azd up --no-prompt
-
-      # ── Post-deploy verification (task 31) ─────────────────────────────────
-      # Confirms Swahili voices (sw-KE/sw-TZ) are available and that Foundry
-      # model retirement dates cover the judging window (through 10 Nov 2026).
-      # Best-effort: the SPEECH/FOUNDRY endpoints are only known after azd up
-      # provisions them, so this step gracefully skips when they are unset and
-      # does not fail the build. It is also run manually after deployment via
-      # `python scripts/verify_azure_deployment.py`.
-      - name: Verify Azure deployment (voices + model retirement dates)
-        continueOnError: true
-        run: python scripts/verify_azure_deployment.py
-        env:
-          SPEECH_ENDPOINT: ${{ secrets.SPEECH_ENDPOINT }}
-          SPEECH_API_KEY: ${{ secrets.SPEECH_API_KEY }}
-          FOUNDRY_ENDPOINT: ${{ secrets.FOUNDRY_ENDPOINT }}
-          FOUNDRY_API_KEY: ${{ secrets.FOUNDRY_API_KEY }}
+  # ── Deployment is deliberately NOT part of CI ─────────────────────────────
+  # CI must be read-only with respect to Azure. It never logs in, provisions,
+  # creates an azd environment, or deploys to an existing environment.
+  #
+  # Deployments are explicit operator actions:
+  #   azd env select msimulizi-demo2
+  #   azd deploy
+  # The live runbook is local-only in docs/azure-resources-and-env.md and
+  # docs/azure-production-guide.md (gitignored).
 

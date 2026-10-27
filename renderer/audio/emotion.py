@@ -28,7 +28,7 @@ from .contract import Emotion
 
 # Increment whenever emotion or prosody policy changes in a way that may alter
 # generated audio. This version contributes to the cache key.
-PROSODY_VERSION = "p2"
+PROSODY_VERSION = "p3"
 
 
 # ===========================================================================
@@ -71,25 +71,25 @@ _EMOTION_TABLE: dict[
     tuple[str, str],
     tuple[Emotion, float],
 ] = {
-    ("goal", "favourable"): ("excitement", 0.85),
-    ("goal", "unfavourable"): ("disappointment", 0.70),
-    ("goal", "neutral"): ("excitement", 0.75),
+    ("goal", "favourable"): ("excitement", 0.95),
+    ("goal", "unfavourable"): ("disappointment", 0.80),
+    ("goal", "neutral"): ("excitement", 0.90),
 
-    ("equaliser", "favourable"): ("relief", 0.90),
-    ("equaliser", "unfavourable"): ("shock", 0.80),
-    ("equaliser", "neutral"): ("excitement", 0.85),
+    ("equaliser", "favourable"): ("relief", 0.95),
+    ("equaliser", "unfavourable"): ("shock", 0.90),
+    ("equaliser", "neutral"): ("excitement", 0.95),
 
-    ("red_card", "favourable"): ("anticipation", 0.60),
-    ("red_card", "unfavourable"): ("shock", 0.75),
-    ("red_card", "neutral"): ("tension", 0.70),
+    ("red_card", "favourable"): ("anticipation", 0.70),
+    ("red_card", "unfavourable"): ("shock", 0.85),
+    ("red_card", "neutral"): ("tension", 0.80),
 
-    ("big_chance", "favourable"): ("anticipation", 0.75),
-    ("big_chance", "unfavourable"): ("tension", 0.75),
-    ("big_chance", "neutral"): ("anticipation", 0.65),
+    ("big_chance", "favourable"): ("anticipation", 0.85),
+    ("big_chance", "unfavourable"): ("tension", 0.85),
+    ("big_chance", "neutral"): ("anticipation", 0.75),
 
-    ("momentum_swing", "favourable"): ("anticipation", 0.50),
-    ("momentum_swing", "unfavourable"): ("tension", 0.60),
-    ("momentum_swing", "neutral"): ("tension", 0.50),
+    ("momentum_swing", "favourable"): ("anticipation", 0.60),
+    ("momentum_swing", "unfavourable"): ("tension", 0.70),
+    ("momentum_swing", "neutral"): ("tension", 0.60),
 }
 
 
@@ -127,7 +127,7 @@ def emotion_for_moment(
     )
 
     if late_game:
-        intensity = min(1.0, intensity + 0.10)
+        intensity = min(1.0, intensity + 0.12)
 
     return emotion, round(clamp01(intensity), 2)
 
@@ -165,22 +165,23 @@ class Prosody:
 
 _EMOTION_PROSODY: dict[Emotion, Prosody] = {
     "neutral":        Prosody(0, 0, 0),
-    "anticipation":   Prosody(12, 7, 8),
-    "excitement":     Prosody(24, 14, 25),
-    "shock":          Prosody(16, 15, 22),
-    "relief":         Prosody(-8, -4, 10),
-    "disappointment": Prosody(-18, -12, -15),
-    "tension":        Prosody(10, 9, -8),
+    "anticipation":   Prosody(18, 10, 12),
+    "excitement":     Prosody(34, 18, 32),
+    "shock":          Prosody(24, 20, 30),
+    "relief":         Prosody(-10, -5, 12),
+    "disappointment": Prosody(-24, -16, -20),
+    "tension":        Prosody(14, 12, -6),
 }
 
 
 # Safety limits for the baseline SSML offsets.
 # Avoid extreme speed, pitch and gain changes that can reduce intelligibility
-# or make the performance sound cartoonish.
+# or make the performance sound cartoonish. Swahili Azure voices advertise no
+# express-as styles, so these bounded offsets are the entire emotional signal.
 _LIMITS: dict[str, tuple[int, int]] = {
-    "rate": (-25, 30),
-    "pitch": (-15, 15),
-    "volume": (-30, 30),
+    "rate": (-30, 40),
+    "pitch": (-20, 20),
+    "volume": (-30, 40),
 }
 
 

@@ -62,6 +62,30 @@ def _card_to_dict(card: OverlayCard) -> dict[str, Any]:
     return d
 
 
+def _audio_perspective(
+    club_perspective: str | None,
+    event_team: str | None,
+    home_team: str | None,
+) -> str:
+    """Map the viewer's home/away stance to the audio emotion perspective."""
+    stance = str(club_perspective or "neutral").strip().lower()
+    if stance not in {"home", "away"} or not event_team or not home_team:
+        return "neutral"
+
+    event_is_home = event_team == home_team
+    favourable = event_is_home if stance == "home" else not event_is_home
+    return "favourable" if favourable else "unfavourable"
+
+
+def _audio_emotion_event(trigger_tags: list[str] | tuple[str, ...] | None) -> str:
+    """Collapse moment tags into the emotion policy's small event vocabulary."""
+    tags = {str(tag).strip().lower() for tag in (trigger_tags or [])}
+    for candidate in ("equaliser", "goal", "red_card", "big_chance"):
+        if candidate in tags:
+            return candidate
+    return "momentum_swing"
+
+
 async def _render_card_audio(
     *,
     card: Any,
@@ -71,6 +95,8 @@ async def _render_card_audio(
     match_id: str,
     session_id: str,
     existing_audio_url: str | None = None,
+    perspective: str = "neutral",
+    emotion_event: str | None = None,
 ) -> None:
     """Synthesize one card's audio and broadcast ``audio_update``.
 
@@ -96,6 +122,8 @@ async def _render_card_audio(
             language=language,
             publish=publish,
             existing_audio_url=existing_audio_url,
+            perspective=perspective,
+            emotion_event=emotion_event,
         )
     except Exception as exc:  # pragma: no cover - service already contains most
         logger.warning("[audio] card %s failed: %s", getattr(card, "card_id", "?"), exc)
@@ -245,10 +273,6 @@ async def run_pipeline_session(
         task.add_done_callback(_persistence_done)
 
     recent_events: list[Any] = []
-    # Use one epoch anchor for the whole replay so the browser can derive the
-    # same continuously advancing match clock between event notifications.
-    clock_anchor_wall = time.time() * 1000.0
-    clock_anchor_match = 0.0
 
     try:
         async for event in adapter.events(session_id, speed=speed):
@@ -264,16 +288,21 @@ async def run_pipeline_session(
             # 2. Broadcast clock update + event dot so the browser tracks
             #    match time and the pitch shows event locations
             # ----------------------------------------------------------
+            # Re-anchor on every event. A single session-start anchor assumed
+            # event playback ran at exactly wall-clock speed; slow LLM/TTS turns
+            # violated that assumption and could move the viewer's clock ahead
+            # of the cards, then snap it backwards on the next update.
+            event_match_seconds = float(event.minute * 60 + event.second)
             clock_payload = {
                 "period": event.period,
                 "minute": event.minute,
                 "second": event.second,
                 "score_home": event.score_home,
                 "score_away": event.score_away,
-                "match_seconds": float(event.minute * 60 + event.second),
+                "match_seconds": event_match_seconds,
                 "speed": speed,
-                "anchor_wall": clock_anchor_wall,
-                "anchor_match": clock_anchor_match,
+                "anchor_wall": time.time() * 1000.0,
+                "anchor_match": event_match_seconds,
                 # rolling state for momentum / possession / xG display
                 "momentum_home": round(state.momentum_home, 1),
                 "momentum_away": round(state.momentum_away, 1),
@@ -599,6 +628,8 @@ async def run_pipeline_session(
 
                 # Speech runs after the caption. Bundle cards already carry a
                 # pre-generated URL, so only synthesize when audio is missing.
+                # Perspective and moment type drive the emotion policy; without
+                # them every line used the neutral baseline and sounded flat.
                 if audio_service is not None and not card.audio_url:
                     task = asyncio.create_task(
                         _render_card_audio(
@@ -608,6 +639,14 @@ async def run_pipeline_session(
                             ws_manager=ws_manager,
                             match_id=match_id,
                             session_id=session_id,
+                            perspective=_audio_perspective(
+                                getattr(narration_request, "club_perspective", None),
+                                event.team,
+                                getattr(interpreter, "home_team", None),
+                            ),
+                            emotion_event=_audio_emotion_event(
+                                key_moment.trigger_tags,
+                            ),
                         ),
                         name=f"audio-{card.card_id}",
                     )

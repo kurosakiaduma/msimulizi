@@ -39,6 +39,21 @@ _INVALID_XML_RE = re.compile(
     r"[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFE\uFFFF]"
 )
 
+# Split after sentence punctuation so a goal call gets a short breath between
+# the headline and the explanatory body. This is deliberately small (110 ms):
+# the aim is broadcast cadence, not theatrical pauses.
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
+_BREATH_MS = 110
+
+
+def _spoken_body(text: str) -> str:
+    """Escape text and add a short breath between sentences."""
+    parts = [part for part in _SENTENCE_SPLIT_RE.split(text) if part]
+    if len(parts) <= 1:
+        return escape(text)
+
+    return f'<break time="{_BREATH_MS}ms"/>'.join(escape(part) for part in parts)
+
 
 def _locale_for_request(req: AudioRequest) -> str:
     """
@@ -127,7 +142,7 @@ def build_ssml(
         f'<prosody rate="{prosody.rate:+d}%" '
         f'pitch="{prosody.pitch:+d}%" '
         f'volume="{prosody.volume:+d}%">'
-        f"{escape(spoken)}"
+        f"{_spoken_body(spoken)}"
         "</prosody>"
     )
 

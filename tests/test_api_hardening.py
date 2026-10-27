@@ -134,6 +134,71 @@ def test_match_state_route_reads_latest_cosmos_snapshot() -> None:
     assert response.json()["state"]["snapshot"]["minute"] == 42
 
 
+def test_native_speaker_review_records_scores_and_publishes_no_premature_average(monkeypatch) -> None:
+    monkeypatch.setenv("MSIMULIZI_REVIEWER_KEY", "reviewer-secret")
+    client = TestClient(create_app())
+    headers = {"x-reviewer-key": "reviewer-secret"}
+
+    assert client.get("/v1/review/swahili").status_code == 401
+
+    queue = client.get("/v1/review/swahili", headers=headers)
+    assert queue.status_code == 200
+    payload = queue.json()
+    assert payload["count"] >= 30
+    assert payload["sign_off_required"] is True
+    item = payload["items"][0]
+    assert item["gloss_headline"]
+
+    submitted = client.post(
+        "/v1/review/swahili",
+        headers=headers,
+        json={
+            "id": item["id"],
+            "card_id": item["card_id"],
+            "match_id": item["match_id"],
+            "headline": item["headline"],
+            "body": item["body"],
+            "gloss_headline": item["gloss_headline"],
+            "gloss_body": item["gloss_body"],
+            "fluency": 5,
+            "idiom": 4,
+            "faithfulness": 5,
+            "note": "Natural radio register.",
+            "reviewer": "Asha",
+        },
+    )
+    assert submitted.status_code == 200
+    assert submitted.json()["requires_second_review"] is False
+
+    refreshed = client.get("/v1/review/swahili", headers=headers).json()
+    reviewed = next(row for row in refreshed["items"] if row["id"] == item["id"])
+    assert reviewed["review"]["reviewer"] == "Asha"
+    assert refreshed["reviewed"] == 1
+    assert refreshed["sign_off_required"] is True
+
+
+def test_native_speaker_review_requires_scores_and_gloss(monkeypatch) -> None:
+    monkeypatch.setenv("MSIMULIZI_REVIEWER_KEY", "reviewer-secret")
+    client = TestClient(create_app())
+    headers = {"x-reviewer-key": "reviewer-secret"}
+
+    response = client.post(
+        "/v1/review/swahili",
+        headers=headers,
+        json={
+            "id": "sw-test",
+            "headline": "Goli!",
+            "gloss_headline": "Goal!",
+            "fluency": 0,
+            "idiom": 4,
+            "faithfulness": 4,
+            "reviewer": "Asha",
+        },
+    )
+
+    assert response.status_code == 422
+
+
 def test_reviewer_can_approve_and_reject_corrections(monkeypatch) -> None:
     monkeypatch.setenv("MSIMULIZI_REVIEWER_KEY", "reviewer-secret")
     client = TestClient(create_app())

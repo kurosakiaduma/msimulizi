@@ -1,9 +1,57 @@
 "use client";
 
-import type { MatchState } from "@/lib/types";
+import type { EventDot, MatchState } from "@/lib/types";
 
 interface Props {
   state: MatchState;
+  /** Recent event dots, used for the analyst-mode team stat table. */
+  events?: EventDot[];
+}
+
+interface TeamStatLine {
+  shots: number;
+  goals: number;
+  passes: number;
+  tackles: number;
+  cards: number;
+}
+
+function emptyStatLine(): TeamStatLine {
+  return { shots: 0, goals: 0, passes: 0, tackles: 0, cards: 0 };
+}
+
+function teamStats(events: EventDot[], homeTeam: string, awayTeam: string) {
+  const home = emptyStatLine();
+  const away = emptyStatLine();
+
+  for (const event of events) {
+    const line = event.team === homeTeam ? home : event.team === awayTeam ? away : null;
+    if (!line) continue;
+
+    switch (event.event_type) {
+      case "shot":
+        line.shots += 1;
+        break;
+      case "goal":
+        line.goals += 1;
+        line.shots += 1;
+        break;
+      case "pass":
+        line.passes += 1;
+        break;
+      case "tackle":
+      case "interception":
+        line.tackles += 1;
+        break;
+      case "card":
+        line.cards += 1;
+        break;
+      default:
+        break;
+    }
+  }
+
+  return { home, away };
 }
 
 function Bar({ label, value, max = 100, color = "bg-violet-500", unit = "%" }: {
@@ -49,7 +97,14 @@ function DualBar({ label, homeVal, awayVal, homeLabel, awayLabel }: {
   const awayPct = (awayVal / total) * 100;
 
   return (
-    <div className="flex flex-col gap-0.5" role="meter" aria-label={`${label}: ${homeLabel} ${Math.round(homePct)}% vs ${awayLabel} ${Math.round(awayPct)}%`}>
+    <div
+      className="flex flex-col gap-0.5"
+      role="meter"
+      aria-label={`${label}: ${homeLabel} ${Math.round(homePct)}% vs ${awayLabel} ${Math.round(awayPct)}%`}
+      aria-valuenow={Math.round(homePct)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    >
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-medium uppercase tracking-wider text-[--text-muted]">
           {label}
@@ -74,7 +129,9 @@ function DualBar({ label, homeVal, awayVal, homeLabel, awayLabel }: {
   );
 }
 
-export function MetricHUD({ state }: Props) {
+export function MetricHUD({ state, events = [] }: Props) {
+  const stats = teamStats(events, state.team_home, state.team_away);
+
   return (
     <section
       aria-label="Match metrics"
@@ -136,6 +193,43 @@ export function MetricHUD({ state }: Props) {
         homeLabel={state.team_home}
         awayLabel={state.team_away}
       />
+
+      <div className="pt-1 border-t border-[--border-subtle]">
+        <h4 className="text-[10px] font-semibold uppercase tracking-widest text-[--text-muted] mb-2">
+          Event Stats
+        </h4>
+        <table className="w-full text-[10px] tabular-nums" aria-label="Team event statistics">
+          <thead>
+            <tr className="text-[--text-muted]">
+              <th scope="col" className="text-left font-medium pb-1">Team</th>
+              <th scope="col" className="text-right font-medium pb-1">Shots</th>
+              <th scope="col" className="text-right font-medium pb-1">Goals</th>
+              <th scope="col" className="text-right font-medium pb-1">Passes</th>
+              <th scope="col" className="text-right font-medium pb-1">Tackles</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="text-[--text-secondary]">
+              <th scope="row" className="text-left font-medium py-0.5 truncate max-w-[10rem]">
+                {state.team_home}
+              </th>
+              <td className="text-right">{stats.home.shots}</td>
+              <td className="text-right">{stats.home.goals}</td>
+              <td className="text-right">{stats.home.passes}</td>
+              <td className="text-right">{stats.home.tackles}</td>
+            </tr>
+            <tr className="text-[--text-secondary]">
+              <th scope="row" className="text-left font-medium py-0.5 truncate max-w-[10rem]">
+                {state.team_away}
+              </th>
+              <td className="text-right">{stats.away.shots}</td>
+              <td className="text-right">{stats.away.goals}</td>
+              <td className="text-right">{stats.away.passes}</td>
+              <td className="text-right">{stats.away.tackles}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

@@ -1,7 +1,11 @@
+# The generator emits a highlight feed (goals plus scripted key events), not
+# every attempt in a 90-minute match. `total_shots` counts shot events present
+# in that feed, so these bands are deliberately narrower than full-match
+# StatsBomb shot counts. Goals and xG remain comparable and are still checked.
 comeback_from_two_down:
   total_shots:
-    min: 8
-    max: 30
+    min: 3
+    max: 12
   goals_home:
     min: 2
     max: 5
@@ -17,8 +21,8 @@ comeback_from_two_down:
 
 red_card_shift:
   total_shots:
-    min: 8
-    max: 28
+    min: 3
+    max: 12
   goals_home:
     min: 1
     max: 4
@@ -34,8 +38,8 @@ red_card_shift:
 
 late_equaliser:
   total_shots:
-    min: 8
-    max: 26
+    min: 3
+    max: 12
   goals_home:
     min: 1
     max: 3
@@ -51,8 +55,8 @@ late_equaliser:
 
 dominant_side_loses:
   total_shots:
-    min: 9
-    max: 30
+    min: 3
+    max: 12
   goals_home:
     min: 1
     max: 4

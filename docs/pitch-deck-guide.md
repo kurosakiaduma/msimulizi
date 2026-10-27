@@ -90,7 +90,7 @@ Big numbers, one per row:
 | | |
 |---|---|
 | **100%** | Groundedness score (50-entry heuristic eval) |
-| **4.2 / 5** | Native-speaker Swahili rating (30 lines) |
+| **Pending** | Native-speaker Swahili review (30-line sign-off required) |
 | **≤ 5 s p50** | Card latency target |
 | **≤ 10 s p95** | Card latency target |
 | **≥ 90%** | Verifier pass rate target |

@@ -72,9 +72,9 @@ Highlight the Azure services with brief labels appearing one at a time:
 Show:
 1. The latency chart — p50 and p95 bars for card and audio latency
 2. The groundedness score tile: **100%**
-3. The native-speaker rating tile: **4.2 / 5**
+3. The native-speaker review queue — show a line being scored, not a fabricated average
 
-**Voiceover:** "The built-in review dashboard shows live latency metrics and quality scores — groundedness checked across 50 moments, Swahili lines rated by native speakers."
+**Voiceover:** "The built-in review dashboard shows live latency and groundedness, and it gives a Swahili speaker a real queue to score. We only publish an average after 30 lines are signed off."
 
 ---
 

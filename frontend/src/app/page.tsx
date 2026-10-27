@@ -201,11 +201,11 @@ export default function Home() {
           const matchSecs =
             c.match_seconds ?? ((c.minute ?? 0) * 60 + (c.second ?? 0));
           const spd = c.speed ?? clock.speed;
-          clock.updateAnchor(
-            c.anchor_wall ?? Date.now(),
-            c.anchor_match ?? matchSecs,
-            spd
-          );
+          // Use the authoritative event time at the moment the packet is
+          // received. The backend's wall anchor is useful for other clients,
+          // but using it here made the clock drift ahead during slow LLM/TTS
+          // turns and then snap backwards when a card re-anchored.
+          clock.updateAnchor(Date.now(), matchSecs, spd);
           setMatchState((s) => ({
             ...s,
             score_home: c.score_home ?? s.score_home,
@@ -297,7 +297,7 @@ export default function Home() {
     setLatestEvent(null);
     setScheduler(createSchedulerState());
     setMatchState({ ...DEFAULT_MATCH_STATE });
-    clock.updateAnchor(Date.now(), 0, 1);
+    clock.reset();
 
     const config = await loadRuntimeConfig();
 
@@ -507,7 +507,7 @@ export default function Home() {
 
           {/* Momentum / metric HUD */}
           {showAnalyst ? (
-            <MetricHUD state={matchState} />
+            <MetricHUD state={matchState} events={events} />
           ) : (
             <div
               className="flex items-center gap-3 p-3 rounded-lg bg-[--bg-inset] border border-[--border-subtle]"

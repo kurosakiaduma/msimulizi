@@ -239,6 +239,25 @@ def test_ssml_escapes_text_and_uses_swahili_locale() -> None:
     assert "&lt;wamefungwa&gt;" in ssml
 
 
+def test_ssml_adds_broadcast_breath_and_audible_excitement_prosody() -> None:
+    request = make_request("Goli! Nyota wanasawazisha. Dakika ya 88.")
+    request = AudioRequest(
+        **{
+            **request.__dict__,
+            "language": "sw",
+            "voice_id": "sw-KE-ZuriNeural",
+            "intensity": 1.0,
+        }
+    )
+
+    ssml = build_ssml(request)
+
+    assert '<break time="110ms"/>' in ssml
+    assert 'rate="+34%"' in ssml
+    assert 'pitch="+18%"' in ssml
+    assert 'volume="+32%"' in ssml
+
+
 # ---------------------------------------------------------------------------
 # Card bridge
 # ---------------------------------------------------------------------------

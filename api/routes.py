@@ -7,12 +7,14 @@ app.state for simple demo and unit-test convenience.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import pathlib
 import time
 import uuid
 from datetime import datetime, timezone
+from functools import lru_cache
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -36,8 +38,199 @@ class CorrectionIn(BaseModel):
     note: str | None = None
 
 
+class SwahiliReviewIn(BaseModel):
+    """One native-speaker review of a generated Swahili card."""
+
+    id: str
+    card_id: str = ""
+    match_id: str = ""
+    headline: str
+    body: str = ""
+    gloss_headline: str = ""
+    gloss_body: str = ""
+    fluency: int
+    idiom: int
+    faithfulness: int
+    note: str = ""
+    corrected_headline: str = ""
+    corrected_body: str = ""
+    reviewer: str
+    blocking: bool = False
+
+
 def _get_client_state(request: Request) -> Any:
     return request.app.state
+
+
+def _require_reviewer(request: Request) -> None:
+    """Reviewer routes accept either the reviewer key or the API key."""
+    reviewer_key = os.getenv("MSIMULIZI_REVIEWER_KEY")
+    header = request.headers.get("x-reviewer-key") or request.headers.get("x-api-key")
+    if reviewer_key is None or header != reviewer_key:
+        raise HTTPException(status_code=401, detail="Reviewer key required")
+
+
+@lru_cache(maxsize=1)
+def _swahili_review_seed() -> tuple[dict[str, Any], ...]:
+    """Load the unique Swahili bundle lines that need a human review.
+
+    The bundle is static and local, so the read is cached for the process.
+    Lines are deduplicated by their Swahili text because the same card appears
+    for several profiles. A line without an English gloss is not reviewable:
+    the rubric requires the gloss for the reviewer and for the product.
+    """
+    root = pathlib.Path(__file__).resolve().parents[1]
+    narrations = root / "bundle" / "narrations"
+    if not narrations.exists():
+        return ()
+
+    items: dict[str, dict[str, Any]] = {}
+    for path in sorted(narrations.glob("*.sw.*.json")):
+        try:
+            cards = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(cards, list):
+            continue
+
+        for card in cards:
+            if not isinstance(card, dict):
+                continue
+            text = card.get("text") or {}
+            sw = text.get("sw") if isinstance(text, dict) else None
+            gloss = card.get("gloss_en")
+            if not isinstance(sw, dict) or not isinstance(gloss, dict):
+                continue
+
+            headline = str(sw.get("headline") or "").strip()
+            body = str(sw.get("body") or "").strip()
+            gloss_headline = str(gloss.get("headline") or "").strip()
+            gloss_body = str(gloss.get("body") or "").strip()
+            if not headline or not gloss_headline:
+                continue
+
+            item_id = "sw-" + hashlib.sha1(
+                f"{headline}\n{body}".encode("utf-8")
+            ).hexdigest()[:16]
+            if item_id in items:
+                continue
+
+            clock = card.get("match_clock") if isinstance(card.get("match_clock"), dict) else {}
+            items[item_id] = {
+                "id": item_id,
+                "card_id": str(card.get("card_id") or ""),
+                "match_id": str(card.get("match_id") or ""),
+                "minute": int(clock.get("minute") or 0),
+                "headline": headline,
+                "body": body,
+                "gloss_headline": gloss_headline,
+                "gloss_body": gloss_body,
+                "source": "bundle",
+            }
+
+    # The few-shot corpus is also part of the review evidence: it is text the
+    # narrator is conditioned on. Existing ratings in the JSONL are not treated
+    # as this reviewer's sign-off; the line still enters the queue as pending.
+    few_shots = root / "config" / "few_shots" / "sw.jsonl"
+    if few_shots.exists():
+        for line in few_shots.read_text(encoding="utf-8").splitlines():
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(record, dict):
+                continue
+            output = record.get("output") if isinstance(record.get("output"), dict) else {}
+            inp = record.get("input") if isinstance(record.get("input"), dict) else {}
+            gloss = output.get("gloss_en") if isinstance(output.get("gloss_en"), dict) else {}
+            headline = str(output.get("headline") or "").strip()
+            body = str(output.get("body") or "").strip()
+            gloss_headline = str(gloss.get("headline") or "").strip()
+            gloss_body = str(gloss.get("body") or "").strip()
+            if not headline or not gloss_headline:
+                continue
+            item_id = "sw-" + hashlib.sha1(
+                f"{headline}\n{body}".encode("utf-8")
+            ).hexdigest()[:16]
+            if item_id in items:
+                continue
+            items[item_id] = {
+                "id": item_id,
+                "card_id": "",
+                "match_id": "",
+                "minute": int(inp.get("minute") or 0),
+                "headline": headline,
+                "body": body,
+                "gloss_headline": gloss_headline,
+                "gloss_body": gloss_body,
+                "source": "few_shot",
+            }
+
+    return tuple(items.values())
+
+
+def _native_review_view(entry: dict[str, Any]) -> dict[str, Any]:
+    """Shape a stored native review for the dashboard."""
+    scores = entry.get("scores") if isinstance(entry.get("scores"), dict) else {}
+    return {
+        "id": entry.get("id"),
+        "reviewer": entry.get("reviewer", ""),
+        "fluency": int(scores.get("fluency", 0) or 0),
+        "idiom": int(scores.get("idiom", 0) or 0),
+        "faithfulness": int(scores.get("faithfulness", 0) or 0),
+        "note": entry.get("note", ""),
+        "corrected_headline": entry.get("corrected_headline", ""),
+        "corrected_body": entry.get("corrected_body", ""),
+        "blocking": bool(entry.get("blocking", False)),
+        "requires_second_review": bool(entry.get("requires_second_review", False)),
+        "submitted_at": entry.get("submitted_at", ""),
+    }
+
+
+async def _swahili_review_payload(state: Any) -> dict[str, Any]:
+    """Merge the static queue with persisted reviews and compute the summary."""
+    stored_by_item: dict[str, dict[str, Any]] = {}
+    store: dict = state.__dict__.setdefault("corrections_store", {})
+    for entry in store.values():
+        if entry.get("source") == "native_review" and entry.get("review_item_id"):
+            stored_by_item[str(entry["review_item_id"])] = entry
+
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            for entry in await repos.corrections.list_all_corrections():
+                if entry.get("source") == "native_review" and entry.get("review_item_id"):
+                    stored_by_item.setdefault(str(entry["review_item_id"]), entry)
+        except Exception:
+            pass
+
+    items: list[dict[str, Any]] = []
+    for seed in _swahili_review_seed():
+        item = dict(seed)
+        entry = stored_by_item.get(seed["id"])
+        item["review"] = _native_review_view(entry) if entry else None
+        items.append(item)
+
+    # Put unreviewed lines first so the reviewer sees the remaining work.
+    items.sort(key=lambda item: (item["review"] is not None, item["minute"], item["id"]))
+
+    scores: list[float] = []
+    for entry in stored_by_item.values():
+        values = entry.get("scores") if isinstance(entry.get("scores"), dict) else {}
+        numeric = [
+            float(values.get(key, 0) or 0)
+            for key in ("fluency", "idiom", "faithfulness")
+        ]
+        if all(1 <= value <= 5 for value in numeric):
+            scores.append(sum(numeric) / 3)
+
+    return {
+        "items": items,
+        "count": len(items),
+        "reviewed": len(stored_by_item),
+        "average": round(sum(scores) / len(scores), 2) if scores else None,
+        "sign_off_required": len(stored_by_item) < 30,
+    }
 
 
 def _repos(state: Any) -> Any | None:
@@ -359,6 +552,99 @@ def _load_groundedness_result() -> float | None:
     return None
 
 
+@router.get("/review/swahili")
+async def get_swahili_review_queue(
+    request: Request,
+    state: Any = Depends(_get_client_state),
+) -> dict[str, Any]:
+    """Return the native-speaker queue and the current signed-off summary."""
+    _require_reviewer(request)
+    return await _swahili_review_payload(state)
+
+
+@router.post("/review/swahili")
+async def submit_swahili_review(
+    payload: SwahiliReviewIn,
+    request: Request,
+    state: Any = Depends(_get_client_state),
+) -> dict[str, Any]:
+    """Record one reviewer's scores for a generated Swahili line."""
+    _require_reviewer(request)
+
+    if not payload.reviewer.strip():
+        raise HTTPException(status_code=422, detail="Reviewer name is required")
+    for label, value in (
+        ("fluency", payload.fluency),
+        ("idiom", payload.idiom),
+        ("faithfulness", payload.faithfulness),
+    ):
+        if value < 1 or value > 5:
+            raise HTTPException(
+                status_code=422,
+                detail=f"{label} must be between 1 and 5",
+            )
+    if not payload.headline.strip() or not payload.gloss_headline.strip():
+        raise HTTPException(
+            status_code=422,
+            detail="Swahili headline and English gloss are required",
+        )
+
+    corrected = bool(
+        payload.corrected_headline.strip() or payload.corrected_body.strip()
+    )
+    review_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
+    entry: dict[str, Any] = {
+        "id": review_id,
+        "match_id": payload.match_id or "review",
+        "profile_key": "native-review",
+        "card_id": payload.card_id,
+        "card_type": "swahili_review",
+        "original_sw": f"{payload.headline}\n{payload.body}".strip(),
+        "suggested_sw": (
+            f"{payload.corrected_headline}\n{payload.corrected_body}".strip()
+            if corrected
+            else ""
+        ),
+        "status": "reviewed",
+        "source": "native_review",
+        "review_item_id": payload.id,
+        "reviewer": payload.reviewer.strip(),
+        "scores": {
+            "fluency": payload.fluency,
+            "idiom": payload.idiom,
+            "faithfulness": payload.faithfulness,
+        },
+        "note": payload.note.strip(),
+        "corrected_headline": payload.corrected_headline.strip(),
+        "corrected_body": payload.corrected_body.strip(),
+        "blocking": bool(payload.blocking),
+        # The rubric requires an independent second reviewer for any edit.
+        "requires_second_review": corrected,
+        "created_at": time.time(),
+        "submitted_at": now.isoformat(),
+        "reviewed_at": time.time(),
+    }
+
+    store: dict = state.__dict__.setdefault("corrections_store", {})
+    store[review_id] = entry
+
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            await repos.corrections.create_correction(entry)
+        except Exception:
+            # The in-memory mirror keeps the review usable for this session.
+            pass
+
+    return {
+        "id": review_id,
+        "status": "reviewed",
+        "review_item_id": payload.id,
+        "requires_second_review": corrected,
+    }
+
+
 @router.get("/review")
 async def get_review_dashboard(request: Request, state: Any = Depends(_get_client_state)) -> dict[str, Any]:
     """Return observability metrics for the /review dashboard (reviewer key required)."""
@@ -384,6 +670,7 @@ async def get_review_dashboard(request: Request, state: Any = Depends(_get_clien
         if entry.get("status") == "pending"
     ]
     corrections = [_correction_view(entry) for entry in corrections_by_id.values()]
+    swahili_review = await _swahili_review_payload(state)
 
     return {
         "latency": snap["latency"],
@@ -394,4 +681,5 @@ async def get_review_dashboard(request: Request, state: Any = Depends(_get_clien
         "groundedness_score": groundedness_score if groundedness_score is not None else 0.0,
         "rating_queue_size": len(pending),
         "corrections": corrections,
+        "swahili_review": swahili_review,
     }
