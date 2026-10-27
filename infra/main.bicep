@@ -600,7 +600,7 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
     template: {
       scale: {
         minReplicas: 1  // scale-to-zero disabled; in-memory state must survive
-        maxReplicas: 3
+        maxReplicas: 1  // no shared backplane yet; WebSocket/session state stays on one replica
       }
       containers: [
         {
