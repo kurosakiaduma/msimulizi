@@ -37,8 +37,6 @@ from __future__ import annotations
 
 import logging
 import os
-import statistics
-import time
 from collections import defaultdict
 from threading import Lock
 from typing import Any
@@ -148,7 +146,7 @@ def _try_setup_otel(connection_string: str) -> Any | None:
     try:
         from azure.monitor.opentelemetry import configure_azure_monitor
         from opentelemetry import metrics as otel_metrics
-        from opentelemetry.sdk.metrics import MeterProvider
+        from opentelemetry.sdk.metrics import MeterProvider  # noqa: F401
 
         configure_azure_monitor(connection_string=connection_string)
         provider = otel_metrics.get_meter_provider()

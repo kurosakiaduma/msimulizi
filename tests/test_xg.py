@@ -7,11 +7,10 @@ Requirements: 1.6, 15.1, 16.4
 
 from __future__ import annotations
 
-import json
 import math
 import pytest
 
-from shared.xg import compute_xg, reload_coefficients
+from shared.xg import compute_xg
 
 
 # ---------------------------------------------------------------------------

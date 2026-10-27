@@ -38,6 +38,16 @@ class Interpreter:
         self._event_history: Deque[Event] = deque(maxlen=500)
         self._team_events: dict[str, list[Event]] = defaultdict(list)
 
+    @property
+    def home_team(self) -> str | None:
+        """Canonical home-team label learned from the event stream."""
+        return self._home_team
+
+    @property
+    def away_team(self) -> str | None:
+        """Canonical away-team label learned from the event stream."""
+        return self._away_team
+
     def _new_state(self) -> MatchState:
         """Instantiate the initial in-memory match aggregate for this session."""
         return MatchState(
@@ -241,9 +251,12 @@ class Interpreter:
         )
         total = home_events + away_events
         if total:
-            self.state.possession_home = home_events / total
-            self.state.field_tilt_home = home_events / total
-            self.state.field_tilt_away = away_events / total
+            # Laplace smoothing keeps the first few passes from displaying as
+            # 100% / 0%. Early in a move that looks broken rather than merely
+            # small-sample. As the window fills, the observed share dominates.
+            self.state.possession_home = (home_events + 1) / (total + 2)
+            self.state.field_tilt_home = (home_events + 1) / (total + 2)
+            self.state.field_tilt_away = (away_events + 1) / (total + 2)
 
     def _update_xg(self, event: Event) -> None:
         """Accumulate team xG from all shot events seen so far."""

@@ -1,23 +1,20 @@
 """REST routes for the Msimulizi API (corrections, cards, audit, and helpers).
 
-Routes are implemented as an APIRouter mounted by the application factory.
-In-memory stores remain intended for the current demo and unit tests.
-
-The manual card-ingestion route optionally schedules audio after broadcasting
-its card. The main live pipeline schedules audio in api.pipeline_runner; this
-route is for directly posted/test cards and should not be called a second time
-for the same card by the pipeline.
+Routes are implemented as an APIRouter so they can be mounted into the main
+application factory. The implementation uses in-memory stores attached to
+app.state for simple demo and unit-test convenience.
 """
 
 from __future__ import annotations
 
-import asyncio
+import hashlib
 import json
-import logging
 import os
 import pathlib
 import time
 import uuid
+from datetime import datetime, timezone
+from functools import lru_cache
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -26,21 +23,248 @@ from pydantic import BaseModel
 from shared.content_safety import ContentSafetyClientProtocol
 from shared.observability import metrics as _metrics
 
-logger = logging.getLogger(__name__)
-
 router = APIRouter(prefix="/v1")
 
 
 class CorrectionIn(BaseModel):
     profile_key: str
-    moment_id: str
+    moment_id: str = ""
+    match_id: str | None = None
+    card_id: str | None = None
+    card_type: str | None = None
+    original_sw: str | None = None
     proposed_headline: str | None = None
     proposed_body: str | None = None
     note: str | None = None
 
 
+class SwahiliReviewIn(BaseModel):
+    """One native-speaker review of a generated Swahili card."""
+
+    id: str
+    card_id: str = ""
+    match_id: str = ""
+    headline: str
+    body: str = ""
+    gloss_headline: str = ""
+    gloss_body: str = ""
+    fluency: int
+    idiom: int
+    faithfulness: int
+    note: str = ""
+    corrected_headline: str = ""
+    corrected_body: str = ""
+    reviewer: str
+    blocking: bool = False
+
+
 def _get_client_state(request: Request) -> Any:
     return request.app.state
+
+
+def _require_reviewer(request: Request) -> None:
+    """Reviewer routes accept either the reviewer key or the API key."""
+    reviewer_key = os.getenv("MSIMULIZI_REVIEWER_KEY")
+    header = request.headers.get("x-reviewer-key") or request.headers.get("x-api-key")
+    if reviewer_key is None or header != reviewer_key:
+        raise HTTPException(status_code=401, detail="Reviewer key required")
+
+
+@lru_cache(maxsize=1)
+def _swahili_review_seed() -> tuple[dict[str, Any], ...]:
+    """Load the unique Swahili bundle lines that need a human review.
+
+    The bundle is static and local, so the read is cached for the process.
+    Lines are deduplicated by their Swahili text because the same card appears
+    for several profiles. A line without an English gloss is not reviewable:
+    the rubric requires the gloss for the reviewer and for the product.
+    """
+    root = pathlib.Path(__file__).resolve().parents[1]
+    narrations = root / "bundle" / "narrations"
+    if not narrations.exists():
+        return ()
+
+    items: dict[str, dict[str, Any]] = {}
+    for path in sorted(narrations.glob("*.sw.*.json")):
+        try:
+            cards = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(cards, list):
+            continue
+
+        for card in cards:
+            if not isinstance(card, dict):
+                continue
+            text = card.get("text") or {}
+            sw = text.get("sw") if isinstance(text, dict) else None
+            gloss = card.get("gloss_en")
+            if not isinstance(sw, dict) or not isinstance(gloss, dict):
+                continue
+
+            headline = str(sw.get("headline") or "").strip()
+            body = str(sw.get("body") or "").strip()
+            gloss_headline = str(gloss.get("headline") or "").strip()
+            gloss_body = str(gloss.get("body") or "").strip()
+            if not headline or not gloss_headline:
+                continue
+
+            item_id = "sw-" + hashlib.sha1(
+                f"{headline}\n{body}".encode("utf-8")
+            ).hexdigest()[:16]
+            if item_id in items:
+                continue
+
+            clock = card.get("match_clock") if isinstance(card.get("match_clock"), dict) else {}
+            items[item_id] = {
+                "id": item_id,
+                "card_id": str(card.get("card_id") or ""),
+                "match_id": str(card.get("match_id") or ""),
+                "minute": int(clock.get("minute") or 0),
+                "headline": headline,
+                "body": body,
+                "gloss_headline": gloss_headline,
+                "gloss_body": gloss_body,
+                "source": "bundle",
+            }
+
+    # The few-shot corpus is also part of the review evidence: it is text the
+    # narrator is conditioned on. Existing ratings in the JSONL are not treated
+    # as this reviewer's sign-off; the line still enters the queue as pending.
+    few_shots = root / "config" / "few_shots" / "sw.jsonl"
+    if few_shots.exists():
+        for line in few_shots.read_text(encoding="utf-8").splitlines():
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(record, dict):
+                continue
+            output = record.get("output") if isinstance(record.get("output"), dict) else {}
+            inp = record.get("input") if isinstance(record.get("input"), dict) else {}
+            gloss = output.get("gloss_en") if isinstance(output.get("gloss_en"), dict) else {}
+            headline = str(output.get("headline") or "").strip()
+            body = str(output.get("body") or "").strip()
+            gloss_headline = str(gloss.get("headline") or "").strip()
+            gloss_body = str(gloss.get("body") or "").strip()
+            if not headline or not gloss_headline:
+                continue
+            item_id = "sw-" + hashlib.sha1(
+                f"{headline}\n{body}".encode("utf-8")
+            ).hexdigest()[:16]
+            if item_id in items:
+                continue
+            items[item_id] = {
+                "id": item_id,
+                "card_id": "",
+                "match_id": "",
+                "minute": int(inp.get("minute") or 0),
+                "headline": headline,
+                "body": body,
+                "gloss_headline": gloss_headline,
+                "gloss_body": gloss_body,
+                "source": "few_shot",
+            }
+
+    return tuple(items.values())
+
+
+def _native_review_view(entry: dict[str, Any]) -> dict[str, Any]:
+    """Shape a stored native review for the dashboard."""
+    scores = entry.get("scores") if isinstance(entry.get("scores"), dict) else {}
+    return {
+        "id": entry.get("id"),
+        "reviewer": entry.get("reviewer", ""),
+        "fluency": int(scores.get("fluency", 0) or 0),
+        "idiom": int(scores.get("idiom", 0) or 0),
+        "faithfulness": int(scores.get("faithfulness", 0) or 0),
+        "note": entry.get("note", ""),
+        "corrected_headline": entry.get("corrected_headline", ""),
+        "corrected_body": entry.get("corrected_body", ""),
+        "blocking": bool(entry.get("blocking", False)),
+        "requires_second_review": bool(entry.get("requires_second_review", False)),
+        "submitted_at": entry.get("submitted_at", ""),
+    }
+
+
+async def _swahili_review_payload(state: Any) -> dict[str, Any]:
+    """Merge the static queue with persisted reviews and compute the summary."""
+    stored_by_item: dict[str, dict[str, Any]] = {}
+    store: dict = state.__dict__.setdefault("corrections_store", {})
+    for entry in store.values():
+        if entry.get("source") == "native_review" and entry.get("review_item_id"):
+            stored_by_item[str(entry["review_item_id"])] = entry
+
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            for entry in await repos.corrections.list_all_corrections():
+                if entry.get("source") == "native_review" and entry.get("review_item_id"):
+                    stored_by_item.setdefault(str(entry["review_item_id"]), entry)
+        except Exception:
+            pass
+
+    items: list[dict[str, Any]] = []
+    for seed in _swahili_review_seed():
+        item = dict(seed)
+        entry = stored_by_item.get(seed["id"])
+        item["review"] = _native_review_view(entry) if entry else None
+        items.append(item)
+
+    # Put unreviewed lines first so the reviewer sees the remaining work.
+    items.sort(key=lambda item: (item["review"] is not None, item["minute"], item["id"]))
+
+    scores: list[float] = []
+    for entry in stored_by_item.values():
+        values = entry.get("scores") if isinstance(entry.get("scores"), dict) else {}
+        numeric = [
+            float(values.get(key, 0) or 0)
+            for key in ("fluency", "idiom", "faithfulness")
+        ]
+        if all(1 <= value <= 5 for value in numeric):
+            scores.append(sum(numeric) / 3)
+
+    return {
+        "items": items,
+        "count": len(items),
+        "reviewed": len(stored_by_item),
+        "average": round(sum(scores) / len(scores), 2) if scores else None,
+        "sign_off_required": len(stored_by_item) < 30,
+    }
+
+
+def _repos(state: Any) -> Any | None:
+    return getattr(state, "cosmos_repos", None)
+
+
+def _correction_match_id(payload: CorrectionIn) -> str:
+    if payload.match_id:
+        return payload.match_id
+    # Profile keys are "match_id.language.mode.perspective".
+    return payload.profile_key.split(".", 1)[0] or "unknown"
+
+
+def _correction_view(entry: dict[str, Any]) -> dict[str, Any]:
+    """Add the field names the review UI renders while preserving the store shape."""
+    view = dict(entry)
+    view.setdefault("card_id", entry.get("card_id", ""))
+    view.setdefault("card_type", entry.get("card_type", ""))
+    view.setdefault("original_sw", entry.get("original_sw", ""))
+    view.setdefault(
+        "suggested_sw",
+        entry.get("suggested_sw")
+        or entry.get("proposed_body")
+        or entry.get("proposed_headline")
+        or "",
+    )
+    view.setdefault(
+        "submitted_at",
+        entry.get("submitted_at")
+        or datetime.fromtimestamp(
+            float(entry.get("created_at", time.time())), tz=timezone.utc
+        ).isoformat(),
+    )
+    return view
 
 
 # Simple per-IP rate limiter dependency
@@ -57,165 +281,6 @@ async def rate_limit(request: Request, state: Any = Depends(_get_client_state)) 
     if entry[0] >= limit:
         raise HTTPException(status_code=429, detail="Too many requests from this IP")
     entry[0] += 1
-
-
-def _language_for_card(card: dict[str, Any]) -> str:
-    """Resolve language from explicit card metadata, then available text keys."""
-    raw = card.get("language")
-    if isinstance(raw, str) and raw.strip():
-        value = raw.strip().lower().replace("_", "-")
-        if value.startswith("sw"):
-            return "sw"
-        if value.startswith("fr"):
-            return "fr"
-        if value.startswith("en"):
-            return "en"
-
-    text = card.get("text")
-    if isinstance(text, dict):
-        for candidate in text:
-            value = str(candidate).strip().lower().replace("_", "-")
-            if value.startswith("sw"):
-                return "sw"
-            if value.startswith("fr"):
-                return "fr"
-            if value.startswith("en"):
-                return "en"
-
-    return "en"
-
-
-def _has_speakable_card_text(card: dict[str, Any], language: str) -> bool:
-    """Return True only when the card has real headline/body text to speak."""
-    text = card.get("text")
-    if isinstance(text, dict):
-        row = (
-            text.get(language)
-            or text.get("en")
-            or next(iter(text.values()), None)
-        )
-        if isinstance(row, dict):
-            if str(row.get("headline") or "").strip() or str(row.get("body") or "").strip():
-                return True
-
-    # Compatibility with simple legacy cards that have top-level text fields.
-    if str(card.get("headline") or "").strip() or str(card.get("body") or "").strip():
-        return True
-
-    return False
-
-
-def _match_seconds_for_card(card: dict[str, Any]) -> float:
-    """Read match_seconds or derive it from minute/second fields."""
-    raw = card.get("match_seconds")
-    if isinstance(raw, (int, float)) and not isinstance(raw, bool):
-        return float(raw)
-
-    try:
-        minute = int(card.get("minute", card.get("match_minute", 0)) or 0)
-    except (TypeError, ValueError):
-        minute = 0
-    try:
-        second = int(card.get("second", 0) or 0)
-    except (TypeError, ValueError):
-        second = 0
-
-    return float(max(0, minute) * 60 + max(0, min(second, 59)))
-
-
-def _schedule_manual_card_audio(
-    *,
-    state: Any,
-    card: dict[str, Any],
-    match_id: str,
-    session_id: str | None,
-    profile_key: str | None,
-    language: str,
-    match_seconds: float,
-    websocket_manager: Any,
-) -> None:
-    """Schedule audio for a manually posted card without blocking the route."""
-    # The application lifespan registers this facade alongside the shared
-    # AudioService. If audio is disabled, cards still work normally.
-    tts_client = getattr(state, "speech_client", None)
-    audio_service = getattr(state, "audio_service", None)
-    if tts_client is None or audio_service is None:
-        return
-
-    publish_method = getattr(websocket_manager, "broadcast_audio_update", None)
-    if not callable(publish_method):
-        logger.warning(
-            "[routes.audio] WebSocket manager lacks broadcast_audio_update; "
-            "skipping TTS publication for card %s",
-            card.get("card_id"),
-        )
-        return
-
-    # Avoid scheduling TTS for malformed/test cards with no actual narration.
-    if not _has_speakable_card_text(card, language):
-        logger.debug(
-            "[routes.audio] no speakable text for card %s; skipping TTS",
-            card.get("card_id"),
-        )
-        return
-
-    async def publish_audio_update(audio_payload: dict[str, Any]) -> None:
-        # Send the exact four-field top-level audio_update. Do not use
-        # broadcast_clock(), which wraps events in clock_update.clock.
-        await websocket_manager.broadcast_audio_update(
-            audio_payload,
-            session_id=session_id,
-            match_id=match_id,
-            profile_key=profile_key,
-        )
-
-    async def render() -> None:
-        try:
-            from renderer.tts import synthesize_card_audio
-
-            # Keep canonical routing/context on the copied card. Do not mutate
-            # a caller-owned payload after it has been saved/broadcast.
-            audio_card = dict(card)
-            audio_card["language"] = language
-            audio_card["match_seconds"] = match_seconds
-
-            # Normalize locale-style keys (for example ``sw-KE``) to the
-            # canonical short key expected by renderer.tts._extract_text_for_language.
-            text_map = audio_card.get("text")
-            if isinstance(text_map, dict):
-                for text_language, row in text_map.items():
-                    normalized = str(text_language).strip().lower().replace("_", "-")
-                    normalized = normalized.split("-", maxsplit=1)[0]
-                    if normalized == language and isinstance(row, dict):
-                        normalized_map = dict(text_map)
-                        normalized_map[language] = row
-                        audio_card["text"] = normalized_map
-                        break
-
-            await synthesize_card_audio(
-                audio_card,
-                synthesizer=tts_client,
-                language=language,
-                publisher=publish_audio_update,
-            )
-        except asyncio.CancelledError:
-            raise
-        except Exception:
-            # Audio is optional; never turn a successful card post into failure.
-            logger.exception(
-                "[routes.audio] background synthesis failed for card %s",
-                card.get("card_id"),
-            )
-
-    tasks: set[asyncio.Task[Any]] = state.__dict__.setdefault(
-        "route_audio_tasks", set()
-    )
-    task = asyncio.create_task(
-        render(),
-        name=f"route-audio-{match_id}-{card.get('card_id', 'unknown')}",
-    )
-    tasks.add(task)
-    task.add_done_callback(tasks.discard)
 
 
 @router.post("/corrections")
@@ -241,15 +306,31 @@ async def submit_correction(payload: CorrectionIn, request: Request, state: Any 
 
     entry = {
         "id": correction_id,
+        "match_id": _correction_match_id(payload),
         "profile_key": payload.profile_key,
         "moment_id": payload.moment_id,
+        "card_id": payload.card_id or "",
+        "card_type": payload.card_type or "",
+        "original_sw": payload.original_sw or "",
+        "suggested_sw": payload.proposed_body or payload.proposed_headline or "",
         "proposed_headline": payload.proposed_headline,
         "proposed_body": payload.proposed_body,
         "note": payload.note,
         "status": "pending",
         "created_at": time.time(),
+        "submitted_at": datetime.now(timezone.utc).isoformat(),
+        "source": "api",
     }
     store[correction_id] = entry
+
+    repos = _repos(state)
+    if repos is not None and entry["match_id"] != "unknown":
+        try:
+            await repos.corrections.create_correction(entry)
+        except Exception:
+            # Keep the in-memory mirror; the reviewer can still act on it.
+            pass
+
     return {"id": correction_id, "status": "pending"}
 
 
@@ -260,7 +341,19 @@ async def get_corrections_queue(request: Request, state: Any = Depends(_get_clie
     if reviewer_key is None or header != reviewer_key:
         raise HTTPException(status_code=401, detail="Reviewer key required")
     store: dict = state.__dict__.setdefault("corrections_store", {})
-    pending = [v for v in store.values() if v.get("status") == "pending"]
+    pending_by_id = {
+        entry["id"]: entry
+        for entry in store.values()
+        if entry.get("status") == "pending"
+    }
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            for entry in await repos.corrections.list_all_corrections(status="pending"):
+                pending_by_id.setdefault(entry["id"], entry)
+        except Exception:
+            pass
+    pending = [_correction_view(entry) for entry in pending_by_id.values()]
     return {"count": len(pending), "items": pending}
 
 
@@ -272,17 +365,31 @@ async def patch_correction(correction_id: str, payload: dict[str, Any], request:
     if reviewer_key is None or header != reviewer_key:
         raise HTTPException(status_code=401, detail="Reviewer key required")
     store: dict = state.__dict__.setdefault("corrections_store", {})
-    if correction_id not in store:
-        raise HTTPException(status_code=404, detail="Correction not found")
-    entry = store[correction_id]
-    # allow status and notes updates
+    patch: dict[str, Any] = {}
     status = payload.get("status")
     if status is not None:
-        entry["status"] = str(status)
+        patch["status"] = str(status)
     editor_note = payload.get("editor_note")
     if editor_note is not None:
-        entry["editor_note"] = str(editor_note)
+        patch["editor_note"] = str(editor_note)
+
+    entry = store.get(correction_id)
+    repos = _repos(state)
+    if entry is None and repos is not None:
+        try:
+            entry = await repos.corrections.get_correction(correction_id)
+        except Exception:
+            entry = None
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Correction not found")
+
+    entry.update(patch)
     store[correction_id] = entry
+    if repos is not None:
+        try:
+            await repos.corrections.update_correction_by_id(correction_id, patch)
+        except Exception:
+            pass
     return entry
 
 
@@ -297,12 +404,24 @@ async def _set_correction_status(
     if reviewer_key is None or header != reviewer_key:
         raise HTTPException(status_code=401, detail="Reviewer key required")
     store: dict = state.__dict__.setdefault("corrections_store", {})
-    if correction_id not in store:
+    entry = store.get(correction_id)
+    repos = _repos(state)
+    if entry is None and repos is not None:
+        try:
+            entry = await repos.corrections.get_correction(correction_id)
+        except Exception:
+            entry = None
+    if entry is None:
         raise HTTPException(status_code=404, detail="Correction not found")
-    entry = store[correction_id]
-    entry["status"] = status
-    entry["reviewed_at"] = time.time()
+
+    patch = {"status": status, "reviewed_at": time.time()}
+    entry.update(patch)
     store[correction_id] = entry
+    if repos is not None:
+        try:
+            await repos.corrections.update_correction_by_id(correction_id, patch)
+        except Exception:
+            pass
     return entry
 
 
@@ -327,72 +446,74 @@ async def reject_correction(
 @router.get("/matches/{match_id}/cards")
 async def get_match_cards(match_id: str, request: Request, state: Any = Depends(_get_client_state), _rl=Depends(rate_limit)) -> dict[str, Any]:
     cards_store: dict = state.__dict__.setdefault("cards_store", {})
-    return {"match_id": match_id, "cards": cards_store.get(match_id, [])}
+    cards = list(cards_store.get(match_id, []))
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            persisted = await repos.overlay_cards.list_cards(match_id)
+            seen = {card.get("card_id") or card.get("id") for card in cards}
+            cards.extend(
+                card for card in persisted
+                if (card.get("card_id") or card.get("id")) not in seen
+            )
+        except Exception:
+            pass
+    return {"match_id": match_id, "cards": cards}
 
 
 @router.get("/matches/{match_id}/state")
 async def get_match_state(match_id: str, request: Request, state: Any = Depends(_get_client_state), _rl=Depends(rate_limit)) -> dict[str, Any]:
-    # Return a lightweight state snapshot from the orchestrator when available
+    # Return the latest persisted snapshot plus active session IDs. The live
+    # MCP surface is the sub-second path; this endpoint is the restart-safe
+    # fallback.
     orchestrator = getattr(request.app.state, "orchestrator", None)
-    if orchestrator is None:
+    sessions = (
+        [s.session_id for s in orchestrator.session_store.values() if s.match_id == match_id]
+        if orchestrator is not None
+        else []
+    )
+
+    snapshot = None
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            snapshot = await repos.match_state_snapshots.get_latest_snapshot(match_id)
+        except Exception:
+            snapshot = None
+
+    if snapshot is None and not sessions:
         return {"match_id": match_id, "state": {"status": "unavailable"}}
-    # Try to find a session for the match
-    sessions = [s for s in orchestrator.session_store.values() if s.match_id == match_id]
-    return {"match_id": match_id, "state": {"match_id": match_id, "sessions": [s.session_id for s in sessions]}}
+
+    return {
+        "match_id": match_id,
+        "state": {
+            "match_id": match_id,
+            "sessions": sessions,
+            "snapshot": snapshot,
+        },
+    }
 
 
 @router.post("/matches/{match_id}/cards")
 async def post_match_card(match_id: str, payload: dict[str, Any], request: Request, state: Any = Depends(_get_client_state)) -> dict[str, Any]:
-    """Push a card to the in-memory feed and optionally synthesize its audio.
-
-    Captions/cards are stored and broadcast immediately. If the shared audio
-    service is configured and this payload contains narration text, audio is
-    scheduled in a background task. This route is intended for manual posting
-    and integration tests; cards generated by api.pipeline_runner already have
-    their own audio scheduling path.
-    """
+    """Allow pushing a card into the in-memory feed (useful for integration tests)."""
     cards_store: dict = state.__dict__.setdefault("cards_store", {})
+    cards_store.setdefault(match_id, []).append(payload)
 
-    # Copy to avoid mutating the request parser's payload object indirectly.
-    card = dict(payload)
-    cards_store.setdefault(match_id, []).append(card)
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            await repos.overlay_cards.upsert_dict({**payload, "match_id": match_id})
+        except Exception:
+            pass
 
+    # notify websocket manager if present
     ws_mgr = getattr(state, "websocket_manager", None)
-    session_id = card.get("session_id")
-    profile_key = card.get("profile_key")
-
     if ws_mgr is not None:
         try:
-            await ws_mgr.broadcast_card(
-                match_id,
-                card,
-                session_id=str(session_id) if session_id else None,
-                profile_key=str(profile_key) if profile_key else None,
-            )
+            await ws_mgr.broadcast_card(match_id, payload)
         except Exception:
-            logger.exception("Could not broadcast manually posted card for match %s", match_id)
-
-        # Need an explicit card_id to correlate an asynchronous audio_update with
-        # the card displayed by the frontend. Do not invent a new identifier if
-        # the client has not supplied one: skip TTS and retain the card as-is.
-        card_id = card.get("card_id")
-        language = _language_for_card(card)
-        if card_id and _has_speakable_card_text(card, language):
-            _schedule_manual_card_audio(
-                state=state,
-                card=card,
-                match_id=match_id,
-                session_id=str(session_id) if session_id else None,
-                profile_key=str(profile_key) if profile_key else None,
-                language=language,
-                match_seconds=_match_seconds_for_card(card),
-                websocket_manager=ws_mgr,
-            )
-        elif not card_id:
-            logger.debug(
-                "[routes.audio] manually posted card has no card_id; TTS skipped"
-            )
-
+            pass
     return {"ok": True}
 
 
@@ -404,7 +525,16 @@ async def get_audit_log(match_id: str, request: Request, state: Any = Depends(_g
     if reviewer_key is None or header != reviewer_key:
         raise HTTPException(status_code=401, detail="Reviewer key required")
     audit = state.__dict__.setdefault("audit_store", {})
-    return {"match_id": match_id, "log": audit.get(match_id, [])}
+    log = list(audit.get(match_id, []))
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            persisted = await repos.audit_log.list_entries(match_id)
+            seen = {entry.get("id") for entry in log}
+            log.extend(entry for entry in persisted if entry.get("id") not in seen)
+        except Exception:
+            pass
+    return {"match_id": match_id, "log": log}
 
 
 def _load_groundedness_result() -> float | None:
@@ -422,6 +552,99 @@ def _load_groundedness_result() -> float | None:
     return None
 
 
+@router.get("/review/swahili")
+async def get_swahili_review_queue(
+    request: Request,
+    state: Any = Depends(_get_client_state),
+) -> dict[str, Any]:
+    """Return the native-speaker queue and the current signed-off summary."""
+    _require_reviewer(request)
+    return await _swahili_review_payload(state)
+
+
+@router.post("/review/swahili")
+async def submit_swahili_review(
+    payload: SwahiliReviewIn,
+    request: Request,
+    state: Any = Depends(_get_client_state),
+) -> dict[str, Any]:
+    """Record one reviewer's scores for a generated Swahili line."""
+    _require_reviewer(request)
+
+    if not payload.reviewer.strip():
+        raise HTTPException(status_code=422, detail="Reviewer name is required")
+    for label, value in (
+        ("fluency", payload.fluency),
+        ("idiom", payload.idiom),
+        ("faithfulness", payload.faithfulness),
+    ):
+        if value < 1 or value > 5:
+            raise HTTPException(
+                status_code=422,
+                detail=f"{label} must be between 1 and 5",
+            )
+    if not payload.headline.strip() or not payload.gloss_headline.strip():
+        raise HTTPException(
+            status_code=422,
+            detail="Swahili headline and English gloss are required",
+        )
+
+    corrected = bool(
+        payload.corrected_headline.strip() or payload.corrected_body.strip()
+    )
+    review_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc)
+    entry: dict[str, Any] = {
+        "id": review_id,
+        "match_id": payload.match_id or "review",
+        "profile_key": "native-review",
+        "card_id": payload.card_id,
+        "card_type": "swahili_review",
+        "original_sw": f"{payload.headline}\n{payload.body}".strip(),
+        "suggested_sw": (
+            f"{payload.corrected_headline}\n{payload.corrected_body}".strip()
+            if corrected
+            else ""
+        ),
+        "status": "reviewed",
+        "source": "native_review",
+        "review_item_id": payload.id,
+        "reviewer": payload.reviewer.strip(),
+        "scores": {
+            "fluency": payload.fluency,
+            "idiom": payload.idiom,
+            "faithfulness": payload.faithfulness,
+        },
+        "note": payload.note.strip(),
+        "corrected_headline": payload.corrected_headline.strip(),
+        "corrected_body": payload.corrected_body.strip(),
+        "blocking": bool(payload.blocking),
+        # The rubric requires an independent second reviewer for any edit.
+        "requires_second_review": corrected,
+        "created_at": time.time(),
+        "submitted_at": now.isoformat(),
+        "reviewed_at": time.time(),
+    }
+
+    store: dict = state.__dict__.setdefault("corrections_store", {})
+    store[review_id] = entry
+
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            await repos.corrections.create_correction(entry)
+        except Exception:
+            # The in-memory mirror keeps the review usable for this session.
+            pass
+
+    return {
+        "id": review_id,
+        "status": "reviewed",
+        "review_item_id": payload.id,
+        "requires_second_review": corrected,
+    }
+
+
 @router.get("/review")
 async def get_review_dashboard(request: Request, state: Any = Depends(_get_client_state)) -> dict[str, Any]:
     """Return observability metrics for the /review dashboard (reviewer key required)."""
@@ -434,7 +657,20 @@ async def get_review_dashboard(request: Request, state: Any = Depends(_get_clien
 
     groundedness_score = _load_groundedness_result()
     corrections_store: dict = state.__dict__.setdefault("corrections_store", {})
-    pending = [v for v in corrections_store.values() if v.get("status") == "pending"]
+    corrections_by_id = dict(corrections_store)
+    repos = _repos(state)
+    if repos is not None:
+        try:
+            for entry in await repos.corrections.list_all_corrections():
+                corrections_by_id.setdefault(entry["id"], entry)
+        except Exception:
+            pass
+    pending = [
+        entry for entry in corrections_by_id.values()
+        if entry.get("status") == "pending"
+    ]
+    corrections = [_correction_view(entry) for entry in corrections_by_id.values()]
+    swahili_review = await _swahili_review_payload(state)
 
     return {
         "latency": snap["latency"],
@@ -442,7 +678,8 @@ async def get_review_dashboard(request: Request, state: Any = Depends(_get_clien
         "verdict_fail": snap["verdict_fail"],
         "fallback_count": snap["fallback_count"],
         "quota_exceeded_count": snap["quota_exceeded_count"],
-        "groundedness_score": groundedness_score if groundedness_score is not None else 0.0,
+        "groundedness_score": groundedness_score,
         "rating_queue_size": len(pending),
-        "corrections": list(corrections_store.values()),
+        "corrections": corrections,
+        "swahili_review": swahili_review,
     }

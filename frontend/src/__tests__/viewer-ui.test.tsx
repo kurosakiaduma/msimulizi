@@ -5,9 +5,11 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { MetricHUD } from "@/components/MetricHUD";
 import { OverlayCardView } from "@/components/OverlayCardView";
 import { PersonalisationPanel } from "@/components/PersonalisationPanel";
-import type { OverlayCard, ViewerProfile } from "@/lib/types";
+import { ReplayPanel } from "@/components/ReplayPanel";
+import type { EventDot, MatchState, OverlayCard, ViewerProfile } from "@/lib/types";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -295,5 +297,101 @@ describe("PersonalisationPanel — profile update (Req 12.3)", () => {
     expect(
       screen.getByRole("switch", { name: /audio.only mode/i })
     ).toBeInTheDocument();
+  });
+});
+
+describe("MetricHUD — analyst team stats", () => {
+  const state: MatchState = {
+    match_id: "m1",
+    minute: 31,
+    second: 0,
+    score_home: 0,
+    score_away: 2,
+    possession_home: 0.67,
+    field_tilt_home: 0.67,
+    field_tilt_away: 0.33,
+    xg_home: 0,
+    xg_away: 0.35,
+    momentum_home: 45,
+    momentum_away: 55,
+    pressure_rate_home: 0,
+    pressure_rate_away: 0,
+    tempo: 1.2,
+    team_home: "Nyota FC",
+    team_away: "Jua United",
+  };
+
+  const events: EventDot[] = [
+    {
+      event_id: "e1",
+      x: 90,
+      y: 50,
+      event_type: "goal",
+      team: "Mombasa United",
+      team_side: "away",
+      player: "Asha Njeri",
+      minute: 31,
+      outcome: "goal",
+    },
+    {
+      event_id: "e2",
+      x: 20,
+      y: 40,
+      event_type: "pass",
+      team: "Kisumu City",
+      team_side: "home",
+      player: "Amani Otieno",
+      minute: 30,
+      outcome: "success",
+    },
+  ];
+
+  it("maps raw event team names to the displayed home/away sides", () => {
+    render(<MetricHUD state={state} events={events} />);
+
+    const rows = screen.getAllByRole("row").map((row) => row.textContent);
+    expect(rows).toContain("Nyota FC0010");
+    expect(rows).toContain("Jua United1100");
+  });
+});
+
+describe("ReplayPanel — demo speed", () => {
+  it("lets the operator select a faster replay before start", () => {
+    const onSelectSpeed = vi.fn();
+    render(
+      <ReplayPanel
+        selectedStoryline="comeback_from_two_down"
+        isConnected={true}
+        hasStarted={false}
+        isFinished={false}
+        speed={1}
+        onSelectStoryline={vi.fn()}
+        onSelectSpeed={onSelectSpeed}
+        onStart={vi.fn()}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText("Replay speed"), {
+      target: { value: "30" },
+    });
+
+    expect(onSelectSpeed).toHaveBeenCalledWith(30);
+  });
+
+  it("locks the speed once a session is running", () => {
+    render(
+      <ReplayPanel
+        selectedStoryline="comeback_from_two_down"
+        isConnected={true}
+        hasStarted={true}
+        isFinished={false}
+        speed={30}
+        onSelectStoryline={vi.fn()}
+        onSelectSpeed={vi.fn()}
+        onStart={vi.fn()}
+      />
+    );
+
+    expect(screen.getByLabelText("Replay speed")).toBeDisabled();
   });
 });

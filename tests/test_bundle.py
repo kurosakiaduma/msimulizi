@@ -11,12 +11,10 @@ Tests cover:
 from __future__ import annotations
 
 import asyncio
-import dataclasses
 import json
 import pathlib
-import tempfile
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 

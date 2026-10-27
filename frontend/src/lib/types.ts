@@ -66,6 +66,8 @@ export interface EventDot {
   y: number;
   event_type: string;
   team: string;
+  /** Server-resolved side; display names are a fictional overlay. */
+  team_side?: "home" | "away" | "";
   player: string;
   minute: number;
   outcome: string | null;
@@ -102,7 +104,8 @@ export interface ClockUpdate {
 export interface AudioUpdate {
   type: "audio_update";
   card_id: string;
-  audio_url: string;
+  audio_url: string | null;
+  duration_ms?: number | null;
   match_seconds: number;
 }
 

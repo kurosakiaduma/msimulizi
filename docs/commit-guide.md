@@ -199,7 +199,7 @@ git add scripts/run_groundedness_eval.py
 git add evals/groundedness_eval.jsonl
 git add evals/results/groundedness_latest.json
 git add config/few_shots/sw.jsonl
-git commit -m "feat(observability): OTEL metrics, groundedness eval, Swahili few-shots (4.2/5)"
+git commit -m "feat(observability): OTEL metrics, groundedness eval, and Swahili review corpus"
 ```
 
 Covers: task 29.

@@ -17,6 +17,7 @@ import asyncio
 import pytest
 
 from shared.foundry_client import (
+    FoundryClient,
     FoundryTimeoutError,
     MockFoundryClient,
     QuotaExceeded,
@@ -160,13 +161,53 @@ class TestGetDeployment:
     def test_known_agent_key(self):
         dep = get_deployment("explainer")
         assert dep["deployment_name"] == "msimulizi-explainer"
-        assert "api_version" in dep
+        assert dep["model"] == "gpt-5.4-mini"
+        assert dep["api_version"] == "v1"
 
     def test_all_configured_agents(self):
-        for key in ("explainer", "narrator_sw", "narrator_en_fr", "verifier"):
+        for key in (
+            "explainer",
+            "narrator_sw",
+            "narrator_en_fr",
+            "verifier",
+            "spoken_script_sw",
+            "spoken_script_en_fr",
+        ):
             dep = get_deployment(key)
             assert "deployment_name" in dep
 
     def test_unknown_key_raises(self):
         with pytest.raises(KeyError):
             get_deployment("nonexistent_agent")
+
+
+# ---------------------------------------------------------------------------
+# FoundryClient live-client construction
+# ---------------------------------------------------------------------------
+
+class TestFoundryClientConstruction:
+    def test_uses_v1_endpoint_and_key(self):
+        client = FoundryClient(
+            "https://example.openai.azure.com/",
+            api_key="test-key",
+        )
+        sdk = client._build_client()
+
+        assert str(sdk.base_url).startswith(
+            "https://example.openai.azure.com/openai/v1"
+        )
+        assert sdk.api_key == "test-key"
+
+        run(client.aclose())
+
+    def test_managed_identity_builds_async_token_provider(self):
+        client = FoundryClient("https://example.openai.azure.com/")
+        sdk = client._build_client()
+
+        assert client._credential is not None
+        assert str(sdk.base_url).startswith(
+            "https://example.openai.azure.com/openai/v1"
+        )
+
+        run(client.aclose())
+        assert client._credential is None

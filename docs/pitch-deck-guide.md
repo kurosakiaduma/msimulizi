@@ -1,4 +1,9 @@
-# Msimulizi — Pitch Deck Guide
+# Msimulizi — Pitch Deck Guide (historical visual reference)
+
+> **Current submission plan:** use [`demo-guide.md`](demo-guide.md). This file
+> keeps the palette, typography, and layout notes, but its model names
+> (`GPT-4o`) and some quality numbers are outdated. Do not copy its claims
+> without checking the live dashboard and the demo guide.
 
 Target: Innovation Studio submission + any supporting slide deck.
 Tone: confident, data-driven, story-first. Let the product do the talking.
@@ -71,7 +76,7 @@ Event stream → Intelligence pipeline → Renderer → API / WebSocket → View
 ```
 
 Label each layer with the Azure service it runs on:
-- Pipeline → **Azure AI Foundry** (GPT-4o)
+- Pipeline → **Azure AI Foundry** (`gpt-5.4` / `gpt-5.4-mini`)
 - TTS → **Azure AI Speech** (sw-KE-ZuriNeural)
 - Safety → **Azure AI Content Safety**
 - State → **Azure Cosmos DB**
@@ -89,8 +94,8 @@ Big numbers, one per row:
 
 | | |
 |---|---|
-| **100%** | Groundedness score (50-entry heuristic eval) |
-| **4.2 / 5** | Native-speaker Swahili rating (30 lines) |
+| **1.0** | Groundedness score (50-entry heuristic eval; check live) |
+| **Pending** | Native-speaker Swahili review (30-line sign-off required) |
 | **≤ 5 s p50** | Card latency target |
 | **≤ 10 s p95** | Card latency target |
 | **≥ 90%** | Verifier pass rate target |
@@ -100,7 +105,7 @@ Use the emerald colour for the scores.
 ### 7. Microsoft / Azure technologies used (1 slide)
 List every service. Judges check this explicitly:
 
-- Azure AI Foundry — GPT-4o narrator, explainer, verifier (structured output)
+- Azure AI Foundry — `gpt-5.4` Swahili narrator; `gpt-5.4-mini` explainer, verifier, English/French, and spoken-script adapter (structured output)
 - Azure AI Speech — Swahili (sw-KE, sw-TZ), English, French TTS
 - Azure AI Content Safety — narration and correction moderation
 - Azure Cosmos DB — match state, narration cache, audit log, corrections
@@ -138,7 +143,7 @@ Msimulizi is a real-time football match intelligence system that transforms a sy
 Over 400 million African football fans have no access to real-time AI commentary in their native language. Existing broadcast tools are English-only, static, and opaque. Msimulizi democratises match intelligence with a grounded, auditable, multilingual AI narrator.
 
 **Microsoft / Azure technologies used:**
-Azure AI Foundry (GPT-4o structured output), Azure AI Speech (Swahili TTS), Azure AI Content Safety, Azure Cosmos DB, Azure Container Apps, Azure Blob Storage, Azure Key Vault, Azure Application Insights (OpenTelemetry), Microsoft Agent Framework.
+Azure AI Foundry (`gpt-5.4` / `gpt-5.4-mini` structured output), Azure AI Speech (Swahili TTS), Azure AI Content Safety, Azure Cosmos DB, Azure Container Apps, Azure Blob Storage, Azure Key Vault, Azure Application Insights (OpenTelemetry), Microsoft Agent Framework.
 
 **Areas:**
 Real-time intelligence · Explainability · Synthetic data innovation · Narrative generation · Multi-language storytelling

@@ -13,6 +13,7 @@ Usage (full run with real Foundry and Speech):
     python -m scripts.generate_bundle
 """
 
+# ruff: noqa: E402
 from __future__ import annotations
 
 import argparse
@@ -39,11 +40,10 @@ from pipeline.interpreter import Interpreter
 from pipeline.moment import MomentAgent
 from pipeline.narrator import NarratorAgent
 from pipeline.verifier import VerifierAgent
-from renderer.fallback import build_fallback_line, fallback_response
+from renderer.fallback import build_fallback_line
 from renderer.renderer import render_fallback_card, render_narration_card
-from shared.foundry_client import MockFoundryClient, QuotaExceeded
+from shared.foundry_client import QuotaExceeded
 from shared.models import (
-    EventType,
     KeyMoment,
     MatchState,
     NarrationRequest,

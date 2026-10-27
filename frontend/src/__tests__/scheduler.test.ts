@@ -5,6 +5,7 @@
 
 import { describe, it, expect } from "vitest";
 import {
+  applyAudioUrl,
   createSchedulerState,
   enqueueCard,
   tick,
@@ -191,6 +192,47 @@ describe("Scheduler — speed changes", () => {
 
     // Future cards wait in pending until their match timestamp is reached.
     expect(s1.pending[0]?.display_from_wall).toBeCloseTo(ANCHOR_WALL + 100_000, 0);
+  });
+});
+
+describe("applyAudioUrl", () => {
+  it("patches the visible card when audio arrives after the caption", () => {
+    const state = enqueueCard(
+      createSchedulerState(),
+      makeCard({ card_id: "c1", priority: 1 }),
+      ANCHOR_WALL,
+      ANCHOR_MATCH,
+      1,
+      ANCHOR_WALL
+    );
+
+    const updated = applyAudioUrl(state, "c1", "https://audio.example/c1.mp3");
+
+    expect(updated.current?.audio_url).toBe("https://audio.example/c1.mp3");
+    expect(state.current?.audio_url).toBeNull();
+  });
+
+  it("patches queued and pending copies too", () => {
+    const queued = enqueueCard(
+      enqueueCard(
+        createSchedulerState(),
+        makeCard({ card_id: "playing", priority: 1 }),
+        ANCHOR_WALL,
+        ANCHOR_MATCH,
+        1,
+        ANCHOR_WALL
+      ),
+      makeCard({ card_id: "queued", priority: 1 }),
+      ANCHOR_WALL,
+      ANCHOR_MATCH,
+      1,
+      ANCHOR_WALL
+    );
+
+    const updated = applyAudioUrl(queued, "queued", "https://audio.example/q.mp3");
+
+    expect(updated.rank1Queue[0]?.audio_url).toBe("https://audio.example/q.mp3");
+    expect(updated.current?.card_id).toBe("playing");
   });
 });
 

@@ -13,18 +13,14 @@ services so it runs offline without real credentials. It confirms that:
 
 from __future__ import annotations
 
-import asyncio
 import json
-import threading
 import time
 from typing import Any
-from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 
-from api.main import SessionManager, create_app
-from api.websocket import WebSocketManager
+from api.main import create_app
 from shared.foundry_client import MockFoundryClient
 
 
@@ -145,6 +141,17 @@ def test_slice_pipeline_emits_cards_over_websocket() -> None:
         "Expected at least one card message. "
         f"Received message types: {[m.get('type') for m in received]}"
     )
+
+    # Event dots include a server-resolved side. The raw generated team labels
+    # (Kisumu City / Mombasa United) differ from the fictional display overlay,
+    # so the browser must not infer sides from those names.
+    event_dots = [
+        msg["clock"]
+        for msg in clock_msgs
+        if isinstance(msg.get("clock"), dict) and msg["clock"].get("event_id")
+    ]
+    assert event_dots, "Expected at least one event dot on the clock channel"
+    assert any(dot.get("team_side") in {"home", "away"} for dot in event_dots)
 
     # Validate card structure
     card = card_msgs[0]["card"]

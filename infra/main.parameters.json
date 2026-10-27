@@ -8,14 +8,8 @@
     "location": {
       "value": "${AZURE_LOCATION}"
     },
-    "containerRegistryServer": {
-      "value": "${AZURE_CONTAINER_REGISTRY_ENDPOINT}"
-    },
-    "backendImageTag": {
-      "value": "${BACKEND_IMAGE_TAG=latest}"
-    },
-    "frontendImageTag": {
-      "value": "${FRONTEND_IMAGE_TAG=latest}"
+    "keyMode": {
+      "value": "${KEY_MODE=bootstrap}"
     }
   }
 }

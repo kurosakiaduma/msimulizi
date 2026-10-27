@@ -44,6 +44,29 @@ export function computeDisplayFrom(
   return anchorWall + offsetWallMs;
 }
 
+/**
+ * Attach a late-arriving audio URL to any queued/visible copy of a card.
+ *
+ * Audio is synthesized after the caption, so `audio_update` normally arrives
+ * after the card has been shown. Updating every scheduler slot keeps the
+ * audio-only player and the card view in sync.
+ */
+export function applyAudioUrl(
+  state: SchedulerState,
+  cardId: string,
+  audioUrl: string | null
+): SchedulerState {
+  const patch = <T extends ScheduledCard>(card: T): T =>
+    card.card_id === cardId ? { ...card, audio_url: audioUrl } : card;
+
+  return {
+    ...state,
+    current: state.current ? patch(state.current) : null,
+    rank1Queue: state.rank1Queue.map(patch),
+    pending: state.pending.map(patch),
+  };
+}
+
 /** Returns true if a card's display window has already passed (stale). */
 export function isStale(card: ScheduledCard, nowMs: number): boolean {
   const endsAt = card.display_from_wall + card.display_duration_ms;

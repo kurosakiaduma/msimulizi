@@ -1,4 +1,8 @@
-# Msimulizi — Demo Video Script & Curation Guide
+# Msimulizi — Demo Video Script & Curation Guide (historical reference)
+
+> **Current submission plan:** use [`demo-guide.md`](demo-guide.md). This file
+> has an older card/text example and an older speed workflow; the demo guide is
+> the current source of truth.
 
 Hard limit: **≤ 2 minutes** (120 seconds). Target 105 s to give yourself a buffer.
 Language: English narration over everything. English subtitles for all Swahili speech/text.
@@ -56,7 +60,7 @@ A new card appears — same moment, different voice:
 ### [1:00 – 1:15] — Architecture callout (15 s)
 **Screen:** Switch to a brief architecture slide (static image or the README diagram).
 Highlight the Azure services with brief labels appearing one at a time:
-- AI Foundry → "GPT-4o narrates"
+- AI Foundry → "`gpt-5.4` narrates"
 - AI Speech → "Swahili voices"
 - Cosmos DB → "state + cache"
 - Application Insights → "latency monitoring"
@@ -71,15 +75,15 @@ Highlight the Azure services with brief labels appearing one at a time:
 **Screen:** Navigate to `/review` (enter the reviewer key).
 Show:
 1. The latency chart — p50 and p95 bars for card and audio latency
-2. The groundedness score tile: **100%**
-3. The native-speaker rating tile: **4.2 / 5**
+2. The groundedness tile: **1.0** or the current live value
+3. The native-speaker review queue — show a line being scored, not a fabricated average
 
-**Voiceover:** "The built-in review dashboard shows live latency metrics and quality scores — groundedness checked across 50 moments, Swahili lines rated by native speakers."
+**Voiceover:** "The built-in review dashboard shows live latency and groundedness, and it gives a Swahili speaker a real queue to score. We only publish an average after 30 lines are signed off."
 
 ---
 
 ### [1:35 – 1:50] — Resilience / fallback moment (15 s)
-**Screen:** In the replay panel, drag the speed slider to **4×**.
+**Screen:** In the replay panel, select **30×** before Start (the speed is fixed for the session).
 Show cards continuing to flow — some may show the `bundle` badge.
 
 **Voiceover:** "Push the speed to 4×. When the LLM quota is tight, the system falls back to a pre-generated bundle — the match never stops."

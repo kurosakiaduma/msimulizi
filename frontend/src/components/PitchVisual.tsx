@@ -133,29 +133,27 @@ export function PitchVisual({
     ctx.fillText(awayTeam.slice(0, 10).toUpperCase(), W * 0.75, H - 14);
 
     // ── Heatmap (analyst mode) ────────────────────────────────────────────
+    // Add translucent radial gradients over the drawn pitch. The previous
+    // implementation wrote a full-canvas ImageData buffer, which replaced the
+    // pitch pixels (and their alpha) with mostly transparent black — that is
+    // why analyst mode showed only dots on a black rectangle.
     if (showHeatmap && events.length > 0) {
-      const heat = ctx.createImageData(W, H);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const radius = Math.max(18, Math.min(W, H) * 0.075);
       for (const ev of events) {
-        const px = Math.round((ev.x / 100) * W);
-        const py = Math.round((ev.y / 100) * H);
-        const r = 18;
-        for (let dx = -r; dx <= r; dx++) {
-          for (let dy = -r; dy <= r; dy++) {
-            const nx = px + dx;
-            const ny = py + dy;
-            if (nx < 0 || nx >= W || ny < 0 || ny >= H) continue;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist > r) continue;
-            const idx = (ny * W + nx) * 4;
-            const intensity = Math.round((1 - dist / r) * 60);
-            heat.data[idx]     = Math.min(255, heat.data[idx]     + 100);
-            heat.data[idx + 1] = Math.min(255, heat.data[idx + 1] + 20);
-            heat.data[idx + 2] = Math.min(255, heat.data[idx + 2] + 80);
-            heat.data[idx + 3] = Math.min(255, heat.data[idx + 3] + intensity);
-          }
-        }
+        const px = (ev.x / 100) * W;
+        const py = (ev.y / 100) * H;
+        const glow = ctx.createRadialGradient(px, py, 0, px, py, radius);
+        glow.addColorStop(0, "rgba(124, 58, 237, 0.20)");
+        glow.addColorStop(0.55, "rgba(245, 158, 11, 0.08)");
+        glow.addColorStop(1, "rgba(124, 58, 237, 0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(px, py, radius, 0, Math.PI * 2);
+        ctx.fill();
       }
-      ctx.putImageData(heat, 0, 0);
+      ctx.restore();
     }
 
     // ── Event dots ────────────────────────────────────────────────────────
@@ -196,12 +194,6 @@ export function PitchVisual({
     }
   }, [events, latestEvent, homeTeam, awayTeam, showHeatmap]);
 
-  // Map pitch coordinates (0–100) to canvas pixels (480×300) for overlays.
-  const pointToPx = (ev: EventDot): { x: number; y: number } => ({
-    x: (ev.x / 100) * 480,
-    y: (ev.y / 100) * 300,
-  });
-
   return (
     <div className={`relative rounded-lg overflow-hidden ${className}`}>
       <canvas
@@ -215,10 +207,9 @@ export function PitchVisual({
 
       {/* Hover targets + tooltips over each event dot (canvas is drawn beneath) */}
       {events.slice(-40).map((ev, i) => {
-        const { x: px, y: py } = pointToPx(ev);
         const age = events.slice(-40).length - i;
         const alpha = Math.max(0.15, 1 - age / 40);
-        const size = Math.max(6, 3 / alpha); // hit target matches visual dot size
+        const size = Math.max(10, 12 / alpha); // hit target matches visual dot size
         const label = EVENT_LABEL[ev.event_type] ?? ev.event_type;
         const minuteLabel = ev.minute ? `′` : "";
         return (
@@ -230,8 +221,9 @@ export function PitchVisual({
             onMouseLeave={() => setHovered(null)}
             style={{
               position: "absolute",
-              left: px - size / 2,
-              top: py - size / 2,
+              left: `${ev.x}%`,
+              top: `${ev.y}%`,
+              transform: "translate(-50%, -50%)",
               width: size,
               height: size,
               background: "transparent",
@@ -251,8 +243,9 @@ export function PitchVisual({
                      border border-[--border-subtle] rounded-md px-2 py-1
                      text-[10px] text-[--text-primary] shadow-lg whitespace-nowrap"
           style={{
-            left: pointToPx(hovered).x + 10,
-            top: pointToPx(hovered).y - 12,
+            left: `${hovered.x}%`,
+            top: `${hovered.y}%`,
+            transform: "translate(10px, -130%)",
           }}
         >
           {EVENT_LABEL[hovered.event_type] ?? hovered.event_type}{" "}

@@ -14,17 +14,15 @@ param environmentName string
 @description('Primary Azure region for all resources.')
 param location string = resourceGroup().location
 
-@description('Container image tag for the backend service.')
-param backendImageTag string = 'latest'
-
-@description('Container image tag for the frontend service.')
-param frontendImageTag string = 'latest'
-
-@description('Container registry server (e.g. myregistry.azurecr.io).')
-param containerRegistryServer string
-
 @description('Optional: override the Cosmos DB account name.')
 param cosmosAccountName string = ''
+
+@allowed([
+  'bootstrap'
+  'preserve'
+])
+@description('bootstrap writes placeholder Key Vault credentials; preserve leaves rotated values untouched.')
+param keyMode string = 'bootstrap'
 
 // ---------------------------------------------------------------------------
 // Variables
@@ -42,6 +40,11 @@ var acaEnvName = '${prefix}-acaenv'
 var backendAppName = '${prefix}-backend'
 var frontendAppName = '${prefix}-frontend'
 var managedIdentityName = '${prefix}-mid'
+var acrName = toLower(replace('${prefix}acr${uniqueString(resourceGroup().id)}', '-', ''))
+var registryServer = acr.properties.loginServer
+// Bootstrap image used only while provisioning. `azd deploy` replaces it with
+// the image it builds and pushes to the environment ACR.
+var bootstrapImage = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
 
 // Cosmos DB containers
 var cosmosContainers = [
@@ -85,6 +88,33 @@ var cosmosContainers = [
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: managedIdentityName
   location: location
+}
+
+// ---------------------------------------------------------------------------
+// Azure Container Registry — images for both Container Apps
+// ---------------------------------------------------------------------------
+
+resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+  name: acrName
+  location: location
+  sku: {
+    name: 'Basic'
+  }
+  properties: {
+    adminUserEnabled: false
+  }
+}
+
+var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
+
+resource acrPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(acr.id, managedIdentity.id, acrPullRoleId)
+  scope: acr
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleId)
+    principalId: managedIdentity.properties.principalId
+    principalType: 'ServicePrincipal'
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -138,10 +168,11 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   }
 }
 
-// Placeholder secrets — set real values via: azd env set + azd deploy
-// or: az keyvault secret set --vault-name <kvName> --name <secret-name> --value <value>
+// Placeholder secrets — created only in bootstrap mode. Rotate with:
+//   az keyvault secret set --vault-name <kvName> --name <secret-name> --value <value>
+// then set KEY_MODE=preserve so later deployments do not reset them.
 
-resource kvSecretMcpApiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource kvSecretMcpApiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if (keyMode == 'bootstrap') {
   parent: keyVault
   name: 'mcp-api-key'
   properties: {
@@ -150,7 +181,7 @@ resource kvSecretMcpApiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   }
 }
 
-resource kvSecretReviewerApiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource kvSecretReviewerApiKey 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = if (keyMode == 'bootstrap') {
   parent: keyVault
   name: 'reviewer-api-key'
   properties: {
@@ -338,14 +369,16 @@ resource speechService 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   }
 }
 
-// Grant managed identity Cognitive Services User (read key via RBAC)
-var cognitiveServicesUserRoleId = 'a97b65f3-24c7-4388-baec-2e87135dc908'
+// Grant managed identity Speech User (synthesis + voice catalogue)
+var cognitiveServicesUserRoleId = 'a97b65f3-24c7-4388-baec-2e87135dc908' // Cognitive Services User
+var cognitiveServicesOpenAIUserRoleId = '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd' // Cognitive Services OpenAI User
+var cognitiveServicesSpeechUserRoleId = 'f2dc8367-1007-4938-bd23-fe263f013447' // Cognitive Services Speech User
 
 resource speechRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(speechService.id, managedIdentity.id, cognitiveServicesUserRoleId)
+  name: guid(speechService.id, managedIdentity.id, cognitiveServicesSpeechUserRoleId)
   scope: speechService
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesUserRoleId)
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesSpeechUserRoleId)
     principalId: managedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
@@ -397,31 +430,33 @@ resource foundryAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
 }
 
 resource foundryRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(foundryAccount.id, managedIdentity.id, cognitiveServicesUserRoleId)
+  name: guid(foundryAccount.id, managedIdentity.id, cognitiveServicesOpenAIUserRoleId)
   scope: foundryAccount
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesUserRoleId)
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesOpenAIUserRoleId)
     principalId: managedIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
 // Model deployments — names match config/foundry_models.yaml
-// gpt-4o (2024-08-06) and gpt-4o-mini (2024-07-18) have retirement dates after 10 Nov 2026.
-// Verify at: https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-retirements
+// GA models retiring after the 10 Nov 2026 judging window:
+//   gpt-5.4 (2026-03-05) → 2027-09-02
+//   gpt-5.4-mini (2026-03-17) → 2027-09-21
+// Verify at: https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/model-retirement-schedule
 
 resource deploymentExplainer 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = {
   parent: foundryAccount
   name: 'msimulizi-explainer'
   sku: {
-    name: 'Standard'
+    name: 'GlobalStandard'
     capacity: 10
   }
   properties: {
     model: {
       format: 'OpenAI'
-      name: 'gpt-4o-mini'
-      version: '2024-07-18'
+      name: 'gpt-5.4-mini'
+      version: '2026-03-17'
     }
     versionUpgradeOption: 'NoAutoUpgrade'
   }
@@ -432,14 +467,14 @@ resource deploymentNarratorSw 'Microsoft.CognitiveServices/accounts/deployments@
   name: 'msimulizi-narrator-sw'
   dependsOn: [deploymentExplainer]
   sku: {
-    name: 'Standard'
+    name: 'GlobalStandard'
     capacity: 10
   }
   properties: {
     model: {
       format: 'OpenAI'
-      name: 'gpt-4o'
-      version: '2024-08-06'
+      name: 'gpt-5.4'
+      version: '2026-03-05'
     }
     versionUpgradeOption: 'NoAutoUpgrade'
   }
@@ -450,14 +485,14 @@ resource deploymentNarratorEnFr 'Microsoft.CognitiveServices/accounts/deployment
   name: 'msimulizi-narrator-en-fr'
   dependsOn: [deploymentNarratorSw]
   sku: {
-    name: 'Standard'
+    name: 'GlobalStandard'
     capacity: 10
   }
   properties: {
     model: {
       format: 'OpenAI'
-      name: 'gpt-4o-mini'
-      version: '2024-07-18'
+      name: 'gpt-5.4-mini'
+      version: '2026-03-17'
     }
     versionUpgradeOption: 'NoAutoUpgrade'
   }
@@ -468,14 +503,14 @@ resource deploymentVerifier 'Microsoft.CognitiveServices/accounts/deployments@20
   name: 'msimulizi-verifier'
   dependsOn: [deploymentNarratorEnFr]
   sku: {
-    name: 'Standard'
+    name: 'GlobalStandard'
     capacity: 10
   }
   properties: {
     model: {
       format: 'OpenAI'
-      name: 'gpt-4o-mini'
-      version: '2024-07-18'
+      name: 'gpt-5.4-mini'
+      version: '2026-03-17'
     }
     versionUpgradeOption: 'NoAutoUpgrade'
   }
@@ -507,6 +542,18 @@ resource acaEnv 'Microsoft.App/managedEnvironments@2023-11-02-preview' = {
 resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
   name: backendAppName
   location: location
+  tags: {
+    'azd-service-name': 'backend'
+  }
+  dependsOn: [
+    acrPullRoleAssignment
+    kvRoleAssignment
+    cosmosRoleAssignment
+    storageRoleAssignment
+    speechRoleAssignment
+    contentSafetyRoleAssignment
+    foundryRoleAssignment
+  ]
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
@@ -529,7 +576,7 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
       }
       registries: [
         {
-          server: containerRegistryServer
+          server: registryServer
           identity: managedIdentity.id
         }
       ]
@@ -538,17 +585,27 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
           name: 'appinsights-conn'
           value: appInsights.properties.ConnectionString
         }
+        {
+          name: 'mcp-api-key'
+          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/mcp-api-key'
+          identity: managedIdentity.id
+        }
+        {
+          name: 'reviewer-api-key'
+          keyVaultUrl: '${keyVault.properties.vaultUri}secrets/reviewer-api-key'
+          identity: managedIdentity.id
+        }
       ]
     }
     template: {
       scale: {
         minReplicas: 1  // scale-to-zero disabled; in-memory state must survive
-        maxReplicas: 3
+        maxReplicas: 1  // no shared backplane yet; WebSocket/session state stays on one replica
       }
       containers: [
         {
           name: 'backend'
-          image: '${containerRegistryServer}/msimulizi-backend:${backendImageTag}'
+          image: bootstrapImage
           resources: {
             cpu: json('0.5')
             memory: '1Gi'
@@ -587,8 +644,44 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
               value: storageAccount.properties.primaryEndpoints.blob
             }
             {
+              name: 'AUDIO_BLOB_ACCOUNT_URL'
+              value: storageAccount.properties.primaryEndpoints.blob
+            }
+            {
+              name: 'AUDIO_BLOB_CONTAINER'
+              value: 'audio'
+            }
+            {
+              name: 'SPEECH_USE_MANAGED_IDENTITY'
+              value: 'true'
+            }
+            {
+              name: 'APP_ENV'
+              value: 'production'
+            }
+            {
+              name: 'FOUNDRY_REASONING_EFFORT'
+              value: 'none'
+            }
+            {
+              name: 'AUDIO_SCRIPT_ENHANCE'
+              value: 'true'
+            }
+            {
+              name: 'MSIMULIZI_ALLOWED_ORIGINS'
+              value: 'https://${prefix}-frontend.${acaEnv.properties.defaultDomain}'
+            }
+            {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
               secretRef: 'appinsights-conn'
+            }
+            {
+              name: 'MCP_API_KEY'
+              secretRef: 'mcp-api-key'
+            }
+            {
+              name: 'MSIMULIZI_REVIEWER_KEY'
+              secretRef: 'reviewer-api-key'
             }
             {
               name: 'ENVIRONMENT_NAME'
@@ -608,6 +701,12 @@ resource backendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
 resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
   name: frontendAppName
   location: location
+  tags: {
+    'azd-service-name': 'frontend'
+  }
+  dependsOn: [
+    acrPullRoleAssignment
+  ]
   identity: {
     type: 'UserAssigned'
     userAssignedIdentities: {
@@ -624,7 +723,7 @@ resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
       }
       registries: [
         {
-          server: containerRegistryServer
+          server: registryServer
           identity: managedIdentity.id
         }
       ]
@@ -637,15 +736,19 @@ resource frontendApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
       containers: [
         {
           name: 'frontend'
-          image: '${containerRegistryServer}/msimulizi-frontend:${frontendImageTag}'
+          image: bootstrapImage
           resources: {
             cpu: json('0.25')
             memory: '0.5Gi'
           }
           env: [
             {
-              name: 'NEXT_PUBLIC_BACKEND_URL'
+              name: 'BACKEND_URL'
               value: 'https://${backendApp.properties.configuration.ingress.fqdn}'
+            }
+            {
+              name: 'WS_URL'
+              value: 'wss://${backendApp.properties.configuration.ingress.fqdn}/ws'
             }
           ]
         }
@@ -668,3 +771,5 @@ output foundryEndpoint string = foundryAccount.properties.endpoint
 output speechEndpoint string = 'https://${speechName}.cognitiveservices.azure.com/'
 output contentSafetyEndpoint string = contentSafety.properties.endpoint
 output managedIdentityClientId string = managedIdentity.properties.clientId
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = acr.properties.loginServer
+output containerRegistryName string = acr.name

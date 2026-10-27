@@ -50,6 +50,10 @@ infra/.terraform/
 *.tfstate
 *.tfstate.backup
 
+# Local-only operational runbooks (kept on disk, never published)
+docs/azure-resources-and-env.md
+docs/azure-production-guide.md
+
 # Secrets
 *.pem
 *.key
@@ -80,4 +84,6 @@ coverage.xml
 
 # Build artefacts
 bundle/audio/
-evals/results/
+# Keep the latest groundedness artifact; the backend image copies it.
+evals/results/*
+!evals/results/groundedness_latest.json

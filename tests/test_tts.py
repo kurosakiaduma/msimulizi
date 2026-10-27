@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from types import SimpleNamespace
 
 from renderer.tts import AzureSpeechSynthesizer, build_audio_key, synthesize_card_audio, voice_for_language
 

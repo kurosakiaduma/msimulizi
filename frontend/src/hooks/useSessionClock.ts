@@ -17,6 +17,7 @@ interface ClockState {
 type ClockAction =
   | { type: "setRunning"; running: boolean; now: number }
   | { type: "updateAnchor"; anchor: ClockAnchor }
+  | { type: "reset"; now: number }
   | { type: "tick"; now: number };
 
 const INITIAL_STATE: ClockState = {
@@ -27,24 +28,43 @@ const INITIAL_STATE: ClockState = {
 
 function clockReducer(state: ClockState, action: ClockAction): ClockState {
   switch (action.type) {
-    case "setRunning":
+    case "setRunning": {
+      // Resume from the currently visible time, not from the last anchor.
+      // The reducer ticks every frame, so anchor.anchorMatch is usually older
+      // than matchSeconds; using it here would make the clock jump backwards
+      // on a pause/resume or a reconnect.
+      const matchSeconds = state.matchSeconds;
       return {
-        anchor: action.running
-          ? { ...state.anchor, anchorWall: action.now }
-          : state.anchor,
-        matchSeconds: state.anchor.anchorMatch,
+        anchor: {
+          ...state.anchor,
+          anchorWall: action.now,
+          anchorMatch: matchSeconds,
+        },
+        matchSeconds,
         isRunning: action.running,
       };
-    case "updateAnchor":
+    }
+    case "updateAnchor": {
+      // Backend and card timestamps can arrive a few seconds out of order
+      // after a slow LLM/TTS turn. Never let an older anchor pull the visible
+      // clock backwards; move to the newest forward anchor instead.
+      const anchorMatch = state.isRunning
+        ? Math.max(action.anchor.anchorMatch, state.matchSeconds)
+        : action.anchor.anchorMatch;
       return {
-        anchor: action.anchor,
-        matchSeconds: state.isRunning
-          ? state.matchSeconds
-          : action.anchor.anchorMatch,
+        anchor: { ...action.anchor, anchorMatch },
+        matchSeconds: state.isRunning ? anchorMatch : action.anchor.anchorMatch,
         isRunning: state.isRunning,
       };
+    }
+    case "reset":
+      return {
+        anchor: { anchorWall: action.now, anchorMatch: 0, speed: 1 },
+        matchSeconds: 0,
+        isRunning: false,
+      };
     case "tick": {
-      const elapsed = (action.now - state.anchor.anchorWall) / 1000;
+      const elapsed = Math.max(0, (action.now - state.anchor.anchorWall) / 1000);
       return {
         ...state,
         matchSeconds: state.anchor.anchorMatch + elapsed * state.anchor.speed,
@@ -70,6 +90,10 @@ export function useSessionClock() {
 
   const setRunning = useCallback((running: boolean) => {
     dispatch({ type: "setRunning", running, now: Date.now() });
+  }, []);
+
+  const reset = useCallback(() => {
+    dispatch({ type: "reset", now: Date.now() });
   }, []);
 
   useEffect(() => {
@@ -105,6 +129,7 @@ export function useSessionClock() {
     isRunning: state.isRunning,
     updateAnchor,
     setRunning,
+    reset,
     toClock,
   };
 }

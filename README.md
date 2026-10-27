@@ -1,219 +1,176 @@
 # Msimulizi — AI Match Intelligence
 
-> **Msimulizi** (Swahili: "the narrator") is a real-time football match intelligence system that transforms a synthetic event stream into live, explainable commentary and overlay cards in Swahili, English, and French.
+[![CI](https://github.com/kurosakiaduma/msimulizi/actions/workflows/ci.yml/badge.svg?branch=main&style=flat-square)](https://github.com/kurosakiaduma/msimulizi/actions/workflows/ci.yml)
+[![Python 3.13+](https://img.shields.io/badge/Python-3.13%2B-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
+[![Node.js 24](https://img.shields.io/badge/Node.js-24-339933?style=flat-square&logo=nodedotjs&logoColor=white)](frontend/package.json)
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs&logoColor=white)](frontend/package.json)
+[![FastAPI 0.115+](https://img.shields.io/badge/FastAPI-0.115%2B-009688?style=flat-square&logo=fastapi&logoColor=white)](pyproject.toml)
+[![Azure Container Apps](https://img.shields.io/badge/Azure-Container%20Apps-0078D4?style=flat-square&logo=microsoftazure&logoColor=white)](infra/main.bicep)
+[![Architecture diagrams](https://img.shields.io/badge/Architecture-diagrams-06b6d4?style=flat-square)](docs/architecture.md)
+[![Eraser schema](https://img.shields.io/badge/Eraser-diagram%20schema-7c3aed?style=flat-square)](docs/architecture-eraser-schema.md)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-Built for the [Microsoft AI Tour Hackathon](https://developer.microsoft.com/en-us/reactor/series/S-1709/) — *Inside the Game* challenge.
+**Msimulizi** (Swahili for “the narrator”) turns a synthetic football event stream into live, explainable commentary cards in **Swahili, English, and French**. It is built for the Microsoft AI Tour Hackathon (*Inside the Game*) and runs as a FastAPI + WebSocket backend with a Next.js viewer.
 
-> All code, model weights, calibration data, and the pre-generated bundle in this repository were created during the hackathon submission window (on or after 29 September 2026). No pre-existing scripts, notebooks, data, or model files were copied in.
+Every match is synthetic. The clubs and players are fictional. Every Swahili card carries an English gloss; captions are the primary surface and audio is an enhancement. When the audio uses a spoken rewrite, the audio update carries the derived line and its English gloss without changing the card.
 
 ---
 
+## What it does
+
+- **Live match clock** that stays anchored to the authoritative event time.
+- **Personalised cards** by language, mode (casual / analyst), and club perspective.
+- **Analyst view** with a working heatmap, possession, field tilt, xG, tempo, momentum, and event-derived team stats.
+- **Spoken commentary** through Azure AI Speech, with emotion and intensity derived from the verified moment. An optional Foundry rewrite turns the approved card into a short spoken line; it never changes the caption and falls back to the caption when a grounded rewrite is not available.
+- **Server-sent corrections** and a reviewer dashboard for the native-speaker loop.
+- **Cosmos DB persistence** for snapshots, moments, cards, audit entries, and corrections.
+- **Authenticated MCP** surface for tool-based access to the same match state.
+
 ## Architecture
 
-The system is organised into five layers:
-
-1. **Event source** — swappable adapter (file replay, in-process generator, Azure Event Hubs)
-2. **Intelligence pipeline** — six cooperating agents on Microsoft Agent Framework
-3. **Rendering** — deterministic Overlay Renderer → Cosmos DB; audio via Azure AI Speech
-4. **Exposure** — REST API, MCP Server, WebSocket gateway
-5. **Viewer UI** — Next.js 15 frontend
-
-
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": { "primaryColor": "#7c3aed", "primaryTextColor": "#111827", "primaryBorderColor": "#7c3aed", "lineColor": "#6b7280", "secondaryColor": "#0ea5e9", "tertiaryColor": "#f59e0b", "fontFamily": "system-ui, -apple-ui, sans-serif" } }}%%
-
-graph LR
-    subgraph Source["Event Source"]
-        GEN["Generator\n(synthetic)"]
-        EH["Azure\nEvent Hubs"]
-        FILE["File\nReplay"]
+flowchart LR
+    subgraph Browser["Browser"]
+        UI["Next.js viewer<br/>/ , /about , /review"]
     end
 
-    subgraph Pipeline["Intelligence Pipeline (Microsoft Agent Framework)"]
-        direction TB
-        INT["Interpreter\nAgent"]
-        MOM["Moment\nAgent"]
-        PER["Personaliser\nAgent"]
-        EXP["Explainer\nAgent"]
-        NAR["Narrator\nAgent"]
-        VER["Verifier\nAgent"]
-        INT --> MOM --> PER --> EXP --> NAR --> VER
+    subgraph Backend["FastAPI backend<br/>one replica"]
+        API["REST /v1 + /health"]
+        WS["WebSocket /ws"]
+        MCP["MCP /mcp/ with auth"]
+        PIPE["Six-stage pipeline<br/>+ audio branch"]
     end
 
-    subgraph Render["Rendering"]
-        REN["Overlay\nRenderer"]
-        TTS["Azure AI\nSpeech"]
-        BLOB["Blob\nStorage\n(audio)"]
-    end
+    Foundry["Microsoft Foundry<br/>gpt-5.4 / gpt-5.4-mini"]
+    Speech["Azure AI Speech"]
+    Safety["Azure AI Content Safety"]
+    Cosmos["Cosmos DB"]
+    Blob["Blob Storage<br/>audio"]
+    KV["Key Vault"]
+    AI["Application Insights"]
+    LAW["Log Analytics"]
+    MCPClient["MCP client<br/>bearer auth"]
 
-    subgraph Azure["Azure Data & Observability"]
-        COSMOS["Cosmos DB\n6 containers"]
-        AI["App\nInsights"]
-    end
-
-    subgraph Exposure["API & Gateway"]
-        REST["FastAPI\nREST"]
-        WS["WebSocket\nGateway"]
-        MCP["MCP\nServer"]
-    end
-
-    subgraph UI["Viewer UI (Next.js)"]
-        FEED["Card Feed\n+ Scheduler"]
-        CLOCK["Match\nClock"]
-        PANEL["Personalisation\nPanel"]
-        REV["/review\nDashboard"]
-    end
-
-    GEN & EH & FILE --> INT
-    VER --> REN
-    REN --> COSMOS
-    REN --> TTS --> BLOB
-    REN --> WS
-    COSMOS --> REST & MCP
-    AI --> REV
-    REST & WS --> FEED & CLOCK & PANEL
-    WS --> REV
-
-    classDef azure fill:#eef2ff,stroke:#7c3aed,color:#111827
-    classDef ui fill:#e0f2fe,stroke:#0ea5e9,color:#111827
-    classDef pipe fill:#f3f4f6,stroke:#7c3aed,color:#111827
-    class EH,BLOB,COSMOS,AI azure
-    class FEED,CLOCK,PANEL,REV,REST,WS,MCP ui
-    class INT,MOM,PER,EXP,NAR,VER pipe
+    UI --> API
+    UI <--> WS
+    MCPClient --> MCP
+    API --> PIPE
+    PIPE --> Foundry
+    PIPE --> Speech
+    PIPE --> Safety
+    PIPE --> Cosmos
+    PIPE --> Blob
+    MCP --> Cosmos
+    KV --> Backend
+    Backend --> AI
+    AI --> LAW
 ```
 
-> A higher-resolution isometric version of this diagram is available in [`docs/architecture-eraser-spec.md`](docs/architecture-eraser-spec.md).
+The backend is deliberately layered: the generator and adapters are swappable, the six pipeline stages are separately testable, and the renderer owns card shape and persistence. The frontend consumes cards, clock updates, and audio updates over one WebSocket. Captions are sent before audio; the audio path is fail-open and never changes the card.
 
-## Setup
+The full diagram set — system context, backend pipeline and fallback paths, frontend component flow, persistence, Azure infrastructure, observability, live sequence, deployment, and current constraints — is in [`docs/architecture.md`](docs/architecture.md). The complete Eraser.io input and generation brief are in [`docs/architecture-eraser-schema.md`](docs/architecture-eraser-schema.md).
 
-### Prerequisites
+### Eraser.io export
 
-- Python 3.13+
-- Node.js 20+
-- Azure Developer CLI (`azd`)
-- A GitHub personal access token (only needed to publish the repo)
+[![Msimulizi architecture overview](docs/architecture-overview.png)](docs/architecture-overview.png)
 
-### Local development
+*Current 2× Eraser.io export of the deployed architecture. The Mermaid diagrams in [`docs/architecture.md`](docs/architecture.md) remain the canonical source for the caption-first ordering, one-replica backend, and the 0/56 native-review gate.*
+
+### Deployed Azure resource graph
+
+[![Azure Resource Visualizer for rg-msimulizi-demo2](docs/azure-resource-visualizer.jpg)](docs/azure-resource-visualizer.jpg)
+
+*Azure Resource Visualizer export for `rg-msimulizi-demo2` on 27 October 2026, showing the live resource names and observed links. `ApplicationInsightsSmartDetection` is an auto-created action group with no alert rules and zero direct cost; it is not provisioned by `infra/main.bicep`. The Mermaid topology in [`docs/architecture.md`](docs/architecture.md#6-azure-infrastructure-topology) is the canonical inventory and records the deliberate gaps.*
+
+## Quick start (offline)
+
+Prerequisites: Python 3.13+, Node.js 24+.
 
 ```bash
-# 1. Clone and enter the repository
-git clone https://github.com/kurosakiaduma/msimulizi
-cd msimulizi
-
-# 2. Copy the environment template and fill in values (never commit .env)
 cp .env.example .env
 cp frontend/.env.local.example frontend/.env.local
 
-# 3. Install Python dependencies (uv is used by CI; pip works too)
-uv pip install --system -e ".[dev]"
-# or: python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev]"
 
-# 4. Run the backend test suite (offline, uses fakes/mocks — no Azure needed)
+# Backend tests (no Azure credentials required)
 pytest
 
-# 5. Run the frontend tests
+# Frontend tests and build
 cd frontend
 npm ci
 npm run test
+npm run build
 cd ..
 
-# 6. Start the backend locally
+# Run locally
 uvicorn api.main:app --reload --port 8000
-
-# 7. Start the frontend (in another terminal)
-cd frontend
-npm run dev
-# Open http://localhost:3000 — the page defaults to the bundle replay.
+# In another terminal:
+cd frontend && npm run dev
 ```
 
-### Deploy to Azure
+Open <http://localhost:3000>, choose a storyline, and press **Start**. The demo works without cloud services because the app falls back to in-memory data and template narration.
+
+For a short demo, select **30×** replay speed before Start. The first key moment is at match minute 12, so it arrives after about 24 seconds at 30× rather than 12 minutes at 1×.
+
+## Checks
 
 ```bash
-# Log in to Azure (interactive the first time)
-azd auth login
-
-# Pick your environment and region
-azd env set AZURE_ENV_NAME dev
-azd env set AZURE_LOCATION eastus   # confirmed to offer sw-KE / sw-TZ Speech voices
-
-# Provision infrastructure and deploy backend + frontend (builds the two
-# Docker images per azure.yaml and deploys to Container Apps).
-azd up
-
-# After deployment, set frontend/.env.local NEXT_PUBLIC_WS_URL to the
-# deployed backend WebSocket endpoint (wss://<app>.azurecontainerapps.io/ws).
-```
-
-The backend is deployed with **minimum 1 replica and scale-to-zero disabled**
-(`infra/main.bicep`), so the live demo stays warm. After `azd up`, run
-`python scripts/verify_azure_deployment.py` to confirm the Swahili voices and
-that the Foundry model retirement dates cover the judging window through
-10 November 2026.
-
-For the complete production checklist, frontend build-argument requirements,
-post-deployment smoke test, rollback procedure, and known deployment gaps, see
-[`docs/azure-production-guide.md`](docs/azure-production-guide.md).
-
-### Running the checks
-
-```bash
-# Lint
 ruff check .
-
-# Repository hygiene (fails on model files, raw data, secrets, pre-29-Sep-2026 commits)
+pytest
 python scripts/check_repo_hygiene.py
-
-# Generator calibration validation (exits non-zero on band drift)
-python generator/validate.py
-
-# Groundedness evaluation (heuristic mode — no Azure credentials needed)
+python -m generator.validate
 python scripts/run_groundedness_eval.py --no-azure
+
+cd frontend
+npm run test
+npm run build
+cd ..
 ```
 
+CI runs tests and static checks only. It does **not** log in to Azure, create an `azd` environment, provision infrastructure, or deploy. Those remain explicit operator actions.
 
-## Performance
+## Native-speaker review
 
-| Metric            | Target  | Measured                         |
-|-------------------|---------|----------------------------------|
-| p50 card latency  | ≤ 5 s   | exposed live on `/review` dashboard |
-| p95 card latency  | ≤ 10 s  | exposed live on `/review` dashboard |
-| p50 audio latency | ≤ 8 s   | exposed live on `/review` dashboard |
+The review loop is part of the product, not a claim in a slide:
 
-Latency p50/p95 figures are recorded in-process via OpenTelemetry (`card_latency_ms`, `audio_latency_ms`) and exported to Application Insights when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set. Live values are visible on the `/review` dashboard.
+1. Run the app and open `/review`.
+2. Enter the reviewer key configured for the environment.
+3. Review Swahili lines with their English gloss, score fluency, idiom, and faithfulness from 1–5, and optionally submit a corrected version.
+4. Submitted scores and corrections are persisted through the same Cosmos-backed store used by the viewer feedback loop. A submitted line is marked reviewed, not automatically approved; edited lines stay out of the export until a second reviewer confirms them.
 
-## Quality
+The review queue is built from the bundled Swahili cards and the Swahili calibration corpus; viewer corrections are handled separately in the correction queue. The workflow, rubric, and sign-off procedure are documented in [`docs/native-speaker-review.md`](docs/native-speaker-review.md). A rating is only published after a named reviewer signs it off; until then the README makes no quality claim. The live queue and groundedness artifact are shown on `/review`; the 30-line export gate is enforced by `scripts/export_swahili_review.py`.
 
-| Metric                           | Target              | Score    |
-|----------------------------------|---------------------|----------|
-| Groundedness (heuristic eval)    | ≥ 90%               | **100%** (50/50 — `evals/results/groundedness_latest.json`) |
-| Swahili native-speaker rating    | ≥ 4/5 avg, ≥ 30 lines | **4.2 / 5** avg over 30 lines (see `config/few_shots/sw.jsonl`) |
+## Configuration
 
-Run the groundedness eval at any time:
+The app reads configuration from environment variables (see `.env.example`). The main groups are:
 
-```bash
-python scripts/run_groundedness_eval.py --no-azure
-# With azure-ai-evaluation SDK (requires FOUNDRY_ENDPOINT):
-python scripts/run_groundedness_eval.py
-```
+- `FOUNDRY_*` for the Azure AI Foundry endpoint and model deployment.
+- `AUDIO_SCRIPT_ENHANCE` to allow a grounded audio-only rewrite of an approved card (default `true`; set `false` for verbatim synthesis).
+- `SPEECH_*` / `AZURE_SPEECH_*` for Azure AI Speech and the Swahili voices.
+- `STORAGE_ACCOUNT_URL` / `AUDIO_BLOB_*` for audio storage.
+- `COSMOS_*` for persistence.
+- `MCP_API_KEY` for the MCP HTTP boundary.
+- `MSIMULIZI_REVIEWER_KEY` for reviewer-only routes.
 
-## Data Sources
+Never commit `.env`, keys, tokens, or generated secrets. The local Azure runbooks are intentionally gitignored; they stay on the operator’s machine.
 
-<!-- StatsBomb attribution required by data licence -->
+## Data and AI disclosure
 
-This project uses aggregate statistics derived from the
-[StatsBomb Open Data](https://github.com/statsbomb/open-data) repository
-(© StatsBomb, licensed under [StatsBomb Open Data Licence](https://github.com/statsbomb/open-data/blob/master/LICENSE.pdf)).
+All match data is synthetic and generated within the hackathon window. Cards and narration are AI-generated from that synthetic event stream and are marked `synthetic_ai_generated: true`. Aggregate calibration figures may be derived from the StatsBomb Open Data repository; no raw StatsBomb event records are stored or replayed here. See [`DATA_PROVENANCE.md`](DATA_PROVENANCE.md).
 
-<img src="docs/statsbomb_logo.png" alt="StatsBomb" width="120" />
+## Project documents
 
-All match data in the system is **synthetic and newly generated** within the hackathon window.
-No raw event records from real matches are stored in this repository.
-See [DATA_PROVENANCE.md](DATA_PROVENANCE.md) for full details.
+- [`docs/msimulizi-project-brief.md`](docs/msimulizi-project-brief.md) — scope and requirements.
+- [`docs/glossary.md`](docs/glossary.md) — project vocabulary, file map, and how-to index.
+- [`docs/demo-guide.md`](docs/demo-guide.md) — current video script, pitch outline, screenshots, and submission checklist.
+- [`docs/native-speaker-review.md`](docs/native-speaker-review.md) — review rubric and sign-off.
+- [`docs/architecture.md`](docs/architecture.md) — full architecture and runtime diagrams.
+- [`docs/architecture-overview.png`](docs/architecture-overview.png) — rendered full architecture overview (Eraser.io export).
+- [`docs/azure-resource-visualizer.jpg`](docs/azure-resource-visualizer.jpg) — Azure Resource Visualizer export of the live resource group.
+- [`docs/architecture-eraser-schema.md`](docs/architecture-eraser-schema.md) — complete Eraser.io diagram schema and generation brief.
+- [`docs/architecture-eraser-spec.md`](docs/architecture-eraser-spec.md) — compact pitch-deck export (kept for slide links).
 
-## AI Disclosure
-
-All overlay cards and narration lines are AI-generated from synthetic data and are labelled
-`synthetic_ai_generated: true`. The system is for demonstration purposes only.
+The older `docs/pitch-deck-guide.md` and `docs/video-script-guide.md` are kept as historical visual references; the demo guide is the current source of truth.
 
 ## Licence
 

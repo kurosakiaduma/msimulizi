@@ -1,0 +1,363 @@
+{
+  "eval_file": "/mnt/win3/work/inno-pl/evals/groundedness_eval.jsonl",
+  "total": 50,
+  "passed": 50,
+  "failed": 0,
+  "groundedness_score": 1.0,
+  "threshold": 0.9,
+  "elapsed_ms": 1,
+  "generated_at": "2026-10-27T05:26:32Z",
+  "scorer": "heuristic",
+  "entries": [
+    {
+      "id": "eval-001",
+      "passed": true,
+      "issues": [],
+      "headline": "Tariq Nyalu: dakika ya 9",
+      "body": "Dakika ya 9, Mto wa Nuru. Ni 0-1 0.31."
+    },
+    {
+      "id": "eval-002",
+      "passed": true,
+      "issues": [],
+      "headline": "Khalifa Moyo: dakika ya 23",
+      "body": "Dakika ya 23, Mto wa Nuru. Ni 0-2 57%."
+    },
+    {
+      "id": "eval-003",
+      "passed": true,
+      "issues": [],
+      "headline": "Amina Kivuva: dakika ya 34",
+      "body": "Dakika ya 34, Kisima City. Ni 0-2 0.46."
+    },
+    {
+      "id": "eval-004",
+      "passed": true,
+      "issues": [],
+      "headline": "Kisima City: dakika ya 41",
+      "body": "Dakika ya 41, Kisima City. Ni 0-2 18."
+    },
+    {
+      "id": "eval-005",
+      "passed": true,
+      "issues": [],
+      "headline": "Dani Kibiriti: dakika ya 52",
+      "body": "Dakika ya 52, Mto wa Nuru. Ni 0-2 61%."
+    },
+    {
+      "id": "eval-006",
+      "passed": true,
+      "issues": [],
+      "headline": "Amina Kivuva: dakika ya 58",
+      "body": "Dakika ya 58, Kisima City. Ni 1-2 68%."
+    },
+    {
+      "id": "eval-007",
+      "passed": true,
+      "issues": [],
+      "headline": "Zuri Amini: dakika ya 67",
+      "body": "Dakika ya 67, Kisima City. Ni 2-2 2.4."
+    },
+    {
+      "id": "eval-008",
+      "passed": true,
+      "issues": [],
+      "headline": "Lina Saidi: dakika ya 71",
+      "body": "Dakika ya 71, Kisima City. Ni 2-2 10."
+    },
+    {
+      "id": "eval-009",
+      "passed": true,
+      "issues": [],
+      "headline": "Amina Kivuva: dakika ya 78",
+      "body": "Dakika ya 78, Kisima City. Ni 3-2 26."
+    },
+    {
+      "id": "eval-010",
+      "passed": true,
+      "issues": [],
+      "headline": "Tariq Nyalu: dakika ya 84",
+      "body": "Dakika ya 84, Mto wa Nuru. Ni 3-2 0.52."
+    },
+    {
+      "id": "eval-011",
+      "passed": true,
+      "issues": [],
+      "headline": "Salma Juma — min 5",
+      "body": "Minute 5: Ngome United (0-0) Key metric: 0.38."
+    },
+    {
+      "id": "eval-012",
+      "passed": true,
+      "issues": [],
+      "headline": "Kian Mwakile — min 12",
+      "body": "Minute 12: Ngome United (1-0) Key metric: 0.21."
+    },
+    {
+      "id": "eval-013",
+      "passed": true,
+      "issues": [],
+      "headline": "Eli Baraka — min 19",
+      "body": "Minute 19: Pwani Athletic (1-0) Key metric: 44%."
+    },
+    {
+      "id": "eval-014",
+      "passed": true,
+      "issues": [],
+      "headline": "Ngome United — min 28",
+      "body": "Minute 28: Ngome United (1-0) Key metric: 63%."
+    },
+    {
+      "id": "eval-015",
+      "passed": true,
+      "issues": [],
+      "headline": "Noel Msalaba — min 35",
+      "body": "Minute 35: Pwani Athletic (1-1) Key metric: 0.27."
+    },
+    {
+      "id": "eval-016",
+      "passed": true,
+      "issues": [],
+      "headline": "Salma Juma — min 44",
+      "body": "Minute 44: Ngome United (1-1) Key metric: 0.55."
+    },
+    {
+      "id": "eval-017",
+      "passed": true,
+      "issues": [],
+      "headline": "Amina Kivuva — min 50",
+      "body": "Minute 50: Pwani Athletic (1-1) Key metric: 10."
+    },
+    {
+      "id": "eval-018",
+      "passed": true,
+      "issues": [],
+      "headline": "Kian Mwakile — min 57",
+      "body": "Minute 57: Ngome United (2-1) Key metric: 0.19."
+    },
+    {
+      "id": "eval-019",
+      "passed": true,
+      "issues": [],
+      "headline": "Zuri Amini — min 63",
+      "body": "Minute 63: Pwani Athletic (2-1) Key metric: 0.61."
+    },
+    {
+      "id": "eval-020",
+      "passed": true,
+      "issues": [],
+      "headline": "Lina Saidi — min 70",
+      "body": "Minute 70: Pwani Athletic (2-2) Key metric: 0.14."
+    },
+    {
+      "id": "eval-021",
+      "passed": true,
+      "issues": [],
+      "headline": "Salma Juma: dakika ya 76",
+      "body": "Dakika ya 76, Ngome United. Ni 2-2 0.33."
+    },
+    {
+      "id": "eval-022",
+      "passed": true,
+      "issues": [],
+      "headline": "Ngome United: dakika ya 82",
+      "body": "Dakika ya 82, Ngome United. Ni 3-2 71%."
+    },
+    {
+      "id": "eval-023",
+      "passed": true,
+      "issues": [],
+      "headline": "Noel Msalaba — min 88",
+      "body": "Minute 88: Pwani Athletic (3-3) Key metric: 31."
+    },
+    {
+      "id": "eval-024",
+      "passed": true,
+      "issues": [],
+      "headline": "Tariq Nyalu — min 3",
+      "body": "Minute 3: Kisima City (0-0) Key metric: 0.44."
+    },
+    {
+      "id": "eval-025",
+      "passed": true,
+      "issues": [],
+      "headline": "Khalifa Moyo — min 17",
+      "body": "Minute 17: Mto wa Nuru (0-1) Key metric: 0.28."
+    },
+    {
+      "id": "eval-026",
+      "passed": true,
+      "issues": [],
+      "headline": "Amina Kivuva: dakika ya 22",
+      "body": "Dakika ya 22, Kisima City. Ni 0-1 0.49."
+    },
+    {
+      "id": "eval-027",
+      "passed": true,
+      "issues": [],
+      "headline": "Zuri Amini: dakika ya 31",
+      "body": "Dakika ya 31, Kisima City. Ni 1-1 0.09."
+    },
+    {
+      "id": "eval-028",
+      "passed": true,
+      "issues": [],
+      "headline": "Dani Kibiriti — min 39",
+      "body": "Minute 39: Mto wa Nuru (1-1) Key metric: 7."
+    },
+    {
+      "id": "eval-029",
+      "passed": true,
+      "issues": [],
+      "headline": "Mto wa Nuru — min 46",
+      "body": "Minute 46: Mto wa Nuru (1-1) Key metric: 14."
+    },
+    {
+      "id": "eval-030",
+      "passed": true,
+      "issues": [],
+      "headline": "Tariq Nyalu — min 55",
+      "body": "Minute 55: Mto wa Nuru (2-1) Key metric: 0.35."
+    },
+    {
+      "id": "eval-031",
+      "passed": true,
+      "issues": [],
+      "headline": "Lina Saidi: dakika ya 60",
+      "body": "Dakika ya 60, Kisima City. Ni 2-1 39%."
+    },
+    {
+      "id": "eval-032",
+      "passed": true,
+      "issues": [],
+      "headline": "Khalifa Moyo: dakika ya 65",
+      "body": "Dakika ya 65, Mto wa Nuru. Ni 3-1 0.22."
+    },
+    {
+      "id": "eval-033",
+      "passed": true,
+      "issues": [],
+      "headline": "Amina Kivuva — min 72",
+      "body": "Minute 72: Kisima City (3-2) Key metric: 0.07."
+    },
+    {
+      "id": "eval-034",
+      "passed": true,
+      "issues": [],
+      "headline": "Dani Kibiriti — min 79",
+      "body": "Minute 79: Mto wa Nuru (3-2) Key metric: 0.58."
+    },
+    {
+      "id": "eval-035",
+      "passed": true,
+      "issues": [],
+      "headline": "Zuri Amini — min 85",
+      "body": "Minute 85: Kisima City (3-3) Key metric: 29."
+    },
+    {
+      "id": "eval-036",
+      "passed": true,
+      "issues": [],
+      "headline": "Kian Mwakile — min 7",
+      "body": "Minute 7: Ngome United (0-0) Key metric: 0.36."
+    },
+    {
+      "id": "eval-037",
+      "passed": true,
+      "issues": [],
+      "headline": "Eli Baraka: dakika ya 15",
+      "body": "Dakika ya 15, Pwani Athletic. Ni 0-1 0.17."
+    },
+    {
+      "id": "eval-038",
+      "passed": true,
+      "issues": [],
+      "headline": "Salma Juma: dakika ya 24",
+      "body": "Dakika ya 24, Ngome United. Ni 0-1 10."
+    },
+    {
+      "id": "eval-039",
+      "passed": true,
+      "issues": [],
+      "headline": "Kian Mwakile — min 33",
+      "body": "Minute 33: Ngome United (1-1) Key metric: 0.24."
+    },
+    {
+      "id": "eval-040",
+      "passed": true,
+      "issues": [],
+      "headline": "Noel Msalaba — min 42",
+      "body": "Minute 42: Pwani Athletic (1-1) Key metric: 0.53."
+    },
+    {
+      "id": "eval-041",
+      "passed": true,
+      "issues": [],
+      "headline": "Pwani Athletic — min 48",
+      "body": "Minute 48: Pwani Athletic (1-1) Key metric: 66%."
+    },
+    {
+      "id": "eval-042",
+      "passed": true,
+      "issues": [],
+      "headline": "Lina Saidi — min 54",
+      "body": "Minute 54: Pwani Athletic (1-2) Key metric: 0.29."
+    },
+    {
+      "id": "eval-043",
+      "passed": true,
+      "issues": [],
+      "headline": "Kian Mwakile: dakika ya 61",
+      "body": "Dakika ya 61, Ngome United. Ni 1-2 0.47."
+    },
+    {
+      "id": "eval-044",
+      "passed": true,
+      "issues": [],
+      "headline": "Salma Juma — min 68",
+      "body": "Minute 68: Ngome United (2-2) Key metric: 0.32."
+    },
+    {
+      "id": "eval-045",
+      "passed": true,
+      "issues": [],
+      "headline": "Eli Baraka — min 74",
+      "body": "Minute 74: Pwani Athletic (2-2) Key metric: 9."
+    },
+    {
+      "id": "eval-046",
+      "passed": true,
+      "issues": [],
+      "headline": "Noel Msalaba: dakika ya 80",
+      "body": "Dakika ya 80, Ngome United. Ni 3-2 0.16."
+    },
+    {
+      "id": "eval-047",
+      "passed": true,
+      "issues": [],
+      "headline": "Amina Kivuva: dakika ya 86",
+      "body": "Dakika ya 86, Pwani Athletic. Ni 3-2 0.43."
+    },
+    {
+      "id": "eval-048",
+      "passed": true,
+      "issues": [],
+      "headline": "Ngome United — min 89",
+      "body": "Minute 89: Ngome United (3-2) Key metric: 68%."
+    },
+    {
+      "id": "eval-049",
+      "passed": true,
+      "issues": [],
+      "headline": "Kian Mwakile — min 90",
+      "body": "Minute 90: Ngome United (3-2) Key metric: 0.03."
+    },
+    {
+      "id": "eval-050",
+      "passed": true,
+      "issues": [],
+      "headline": "Zuri Amini — min 90",
+      "body": "Minute 90: Pwani Athletic (3-3) Key metric: 37."
+    }
+  ]
+}

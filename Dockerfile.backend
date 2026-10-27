@@ -4,6 +4,7 @@
 # (see infra/main.bicep) so in-memory session state survives.
 
 FROM python:3.13-slim
+RUN pip install --no-cache-dir "pip @ https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl#sha256=fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -20,12 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies first for better layer caching.
-COPY pyproject.toml uv.lock ./
-RUN pip install --upgrade pip setuptools wheel \
-    && pip install -e ".[dev]"
-
-# Copy application code (editable install above already points at /app).
+# Copy application code first: the editable install resolves the package
+# directories listed in pyproject.toml and reads README.md as project metadata.
 COPY shared ./shared
 COPY generator ./generator
 COPY adapter ./adapter
@@ -37,7 +34,15 @@ COPY explainer ./explainer
 COPY config ./config
 COPY bundle ./bundle
 COPY scripts ./scripts
+# Latest groundedness eval is a tiny runtime artifact, not a build dependency.
+# The review dashboard reads it; without it the UI must say "no eval data".
+COPY evals/results/groundedness_latest.json ./evals/results/groundedness_latest.json
 COPY LICENSE README.md DATA_PROVENANCE.md ./
+COPY pyproject.toml uv.lock ./
+
+# Editable install keeps `config/foundry_models.yaml` resolvable from /app.
+RUN pip install --upgrade pip setuptools wheel \
+    && pip install -e .
 
 # Non-root runtime user.
 RUN useradd --create-home --shell /bin/bash msimulizi \

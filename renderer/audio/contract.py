@@ -101,6 +101,15 @@ class AudioRequest:
             Lower values indicate higher priority. For example, priority 1
             can be used for a goal call, while lower-priority background
             narration can use a larger value.
+
+        source_text:
+            The approved card text this request was derived from. It is not
+            spoken; it lets the audio update show when a spoken rewrite was
+            used and keeps the caption untouched.
+
+        gloss_en:
+            English gloss for a spoken Swahili rewrite. The caption's own
+            gloss remains authoritative; this field covers derived audio text.
     """
 
     narration_id: str
@@ -111,6 +120,8 @@ class AudioRequest:
     voice_id: str
     match_minute: int
     priority: int
+    source_text: str | None = None
+    gloss_en: str | None = None
 
 
 @dataclass

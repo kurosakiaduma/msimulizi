@@ -11,17 +11,27 @@ import type {
 import { useSessionClock } from "@/hooks/useSessionClock";
 import { useMatchSocket } from "@/hooks/useMatchSocket";
 import {
+  applyAudioUrl,
   createSchedulerState,
   enqueueCard,
   tick,
 } from "@/lib/scheduler";
 import type { SchedulerState } from "@/lib/scheduler";
+import {
+  clearAudioQueue,
+  createAudioQueueState,
+  enqueueAudio,
+  finishCurrentAudio,
+} from "@/lib/audioQueue";
+import type { AudioQueueState } from "@/lib/audioQueue";
+import { loadRuntimeConfig } from "@/lib/runtimeConfig";
 
 import { MatchClock } from "@/components/MatchClock";
 import { ScoreBar } from "@/components/ScoreBar";
 import { PitchVisual } from "@/components/PitchVisual";
 import { MetricHUD } from "@/components/MetricHUD";
 import { CardFeed } from "@/components/CardFeed";
+import { CommentaryAudio } from "@/components/CommentaryAudio";
 import { PersonalisationPanel } from "@/components/PersonalisationPanel";
 import { ReplayPanel, STORYLINES } from "@/components/ReplayPanel";
 
@@ -79,16 +89,6 @@ const DEFAULT_PROFILE: ViewerProfile = {
   audio_only: false,
 };
 
-function getApiBase(): string {
-  if (typeof window === "undefined") return "";
-  return (process.env.NEXT_PUBLIC_BACKEND_URL ?? `http://${window.location.hostname}:8000`).replace(/\/$/, "");
-}
-
-function getWsBase(): string {
-  if (typeof window === "undefined") return "";
-  return (process.env.NEXT_PUBLIC_WS_URL ?? `${getApiBase().replace(/^http/, "ws")}/ws`).replace(/\/$/, "");
-}
-
 // ─────────────────────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -97,8 +97,10 @@ export default function Home() {
   const [events, setEvents] = useState<EventDot[]>([]);
   const [latestEvent, setLatestEvent] = useState<EventDot | null>(null);
   const [cardHistory, setCardHistory] = useState<OverlayCard[]>([]);
+  const [audioQueue, setAudioQueue] = useState<AudioQueueState>(createAudioQueueState);
   const [scheduler, setScheduler] = useState<SchedulerState>(createSchedulerState());
   const [selectedStoryline, setSelectedStoryline] = useState(STORYLINES[0].id);
+  const [replaySpeed, setReplaySpeed] = useState(1.0);
   const [isConnected, setIsConnected] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
@@ -139,6 +141,7 @@ export default function Home() {
           y: c.y ?? 50,
           event_type: c.event_type ?? "pass",
           team: c.team ?? "",
+          team_side: c.team_side ?? "",
           player: c.player ?? "",
           minute: c.minute ?? 0,
           outcome: c.outcome ?? null,
@@ -175,6 +178,7 @@ export default function Home() {
             y: raw.y ?? raw.payload?.y ?? 50,
             event_type: raw.event_type ?? raw.payload?.event_type ?? "pass",
             team: raw.team ?? raw.payload?.team ?? "",
+            team_side: raw.team_side ?? raw.payload?.team_side ?? "",
             player: raw.player ?? raw.payload?.player ?? "",
             minute: raw.minute ?? raw.payload?.minute ?? 0,
             outcome: raw.outcome ?? raw.payload?.outcome ?? null,
@@ -207,11 +211,11 @@ export default function Home() {
           const matchSecs =
             c.match_seconds ?? ((c.minute ?? 0) * 60 + (c.second ?? 0));
           const spd = c.speed ?? clock.speed;
-          clock.updateAnchor(
-            c.anchor_wall ?? Date.now(),
-            c.anchor_match ?? matchSecs,
-            spd
-          );
+          // Use the authoritative event time at the moment the packet is
+          // received. The backend's wall anchor is useful for other clients,
+          // but using it here made the clock drift ahead during slow LLM/TTS
+          // turns and then snap backwards when a card re-anchored.
+          clock.updateAnchor(Date.now(), matchSecs, spd);
           setMatchState((s) => ({
             ...s,
             score_home: c.score_home ?? s.score_home,
@@ -251,6 +255,14 @@ export default function Home() {
             )
           );
           setCardHistory((h) => [...h, card]);
+          // Bundle cards can carry a pre-generated URL. For freshly narrated
+          // cards the URL arrives later via audio_update. Never clear the
+          // current clip just because a newer caption has no audio yet.
+          if ((profile.audio_enabled || profile.audio_only) && card.audio_url) {
+            setAudioQueue((q) =>
+              enqueueAudio(q, { url: card.audio_url!, cardId: card.card_id })
+            );
+          }
           break;
         }
 
@@ -260,13 +272,25 @@ export default function Home() {
               c.card_id === msg.card_id ? { ...c, audio_url: msg.audio_url } : c
             )
           );
+          // Audio is synthesized after the caption. Patch the scheduler copy
+          // too so the card view and audio-only mode stay in sync.
+          setScheduler((s) =>
+            applyAudioUrl(s, msg.card_id, msg.audio_url ?? null)
+          );
+          // A new clip waits behind the current one. A null update means this
+          // card has no audio; it must not stop audio that is already playing.
+          if ((profile.audio_enabled || profile.audio_only) && msg.audio_url) {
+            setAudioQueue((q) =>
+              enqueueAudio(q, { url: msg.audio_url!, cardId: msg.card_id })
+            );
+          }
           break;
 
         default:
           break;
       }
     },
-    [clock]
+    [clock, profile.audio_enabled, profile.audio_only]
   );
 
   const { send } = useMatchSocket({
@@ -282,21 +306,26 @@ export default function Home() {
     setIsFinished(false);
     setHasStarted(false);
     setCardHistory([]);
+    setAudioQueue(createAudioQueueState());
     setEvents([]);
     setLatestEvent(null);
     setScheduler(createSchedulerState());
     setMatchState({ ...DEFAULT_MATCH_STATE });
-    clock.updateAnchor(Date.now(), 0, 1);
+    clock.reset();
+    // Seed the clock at the chosen replay speed. The first authoritative
+    // backend clock update re-anchors it without ever moving backwards.
+    clock.updateAnchor(Date.now(), 0, replaySpeed);
+
+    const config = await loadRuntimeConfig();
 
     try {
-      const apiBase = getApiBase();
-      const resp = await fetch(`${apiBase}/v1/sessions`, {
+      const resp = await fetch(`${config.backendUrl}/v1/sessions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           storyline: storylineId,
           seed: 42,
-          speed: 1.0,
+          speed: replaySpeed,
           language: profile.language,
           mode: profile.mode,
         }),
@@ -305,10 +334,10 @@ export default function Home() {
       const data = await resp.json();
       const sid: string = data.session_id;
       const mid: string = data.match_id;
-      setWsUrl(`${getWsBase()}?session_id=${sid}&match_id=${mid}`);
+      setWsUrl(`${config.wsUrl}?session_id=${sid}&match_id=${mid}`);
     } catch {
       const sid = `demo-${Date.now()}`;
-      setWsUrl(`${getWsBase()}?session_id=${sid}&storyline=${storylineId}`);
+      setWsUrl(`${config.wsUrl}?session_id=${sid}&storyline=${storylineId}`);
     }
     setHasStarted(true);
   }
@@ -326,6 +355,9 @@ export default function Home() {
 
   function handleProfileChange(p: ViewerProfile) {
     setProfile(p);
+    if (!p.audio_enabled && !p.audio_only) {
+      setAudioQueue(clearAudioQueue());
+    }
     send({
       type: "profile_update",
       language: p.language,
@@ -393,18 +425,15 @@ export default function Home() {
           scoreHome={matchState.score_home}
           scoreAway={matchState.score_away}
         />
-        {/* Audio player for current card */}
-        {scheduler.current?.audio_url && (
-          <audio
-            controls
-            autoPlay
-            src={scheduler.current.audio_url}
-            className="w-full max-w-sm"
-            aria-label="Audio commentary"
-          >
-            <track kind="captions" />
-          </audio>
-        )}
+        {/* Audio-only mode is itself an explicit request for commentary. */}
+        <CommentaryAudio
+          src={audioQueue.current?.url ?? null}
+          trackId={audioQueue.current?.cardId ?? null}
+          enabled
+          onEnded={() => setAudioQueue(finishCurrentAudio)}
+          onFailed={() => setAudioQueue(finishCurrentAudio)}
+          variant="full"
+        />
         <button
           onClick={() => handleProfileChange({ ...profile, audio_only: false })}
           className="text-xs text-[--text-muted] hover:text-[--text-primary] transition-colors
@@ -501,7 +530,7 @@ export default function Home() {
 
           {/* Momentum / metric HUD */}
           {showAnalyst ? (
-            <MetricHUD state={matchState} />
+            <MetricHUD state={matchState} events={events} />
           ) : (
             <div
               className="flex items-center gap-3 p-3 rounded-lg bg-[--bg-inset] border border-[--border-subtle]"
@@ -526,6 +555,15 @@ export default function Home() {
               </span>
             </div>
           )}
+
+          {/* Commentary audio — captions remain the primary surface. */}
+          <CommentaryAudio
+            src={audioQueue.current?.url ?? null}
+            trackId={audioQueue.current?.cardId ?? null}
+            enabled={profile.audio_enabled}
+            onEnded={() => setAudioQueue(finishCurrentAudio)}
+            onFailed={() => setAudioQueue(finishCurrentAudio)}
+          />
 
           {/* Card feed — lives under the pitch */}
           <div className="flex-1 min-h-0">
@@ -560,7 +598,9 @@ export default function Home() {
             isConnected={isConnected}
             hasStarted={hasStarted}
             isFinished={isFinished}
+            speed={replaySpeed}
             onSelectStoryline={handleSelectStoryline}
+            onSelectSpeed={setReplaySpeed}
             onStart={handleRestart}
           />
         </div>

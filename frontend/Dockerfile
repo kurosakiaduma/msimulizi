@@ -1,27 +1,27 @@
 # ── Msimulizi frontend container image ──
-# Context: repository root; this Dockerfile lives in frontend/ and builds the
-# Next.js 16 App Router site, then serves it with `next start` on port 3000.
+# Context: repository root (see azure.yaml `context: ../`). Build with:
+#   docker build -f frontend/Dockerfile -t msimulizi-frontend .
 #
-# NEXT_PUBLIC_* values are inlined at build time.  Provide them as Container App
-# environment variables (azd wires the backend's default domain into
-# NEXT_PUBLIC_BACKEND_URL / NEXT_PUBLIC_WS_URL / NEXT_PUBLIC_API_BASE).
+# NEXT_PUBLIC_* values are inlined at build time. In production the runtime
+# `/api/config` route reads BACKEND_URL / WS_URL instead, so one image works
+# across environments.
 
 FROM node:24-alpine AS base
 
 # ─── Dependencies ───
 FROM base AS deps
-WORKDIR /app
+WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm ci
+RUN npm install --no-audit --no-fund
 
 # ─── Build ───
 FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 WORKDIR /app/frontend
+COPY --from=deps /app/frontend/node_modules ./node_modules
+COPY frontend/ ./
 
-# Inlined at build time (Next.js embeds NEXT_PUBLIC_* into the client bundle).
+# Build-time defaults are for local/standalone use only. Production reads the
+# runtime env vars from the route handler.
 ARG NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 ARG NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws
 ARG NEXT_PUBLIC_API_BASE=http://localhost:8000
@@ -38,8 +38,8 @@ WORKDIR /app/frontend
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Next.js standalone output is not enabled in next.config.ts, so we serve from
-# the .next directory produced by `npm run build` (next start).
+# Next.js standalone output is not enabled in next.config.ts, so serve from the
+# .next directory produced by `npm run build` (next start).
 COPY --from=builder /app/frontend/.next ./.next
 COPY --from=builder /app/frontend/public ./public
 COPY --from=builder /app/frontend/node_modules ./node_modules

@@ -22,7 +22,9 @@ Never hard-code it in this module.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
+import inspect
 import json
 import logging
 import re
@@ -157,15 +159,21 @@ class AzureTtsEngine:
     def __init__(
         self,
         *,
-        key: str,
+        key: str | None = None,
+        credential: Any | None = None,
+        close_credential: bool = False,
         region: str | None = None,
         base_url: str | None = None,
         client: httpx.AsyncClient | Any | None = None,
         style_map: dict[str, dict[str, str]] | None = None,
         request_timeout_s: float = 5.0,
     ) -> None:
-        if not key or not key.strip():
-            raise ValueError("Azure Speech key is required")
+        clean_key = (key or "").strip()
+
+        if not clean_key and credential is None:
+            raise ValueError(
+                "Azure Speech needs a subscription key or an Azure credential"
+            )
 
         if request_timeout_s <= 0:
             raise ValueError("request_timeout_s must be greater than zero")
@@ -175,7 +183,9 @@ class AzureTtsEngine:
             base_url=base_url,
         )
 
-        self._key = key.strip()
+        self._key = clean_key or None
+        self._credential = credential
+        self._close_credential = close_credential
         self.style_map = style_map or {}
         self._owns_client = client is None
 
@@ -211,14 +221,58 @@ class AzureTtsEngine:
         digest = hashlib.sha256(encoded).hexdigest()[:10]
         return f"{_ENGINE_VERSION}-{digest}"
 
-    def _headers(self) -> dict[str, str]:
+    async def _auth_headers(self) -> dict[str, str]:
+        """
+        Return authentication headers for Azure Speech.
+
+        A configured key wins. Otherwise the engine obtains an Entra ID token
+        through the supplied credential (managed identity in Container Apps).
+        """
+        if self._key:
+            return {"Ocp-Apim-Subscription-Key": self._key}
+
+        if self._credential is None:  # pragma: no cover - constructor guard
+            raise SpeechError("Azure Speech credential is not configured")
+
+        scope = "https://cognitiveservices.azure.com/.default"
+
+        try:
+            getter = self._credential.get_token
+
+            if inspect.iscoroutinefunction(getter):
+                token = await getter(scope)
+            else:
+                # DefaultAzureCredential is synchronous; keep the event loop
+                # free while it may refresh a token over the network.
+                token = await asyncio.to_thread(getter, scope)
+        except Exception as exc:
+            raise SpeechError(
+                "Could not acquire an Azure Speech access token: "
+                f"{type(exc).__name__}"
+            ) from exc
+
+        access_token = getattr(token, "token", None)
+
+        if not isinstance(access_token, str) or not access_token:
+            raise SpeechError(
+                "Azure Speech credential returned an empty access token"
+            )
+
+        return {"Authorization": f"Bearer {access_token}"}
+
+    async def _headers(
+        self,
+        *,
+        content_type: str | None = None,
+    ) -> dict[str, str]:
         """Headers shared by Speech synthesis requests."""
-        return {
-            "Ocp-Apim-Subscription-Key": self._key,
-            "Content-Type": "application/ssml+xml",
-            "X-Microsoft-OutputFormat": _OUTPUT_FORMAT,
-            "User-Agent": "msimulizi-audio",
-        }
+        headers = await self._auth_headers()
+        headers["User-Agent"] = "msimulizi-audio"
+
+        if content_type:
+            headers["Content-Type"] = content_type
+
+        return headers
 
     @staticmethod
     def _duration_ms(audio_bytes: bytes) -> int:
@@ -285,10 +339,15 @@ class AzureTtsEngine:
             ) from exc
 
         try:
+            headers = await self._headers(
+                content_type="application/ssml+xml",
+            )
+            headers["X-Microsoft-OutputFormat"] = _OUTPUT_FORMAT
+
             response = await self._client.post(
                 self._synth_url,
                 content=ssml.encode("utf-8"),
-                headers=self._headers(),
+                headers=headers,
             )
         except httpx.RequestError as exc:
             # Includes network and HTTP-client timeout errors.
@@ -347,10 +406,7 @@ class AzureTtsEngine:
                 "locales": {},
             }
 
-        headers = {
-            "Ocp-Apim-Subscription-Key": self._key,
-            "User-Agent": "msimulizi-audio",
-        }
+        headers = await self._headers()
 
         try:
             response = await self._client.get(
@@ -448,6 +504,16 @@ class AzureTtsEngine:
         """
         if self._owns_client:
             await self._client.aclose()
+
+        if self._close_credential and self._credential is not None:
+            closer = getattr(self._credential, "close", None)
+            if not callable(closer):
+                closer = getattr(self._credential, "aclose", None)
+
+            if callable(closer):
+                result = closer()
+                if inspect.isawaitable(result):
+                    await result
 
 
 __all__ = [

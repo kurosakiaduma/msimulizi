@@ -8,7 +8,7 @@ metadata:
   template: msimulizi@0.1.0
 
 # Resource group and location are set via:
-#   azd env set AZURE_LOCATION eastus
+#   azd env set AZURE_LOCATION eastus2
 #   azd env set AZURE_ENV_NAME dev
 infra:
   provider: bicep
@@ -35,8 +35,8 @@ services:
     language: js
     host: containerapp
     docker:
-      path: Dockerfile
-      context: frontend
+      path: ./Dockerfile
+      context: ../
     hooks:
       postdeploy:
         shell: sh

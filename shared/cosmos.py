@@ -18,10 +18,10 @@ from __future__ import annotations
 import asyncio
 import copy
 import dataclasses
-import time
+import enum
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from dataclasses import asdict
+from datetime import date, datetime
 from typing import Any
 
 from shared.models import (
@@ -36,12 +36,27 @@ from shared.models import (
 # Serialisation helpers
 # ---------------------------------------------------------------------------
 
+def _json_safe(value: Any) -> Any:
+    """Recursively convert dataclasses/enums/dates into Cosmos-safe values."""
+    if dataclasses.is_dataclass(value) and not isinstance(value, type):
+        value = asdict(value)
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, enum.Enum):
+        return value.value
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    return value
+
+
 def _to_doc(obj: Any) -> dict[str, Any]:
     """Convert a dataclass (or plain dict) to a plain dict for storage."""
     if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
-        return dataclasses.asdict(obj)
+        return _json_safe(asdict(obj))
     if isinstance(obj, dict):
-        return dict(obj)
+        return _json_safe(dict(obj))
     raise TypeError(f"Cannot serialise {type(obj)!r} to a Cosmos document")
 
 
@@ -180,6 +195,58 @@ class FakeCosmosContainer(CosmosContainer):
 
     def clear(self) -> None:
         self._docs.clear()
+
+
+# ---------------------------------------------------------------------------
+# Azure Cosmos DB adapter (async SDK)
+# ---------------------------------------------------------------------------
+
+class AzureCosmosContainer(CosmosContainer):
+    """Thin adapter around ``azure.cosmos.aio.ContainerProxy``.
+
+    The Azure SDK is imported lazily by :func:`build_cosmos_repositories` so
+    offline unit tests never need the package or a live account.
+    """
+
+    def __init__(self, container: Any) -> None:
+        self._container = container
+
+    async def upsert(self, doc: dict[str, Any]) -> None:
+        await self._container.upsert_item(_json_safe(doc))
+
+    async def create(self, doc: dict[str, Any]) -> None:
+        try:
+            await self._container.create_item(_json_safe(doc))
+        except Exception as exc:  # noqa: BLE001
+            if getattr(exc, "status_code", None) == 409:
+                raise ConflictError(f"Document {doc.get('id')!r} already exists") from exc
+            raise
+
+    async def get(self, item_id: str, partition_key: str) -> dict[str, Any] | None:
+        try:
+            return await self._container.read_item(
+                item=item_id,
+                partition_key=partition_key,
+            )
+        except Exception as exc:  # noqa: BLE001
+            if getattr(exc, "status_code", None) == 404:
+                return None
+            raise
+
+    async def query(
+        self,
+        query: str,
+        parameters: list[dict[str, Any]] | None = None,
+        partition_key: str | None = None,
+    ) -> list[dict[str, Any]]:
+        kwargs: dict[str, Any] = {
+            "query": query,
+            "parameters": parameters or [],
+            # The async SDK requires this keyword; None means cross-partition.
+            "partition_key": partition_key,
+        }
+        iterator = self._container.query_items(**kwargs)
+        return [item async for item in iterator]
 
 
 # ---------------------------------------------------------------------------
@@ -336,6 +403,19 @@ class MatchStateSnapshotRepository(BaseRepository):
     ) -> dict[str, Any] | None:
         return await self.get(f"{match_id}:{sequence_number}", match_id)
 
+    async def list_snapshots(self, match_id: str) -> list[dict[str, Any]]:
+        return await self.query(
+            "SELECT * FROM c WHERE c.match_id = @match_id",
+            parameters=[{"name": "@match_id", "value": match_id}],
+            partition_key=match_id,
+        )
+
+    async def get_latest_snapshot(self, match_id: str) -> dict[str, Any] | None:
+        docs = await self.list_snapshots(match_id)
+        if not docs:
+            return None
+        return max(docs, key=lambda doc: int(doc.get("sequence_number", 0)))
+
 
 # ---------------------------------------------------------------------------
 # 2. KeyMomentRepository
@@ -436,6 +516,16 @@ class OverlayCardRepository(BaseRepository):
     async def get_card(self, card_id: str, match_id: str) -> dict[str, Any] | None:
         return await self.get(card_id, match_id)
 
+    async def upsert_dict(self, card: dict[str, Any]) -> None:
+        """Persist a card that arrived as a plain dict (REST integration path)."""
+        doc = _json_safe(dict(card))
+        doc.setdefault("id", doc.get("card_id"))
+        if not doc.get("id"):
+            raise ValueError("Card must contain a card_id or id field")
+        if not doc.get("match_id"):
+            raise ValueError("Card must contain a match_id field")
+        await self._write_with_retry("upsert", doc)
+
     async def list_cards(
         self,
         match_id: str,
@@ -524,12 +614,30 @@ class CorrectionsRepository(BaseRepository):
             raise ValueError("Correction must contain a 'match_id' field")
         await self._write_with_retry("create", dict(correction))
 
+    async def get_correction(self, correction_id: str) -> dict[str, Any] | None:
+        """Read a correction without knowing its match_id partition up front."""
+        docs = await self.query(
+            "SELECT * FROM c WHERE c.id = @id",
+            parameters=[{"name": "@id", "value": correction_id}],
+        )
+        return docs[0] if docs else None
+
     async def update_correction(self, correction_id: str, match_id: str, patch: dict[str, Any]) -> None:
         doc = await self.get(correction_id, match_id)
         if doc is None:
             raise KeyError(f"Correction {correction_id!r} not found")
         doc.update(patch)
         await self._write_with_retry("upsert", doc)
+
+    async def update_correction_by_id(
+        self, correction_id: str, patch: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        doc = await self.get_correction(correction_id)
+        if doc is None:
+            return None
+        doc.update(patch)
+        await self._write_with_retry("upsert", doc)
+        return doc
 
     async def list_corrections(
         self, match_id: str, limit: int = 100
@@ -539,6 +647,19 @@ class CorrectionsRepository(BaseRepository):
             parameters=[{"name": "@match_id", "value": match_id}],
             partition_key=match_id,
         )
+
+    async def list_all_corrections(
+        self, status: str | None = None, limit: int = 200
+    ) -> list[dict[str, Any]]:
+        """Cross-partition reviewer queue. The demo's document count is small."""
+        query = "SELECT * FROM c"
+        parameters: list[dict[str, Any]] | None = None
+        if status is not None:
+            query += " WHERE c.status = @status"
+            parameters = [{"name": "@status", "value": status}]
+        docs = await self.query(query, parameters=parameters)
+        docs.sort(key=lambda doc: float(doc.get("created_at", 0)), reverse=True)
+        return docs[:limit]
 
 
 # ---------------------------------------------------------------------------
@@ -584,3 +705,30 @@ class CosmosRepositories:
         self.overlay_cards = OverlayCardRepository(containers["overlay_cards"])
         self.audit_log = AuditLogRepository(containers["audit_log"])
         self.corrections = CorrectionsRepository(containers["corrections"])
+
+
+# ---------------------------------------------------------------------------
+# Live Cosmos DB construction
+# ---------------------------------------------------------------------------
+
+async def build_cosmos_repositories(
+    endpoint: str,
+    database_name: str,
+    credential: Any,
+) -> tuple[CosmosRepositories, Any]:
+    """Create async Cosmos repositories plus the client that owns the socket.
+
+    The caller must close the returned client (and its credential) on shutdown.
+    The database metadata read warms the connection and fails fast on a bad
+    endpoint, but the caller may choose to continue with the repos and let the
+    repository write buffer handle transient RBAC/network propagation.
+    """
+    from azure.cosmos.aio import CosmosClient  # type: ignore[import]
+
+    client = CosmosClient(url=endpoint, credential=credential)
+    database = client.get_database_client(database_name)
+    containers = {
+        name: AzureCosmosContainer(database.get_container_client(name))
+        for name in CosmosRepositories.CONTAINER_NAMES
+    }
+    return CosmosRepositories(containers), client

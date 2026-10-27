@@ -114,6 +114,7 @@ class AudioService:
         budget: BudgetGuard | None = None,
         metrics: Any | None = None,
         memo_size: int = 512,
+        voice_for: Callable[[str], str] | None = None,
         now: Callable[[], float] = time.monotonic,
     ) -> None:
         if timeout_s <= 0:
@@ -143,6 +144,7 @@ class AudioService:
 
         self.budget = budget
         self.metrics = metrics if metrics is not None else NullMetrics()
+        self._voice_for = voice_for
         self._now = now
 
         self._sem = asyncio.Semaphore(max_concurrency)
@@ -165,6 +167,15 @@ class AudioService:
     # -----------------------------------------------------------------------
     # Public API
     # -----------------------------------------------------------------------
+
+    def resolve_voice(self, language: str) -> str:
+        """Return the configured Azure voice for a language/locale."""
+        if self._voice_for is None:
+            raise ValueError(
+                "This AudioService was created without a voice resolver"
+            )
+
+        return self._voice_for(language)
 
     async def render(self, req: AudioRequest) -> AudioResult:
         """
@@ -265,6 +276,19 @@ class AudioService:
             "duration_ms": result.duration_ms,
             "match_seconds": match_seconds,
         }
+
+        # Only expose the spoken rewrite when it differs from the approved
+        # caption. This keeps the normal payload stable while making the
+        # audio-only script auditable and its Swahili gloss available.
+        if (
+            req.source_text
+            and req.source_text.strip()
+            and req.source_text.strip() != req.text.strip()
+        ):
+            payload["source_text"] = req.source_text
+            payload["spoken_text"] = req.text
+            if req.gloss_en:
+                payload["spoken_gloss_en"] = req.gloss_en
 
         try:
             await _maybe_await(publish(payload))

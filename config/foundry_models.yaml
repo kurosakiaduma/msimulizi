@@ -1,41 +1,56 @@
 # Microsoft Foundry model deployments for Msimulizi
-# Pinned API versions ensure stability across the judging window (until 10 Nov 2026).
-# Verify retirement dates in Azure OpenAI model lifecycle before deploying:
-#   https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-retirements
+# Uses the unversioned v1 API. Models are GA and retire after the judging
+# window; verify at deploy time:
+#   https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/model-retirement-schedule
 #
-# gpt-4o (2024-08-06) retirement: no earlier than 2025-10-01 → safe past 10 Nov 2026
-# gpt-4o-mini (2024-07-18) retirement: no earlier than 2025-09-27 → safe past 10 Nov 2026
+# gpt-5.4       2026-03-05 → retirement 2027-09-02
+# gpt-5.4-mini  2026-03-17 → retirement 2027-09-21
 
 deployments:
   explainer:
-    model: gpt-4o-mini
+    model: gpt-5.4-mini
     deployment_name: msimulizi-explainer
-    api_version: "2024-08-01-preview"
+    api_version: "v1"
     description: "Explainer Agent — structured output, low token count (reason = 1 sentence)"
 
   narrator_sw:
-    model: gpt-4o
+    model: gpt-5.4
     deployment_name: msimulizi-narrator-sw
-    api_version: "2024-08-01-preview"
+    api_version: "v1"
     description: "Narrator Agent Swahili — best multilingual quality; validated by native speaker"
     # Populated after running scripts/compare_swahili_models.py and native-speaker review (task 15)
     chosen_after_eval: true
 
   narrator_en_fr:
-    model: gpt-4o-mini
+    model: gpt-5.4-mini
     deployment_name: msimulizi-narrator-en-fr
-    api_version: "2024-08-01-preview"
+    api_version: "v1"
     description: "Narrator Agent English/French — sufficient quality for these locales"
 
   verifier:
-    model: gpt-4o-mini
+    model: gpt-5.4-mini
     deployment_name: msimulizi-verifier
-    api_version: "2024-08-01-preview"
+    api_version: "v1"
     description: "Verifier Agent LLM check — short grounding check"
 
-# Azure AI Speech voices — confirmed available in eastus region
+  # Audio scripts are short spoken rewrites of an already approved card. They
+  # reuse existing deployments; no extra Foundry deployment is needed.
+  spoken_script_sw:
+    model: gpt-5.4-mini
+    deployment_name: msimulizi-explainer
+    api_version: "v1"
+    description: "Spoken Swahili commentary rewrite — grounded, 1–2 sentences"
+
+  spoken_script_en_fr:
+    model: gpt-5.4-mini
+    deployment_name: msimulizi-explainer
+    api_version: "v1"
+    description: "Spoken English/French commentary rewrite — grounded, 1–2 sentences"
+
+# Azure AI Speech voices — verified live in eastus2 (26 Oct 2026)
 # sw-KE-ZuriNeural and sw-TZ-RehemaNeural are available in regions that support
-# the East Africa locale set. Verify with: az cognitiveservices account list-skus
+# the East Africa locale set. Verify with:
+#   GET <speech-endpoint>/tts/cognitiveservices/voices/list
 speech:
   swahili_ke:
     locale: sw-KE

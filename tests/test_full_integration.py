@@ -18,11 +18,9 @@ from __future__ import annotations
 
 import asyncio
 from typing import Any
-from unittest.mock import MagicMock
 
 import pytest
 
-from adapter.inprocess import InProcessAdapter
 from generator.generate import generate_match, make_match_id
 from pipeline.explainer import ExplainerAgent
 from pipeline.interpreter import Interpreter
@@ -38,18 +36,14 @@ from renderer.renderer import (
     render_stat_card,
 )
 from shared.content_safety import Blocked, MockContentSafetyClient
-from shared.cosmos import FakeCosmosContainer, NarrationCacheRepository
 from shared.foundry_client import MockFoundryClient, QuotaExceeded
 from shared.models import (
     Claim,
-    GlossEn,
     KeyMoment,
     MatchState,
     NarrationRequest,
     NarratorResponse,
-    NumericEvidence,
     OverlayCard,
-    StructuredExplanation,
 )
 
 
@@ -495,7 +489,6 @@ class TestTwoSessions:
         shared_cache: dict[str, Any] = {}
 
         narrator_a = NarratorAgent(client=mock)
-        narrator_b = NarratorAgent(client=mock)
 
         profile_key = f"{match_id}.en.casual.neutral"
         moment_id = f"{match_id}-km-0001"
@@ -607,7 +600,9 @@ class TestFailureInjection:
                     if self.calls == 1:
                         return _verifier_fail("Wrong tone.")
                     return _verifier_pass()
-                return _explainer_response() if "explainer" in agent_key else _good_narrator_response("pk", "km")
+                if "explainer" in agent_key:
+                    return _explainer_response()
+                raise AssertionError(f"unexpected Foundry agent: {agent_key}")
 
         client = FailOnceClient()
 

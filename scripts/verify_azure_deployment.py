@@ -11,9 +11,13 @@ Usage:
 
 Required environment variables (set by azd or manually):
     SPEECH_ENDPOINT        e.g. https://msim-dev-speech.cognitiveservices.azure.com/
-    AZURE_CLIENT_ID        managed identity client ID
+    AZURE_CLIENT_ID        managed identity client ID (optional locally)
     FOUNDRY_ENDPOINT       e.g. https://msim-dev-foundry.openai.azure.com/
-    FOUNDRY_API_KEY        or use managed identity (set FOUNDRY_USE_MI=1)
+    FOUNDRY_API_KEY        optional; when absent, uses az login / managed identity
+    SPEECH_API_KEY         optional; same fallback
+
+Authentication defaults to DefaultAzureCredential, which uses the signed-in
+Azure CLI account locally and the Container App managed identity in Azure.
 
 Exit code 0 = all checks passed.
 Exit code 1 = one or more checks failed (see stderr).
@@ -35,25 +39,37 @@ REQUIRED_VOICES = {
     "sw-TZ": "sw-TZ-RehemaNeural",
 }
 
-# Model versions and their earliest known retirement dates.
-# Source: https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-retirements
-# Verify this table stays current before each submission.
+# Model versions and their retirement dates from the Foundry retirement
+# schedule (checked 2026-10-26):
+#   https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/model-retirement-schedule
 MODEL_RETIREMENT_FLOOR = datetime(2026, 11, 10, 23, 59, 0, tzinfo=timezone.utc)
 
 KNOWN_RETIREMENTS: dict[str, datetime] = {
-    # gpt-4o version 2024-08-06 — retirement no earlier than 2025-10-01
-    # (well past 10 Nov 2026 judging deadline)
-    "gpt-4o:2024-08-06": datetime(2025, 10, 1, tzinfo=timezone.utc),
-    # gpt-4o-mini version 2024-07-18 — retirement no earlier than 2025-09-27
-    "gpt-4o-mini:2024-07-18": datetime(2025, 9, 27, tzinfo=timezone.utc),
+    "gpt-5.4:2026-03-05": datetime(2027, 9, 2, tzinfo=timezone.utc),
+    "gpt-5.4-mini:2026-03-17": datetime(2027, 9, 21, tzinfo=timezone.utc),
 }
 
 REQUIRED_DEPLOYMENTS = {
-    "msimulizi-explainer": "gpt-4o-mini:2024-07-18",
-    "msimulizi-narrator-sw": "gpt-4o:2024-08-06",
-    "msimulizi-narrator-en-fr": "gpt-4o-mini:2024-07-18",
-    "msimulizi-verifier": "gpt-4o-mini:2024-07-18",
+    "msimulizi-explainer": "gpt-5.4-mini:2026-03-17",
+    "msimulizi-narrator-sw": "gpt-5.4:2026-03-05",
+    "msimulizi-narrator-en-fr": "gpt-5.4-mini:2026-03-17",
+    "msimulizi-verifier": "gpt-5.4-mini:2026-03-17",
 }
+
+
+def _bearer_headers(scope: str) -> dict:
+    """Acquire a token through DefaultAzureCredential (az login / MI)."""
+    try:
+        from azure.identity import DefaultAzureCredential
+    except ImportError as exc:  # pragma: no cover - declared dependency
+        raise RuntimeError(
+            "azure-identity is required for managed-identity checks. "
+            "Run 'az login' or install azure-identity."
+        ) from exc
+
+    token = DefaultAzureCredential().get_token(scope).token
+    return {"Authorization": f"Bearer {token}"}
+
 
 
 def _get(url: str, headers: dict) -> dict:
@@ -69,11 +85,21 @@ def _get(url: str, headers: dict) -> dict:
 # Check 1: Swahili voices
 # ---------------------------------------------------------------------------
 
-def check_speech_voices(speech_endpoint: str, api_key: str) -> list[str]:
+def check_speech_voices(speech_endpoint: str, api_key: str = "") -> list[str]:
     """Return a list of error messages (empty = all good)."""
     errors: list[str] = []
-    url = f"{speech_endpoint.rstrip('/')}/cognitiveservices/voices/list"
-    headers = {"Ocp-Apim-Subscription-Key": api_key}
+    # Resource endpoints expose the voice catalogue under /tts; the
+    # region host (e.g. eastus2.tts.speech.microsoft.com) is not required.
+    url = f"{speech_endpoint.rstrip('/')}/tts/cognitiveservices/voices/list"
+
+    try:
+        headers = (
+            {"Ocp-Apim-Subscription-Key": api_key}
+            if api_key
+            else _bearer_headers("https://cognitiveservices.azure.com/.default")
+        )
+    except Exception as exc:
+        return [f"Speech authentication failed: {exc}"]
 
     try:
         voices = _get(url, headers)
@@ -103,33 +129,63 @@ def check_speech_voices(speech_endpoint: str, api_key: str) -> list[str]:
 # Check 2: Foundry model deployments and retirement dates
 # ---------------------------------------------------------------------------
 
-def check_foundry_deployments(foundry_endpoint: str, api_key: str) -> list[str]:
-    """Return a list of error messages (empty = all good)."""
+def _post(url: str, headers: dict, payload: dict) -> dict:
+    """Minimal HTTP POST using urllib (no external deps required)."""
+    import urllib.request
+
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={**headers, "Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return json.loads(resp.read().decode())
+
+
+def check_foundry_deployments(foundry_endpoint: str, api_key: str = "") -> list[str]:
+    """Return a list of error messages (empty = all good).
+
+    The Foundry data plane has no deployment-list endpoint. A tiny chat call
+    to each deployment both proves the deployment exists and validates which
+    model version is actually serving traffic.
+    """
     errors: list[str] = []
-    url = f"{foundry_endpoint.rstrip('/')}/openai/deployments?api-version=2024-02-01"
-    headers = {"api-key": api_key}
+    url = f"{foundry_endpoint.rstrip('/')}/openai/v1/chat/completions"
 
     try:
-        data = _get(url, headers)
+        headers = (
+            {"api-key": api_key}
+            if api_key
+            else _bearer_headers("https://ai.azure.com/.default")
+        )
     except Exception as exc:
-        return [f"Foundry API unreachable: {exc}"]
-
-    deployed: dict[str, dict] = {d["id"]: d for d in data.get("value", [])}
+        return [f"Foundry authentication failed: {exc}"]
 
     for deployment_name, model_key in REQUIRED_DEPLOYMENTS.items():
-        if deployment_name not in deployed:
-            errors.append(f"Deployment not found: {deployment_name}")
+        payload = {
+            "model": deployment_name,
+            "messages": [
+                {"role": "user", "content": "Reply with the single word OK."}
+            ],
+            "reasoning_effort": "none",
+            "max_completion_tokens": 8,
+        }
+
+        try:
+            data = _post(url, headers, payload)
+        except Exception as exc:
+            errors.append(f"Deployment {deployment_name}: chat call failed: {exc}")
             continue
 
-        d = deployed[deployment_name]
-        model_name = d.get("model", {}).get("name", "")
-        model_version = d.get("model", {}).get("version", "")
-        actual_key = f"{model_name}:{model_version}"
+        response_model = str(data.get("model", ""))
+        expected_model = model_key.replace(":", "-")
 
-        if actual_key != model_key:
+        if not response_model.lower().startswith(expected_model.lower()):
             errors.append(
                 f"Deployment {deployment_name}: expected model {model_key}, "
-                f"got {actual_key}"
+                f"but the response reports {response_model or 'no model'}"
             )
             continue
 
@@ -137,7 +193,7 @@ def check_foundry_deployments(foundry_endpoint: str, api_key: str) -> list[str]:
         if retirement_date is None:
             errors.append(
                 f"Deployment {deployment_name}: retirement date unknown for model {model_key}. "
-                "Manually verify at https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/model-retirements"
+                "Manually verify at https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/model-retirement-schedule"
             )
         elif retirement_date < MODEL_RETIREMENT_FLOOR:
             errors.append(
@@ -158,15 +214,23 @@ def check_foundry_deployments(foundry_endpoint: str, api_key: str) -> list[str]:
 # ---------------------------------------------------------------------------
 
 def main() -> int:
-    speech_endpoint = os.environ.get("SPEECH_ENDPOINT", "")
-    speech_key = os.environ.get("SPEECH_API_KEY", "")
+    speech_endpoint = (
+        os.environ.get("SPEECH_ENDPOINT")
+        or os.environ.get("AZURE_SPEECH_ENDPOINT")
+        or ""
+    )
+    speech_key = (
+        os.environ.get("SPEECH_API_KEY")
+        or os.environ.get("AZURE_SPEECH_KEY")
+        or ""
+    )
     foundry_endpoint = os.environ.get("FOUNDRY_ENDPOINT", "")
     foundry_key = os.environ.get("FOUNDRY_API_KEY", "")
 
     if not speech_endpoint or not foundry_endpoint:
         print(
             "ERROR: SPEECH_ENDPOINT and FOUNDRY_ENDPOINT must be set.\n"
-            "Run 'azd up' first or export them manually.",
+            "Run 'azd up' first, then export the azd outputs; or set them manually.",
             file=sys.stderr,
         )
         return 1
@@ -174,20 +238,14 @@ def main() -> int:
     all_errors: list[str] = []
 
     print("\n── Checking Azure AI Speech Swahili voices ──")
-    if speech_key:
-        errs = check_speech_voices(speech_endpoint, speech_key)
-    else:
-        print("  SPEECH_API_KEY not set — skipping voice check (set after deployment)")
-        errs = []
-    all_errors.extend(errs)
+    auth_mode = "API key" if speech_key else "managed identity / az login"
+    print(f"  Authentication: {auth_mode}")
+    all_errors.extend(check_speech_voices(speech_endpoint, speech_key))
 
     print("\n── Checking Foundry model deployments ──")
-    if foundry_key:
-        errs = check_foundry_deployments(foundry_endpoint, foundry_key)
-    else:
-        print("  FOUNDRY_API_KEY not set — skipping deployment check (set after deployment)")
-        errs = []
-    all_errors.extend(errs)
+    auth_mode = "API key" if foundry_key else "managed identity / az login"
+    print(f"  Authentication: {auth_mode}")
+    all_errors.extend(check_foundry_deployments(foundry_endpoint, foundry_key))
 
     if all_errors:
         print("\n── FAILURES ──", file=sys.stderr)
