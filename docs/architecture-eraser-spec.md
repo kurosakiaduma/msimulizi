@@ -13,7 +13,9 @@ observability, live sequence, deployment, and current constraints.
 
 Paste the block below into [eraser.io](https://app.eraser.io) → New Diagram →
 Cloud Architecture. Recommended theme: **Dark**. Export as PNG at 2× for the
-pitch deck.
+pitch deck. The current full export is
+[`architecture-overview.png`](architecture-overview.png); this compact block is
+kept for existing slide links.
 
 ---
 

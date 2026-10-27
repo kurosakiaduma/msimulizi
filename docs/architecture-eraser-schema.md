@@ -27,6 +27,10 @@ existing slide links; use this schema for the full diagram.
 4. Do not add a deployed CI arrow, a multi-replica backend, a native-quality
    score, or a real club/player mark. Those are not in the schema.
 
+The current rendered export is [`architecture-overview.png`](architecture-overview.png)
+(3786 × 2490). It is linked from [`README.md`](../README.md) and
+[`architecture.md`](architecture.md).
+
 The schema is intentionally explicit: if a component or edge is not listed
 here, do not infer it from a generic Azure reference architecture.
 

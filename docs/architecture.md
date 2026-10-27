@@ -24,6 +24,14 @@ pitch-deck block is in [`architecture-eraser-spec.md`](architecture-eraser-spec.
 
 ---
 
+## Visual overview
+
+[![Msimulizi architecture overview](architecture-overview.png)](architecture-overview.png)
+
+*Current Eraser.io export of the deployed components and paths. The Mermaid diagrams below remain the canonical engineering source; the image is an export, not a replacement for the review-gate and runtime annotations in this document.*
+
+---
+
 ## 1. System context
 
 ```mermaid

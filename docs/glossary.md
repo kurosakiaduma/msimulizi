@@ -6,7 +6,9 @@ architecture without reading every module first.
 
 For the submission plan, see [`demo-guide.md`](demo-guide.md). For the component
 and runtime diagrams, see [`architecture.md`](architecture.md); for the
-Eraser.io schema, see
+rendered overview, see
+[`architecture-overview.png`](architecture-overview.png); for the Eraser.io
+schema, see
 [`architecture-eraser-schema.md`](architecture-eraser-schema.md). For the human
 review protocol, see [`native-speaker-review.md`](native-speaker-review.md).
 For the product scope, see [`msimulizi-project-brief.md`](msimulizi-project-brief.md).

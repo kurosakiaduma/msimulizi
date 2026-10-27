@@ -70,6 +70,12 @@ The backend is deliberately layered: the generator and adapters are swappable, t
 
 The full diagram set — system context, backend pipeline and fallback paths, frontend component flow, persistence, Azure infrastructure, observability, live sequence, deployment, and current constraints — is in [`docs/architecture.md`](docs/architecture.md). The complete Eraser.io input and generation brief are in [`docs/architecture-eraser-schema.md`](docs/architecture-eraser-schema.md).
 
+### Eraser.io export
+
+[![Msimulizi architecture overview](docs/architecture-overview.png)](docs/architecture-overview.png)
+
+*Current 2× Eraser.io export of the deployed architecture. The Mermaid diagrams in [`docs/architecture.md`](docs/architecture.md) remain the canonical source for the caption-first ordering, one-replica backend, and the 0/56 native-review gate.*
+
 ## Quick start (offline)
 
 Prerequisites: Python 3.13+, Node.js 24+.
@@ -153,6 +159,7 @@ All match data is synthetic and generated within the hackathon window. Cards and
 - [`docs/demo-guide.md`](docs/demo-guide.md) — current video script, pitch outline, screenshots, and submission checklist.
 - [`docs/native-speaker-review.md`](docs/native-speaker-review.md) — review rubric and sign-off.
 - [`docs/architecture.md`](docs/architecture.md) — full architecture and runtime diagrams.
+- [`docs/architecture-overview.png`](docs/architecture-overview.png) — rendered full architecture overview (Eraser.io export).
 - [`docs/architecture-eraser-schema.md`](docs/architecture-eraser-schema.md) — complete Eraser.io diagram schema and generation brief.
 - [`docs/architecture-eraser-spec.md`](docs/architecture-eraser-spec.md) — compact pitch-deck export (kept for slide links).
 
